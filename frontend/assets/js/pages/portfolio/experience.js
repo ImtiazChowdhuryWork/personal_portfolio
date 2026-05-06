@@ -34,7 +34,7 @@ const ExperienceSection = (() => {
     const period = exp.end_date ? `${exp.start_date} — ${exp.end_date}` : exp.start_date;
 
     return `
-      <div class="timeline-item">
+      <div class="timeline-item scroll-animation" data-animation="fade_from_bottom">
         <div class="timeline-header">
           <div class="timeline-company-info">
             <h3 class="timeline-role">${exp.role}</h3>

@@ -30,7 +30,7 @@ const ServicesSection = (() => {
     if (!container) return;
 
     container.innerHTML = services.map(s => `
-      <div class="card">
+      <div class="card scroll-animation" data-animation="fade_from_bottom">
         <div class="card-icon">${s.icon}</div>
         <h3 class="card-title">${s.title}</h3>
         <p class="card-desc">${s.desc}</p>
