@@ -14,7 +14,7 @@ const GithubSection = (() => {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="github-stats-grid">
+      <div class="github-stats-grid scroll-animation" data-animation="fade_from_bottom">
         <div class="github-stat-card">
           <div class="github-stat-icon">📦</div>
           <div class="github-stat-value">20+</div>
@@ -37,7 +37,7 @@ const GithubSection = (() => {
         </div>
       </div>
 
-      <div class="github-embeds">
+      <div class="github-embeds scroll-animation" data-animation="fade_from_bottom">
         <img class="github-embed-img"
           src="https://github-readme-stats.vercel.app/api?username=${GITHUB_USERNAME}&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0a0a0f&title_color=54c5f8&icon_color=54c5f8&text_color=e8e8f0"
           alt="GitHub Stats"
@@ -48,7 +48,7 @@ const GithubSection = (() => {
           onerror="this.style.display='none';">
       </div>
 
-      <div class="github-link">
+      <div class="github-link scroll-animation" data-animation="fade_from_bottom">
         <a href="https://github.com/${GITHUB_USERNAME}" target="_blank" rel="noopener" class="btn btn-outline">
           View GitHub Profile →
         </a>

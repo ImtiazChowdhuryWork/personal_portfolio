@@ -15,7 +15,10 @@
   <!-- ─── Google Fonts ─────────────────────────────────────── -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- ─── Phosphor Icons — clean minimal icon set ──────────── -->
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 
   <!-- ─── Swiper.js (App Showcase slider) ─────────────────── -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
@@ -75,56 +78,94 @@
   <!-- ──────────────────────────────────────────────────────────
        FIXED LEFT SIDEBAR (desktop >= 1024px)
   ─────────────────────────────────────────────────────────── -->
+  <!-- ── LEFT SIDEBAR: Drake exact layout ────────────────────────
+       Photo → Name+Designation row → email/location → copyright
+       → social icons (50px circles) → full-width Hire Me button -->
   <aside class="sidebar">
 
-    <!-- Profile photo or initials placeholder -->
-    <div class="sidebar-avatar-placeholder">CI</div>
+    <!-- Profile photo (rounded rect, like Drake's me.jpg) -->
+    <img
+      id="sidebar-photo"
+      class="sidebar-avatar"
+      src="/assets/images/profile/placeholder.jpg"
+      alt="Chowdhury Md. Imtiazul Islam"
+      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+    >
+    <div class="sidebar-avatar-placeholder" style="display:none">CI</div>
 
-    <!-- Name & title -->
-    <div class="sidebar-name" id="sidebar-name">Chowdhury Md. Imtiazul Islam</div>
-    <div class="sidebar-title">Flutter Developer</div>
-
-    <!-- Availability badge with pulsing green dot -->
-    <div class="sidebar-badge">Open to Work</div>
-
-    <!-- Contact info items -->
-    <div class="sidebar-info">
-      <div class="sidebar-info-item">
-        <span>✉</span>
-        <span id="sidebar-email">work.imtiazchowdhury@gmail.com</span>
-      </div>
-      <div class="sidebar-info-item">
-        <span>📍</span>
-        <span id="sidebar-location">Dhaka, Bangladesh</span>
-      </div>
-      <div class="sidebar-info-item">
-        <span>💼</span>
-        <span>2.5+ Years Experience</span>
-      </div>
+    <!-- Name on left, designation on right — Drake sidebar-header -->
+    <div class="sidebar-header">
+      <h2 class="sidebar-name" id="sidebar-name">Chowdhury Md. Imtiazul Islam</h2>
+      <div class="sidebar-designation">Flutter<br>Developer</div>
     </div>
 
-    <!-- Social links -->
+    <!-- Address / contact info -->
+    <div class="sidebar-address">
+      <p id="sidebar-email">work.imtiazchowdhury@gmail.com</p>
+      <p id="sidebar-location">Based in Dhaka, Bangladesh</p>
+    </div>
+
+    <!-- Copyright -->
+    <div class="sidebar-copy">© 2025 Imtiaz. All Rights Reserved.</div>
+
+    <!-- Social profile icons — Drake: 50×50px circles, gap 8px -->
     <div class="sidebar-social">
-      <a href="https://github.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="GitHub">GH</a>
-      <a href="https://linkedin.com/in/imtiazchowdhury" target="_blank" rel="noopener" aria-label="LinkedIn">LI</a>
-      <a href="https://twitter.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="Twitter">TW</a>
-      <a href="https://instagram.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="Instagram">IG</a>
+      <a href="https://github.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="GitHub">
+        <i class="ph ph-github-logo"></i>
+      </a>
+      <a href="https://linkedin.com/in/imtiazchowdhury" target="_blank" rel="noopener" aria-label="LinkedIn">
+        <i class="ph ph-linkedin-logo"></i>
+      </a>
+      <a href="https://twitter.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="Twitter">
+        <i class="ph ph-twitter-logo"></i>
+      </a>
+      <a href="https://instagram.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="Instagram">
+        <i class="ph ph-instagram-logo"></i>
+      </a>
     </div>
 
-    <!-- Navigation links -->
-    <nav class="sidebar-nav">
-      <a href="#hero">🏠 Home</a>
-      <a href="#about">👤 About</a>
-      <a href="#tech-stack">⚡ Tech Stack</a>
-      <a href="#architecture">🏗 Architecture</a>
-      <a href="#apps-showcase">📱 Apps</a>
-      <a href="#experience">💼 Experience</a>
-      <a href="#github-stats">🐙 GitHub</a>
-      <a href="#services">🚀 Services</a>
-      <a href="#contact">✉ Contact</a>
-    </nav>
+    <!-- Full-width Hire Me button at bottom — Drake's theme-btn -->
+    <a href="#contact" class="sidebar-hire-btn">Hire Me!</a>
 
   </aside>
+
+  <!-- ── RIGHT-SIDE ICON NAVIGATION — Drake style ──────────────
+       Fixed vertical pill card on the right, icon-only links
+       with tooltip labels appearing on the LEFT on hover.      -->
+  <nav class="right-menu" id="right-menu">
+    <a href="#hero" class="active">
+      <i class="ph ph-house"></i>
+      <span class="menu-label">Home</span>
+    </a>
+    <a href="#about">
+      <i class="ph ph-user"></i>
+      <span class="menu-label">About</span>
+    </a>
+    <a href="#experience">
+      <i class="ph ph-file-text"></i>
+      <span class="menu-label">Resume</span>
+    </a>
+    <a href="#services">
+      <i class="ph ph-gear"></i>
+      <span class="menu-label">Services</span>
+    </a>
+    <a href="#tech-stack">
+      <i class="ph ph-code"></i>
+      <span class="menu-label">Skills</span>
+    </a>
+    <a href="#apps-showcase-wrapper">
+      <i class="ph ph-briefcase"></i>
+      <span class="menu-label">Portfolio</span>
+    </a>
+    <a href="#github-stats">
+      <i class="ph ph-github-logo"></i>
+      <span class="menu-label">GitHub</span>
+    </a>
+    <a href="#contact">
+      <i class="ph ph-envelope-simple"></i>
+      <span class="menu-label">Contact</span>
+    </a>
+  </nav>
 
   <!-- ──────────────────────────────────────────────────────────
        MAIN SCROLLABLE CONTENT
@@ -132,76 +173,78 @@
   <main class="main-content">
 
     <!-- ════════════════════════════════════════════════════════
-         SECTION 1 — HERO
+         SECTION 1 — HERO  (Drake exact layout)
+         Layout: [subtitle pill] → [h1 + rotating badge row]
+                 → [p bio] → [cta buttons] → [facts/stats]
     ════════════════════════════════════════════════════════ -->
     <section id="hero">
 
-      <!-- Three.js / Vanta.js animated background -->
-      <div id="hero-bg"></div>
-
-      <!-- Rotating badge (top right) -->
-      <div class="rotating-badge">
-        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <path id="circle-text" d="M 60,60 m -45,0 a 45,45 0 1,1 90,0 a 45,45 0 1,1 -90,0"/>
-          </defs>
-          <text font-size="12" font-family="Inter, sans-serif" fill="#54c5f8" letter-spacing="3" font-weight="600">
-            <textPath href="#circle-text">Flutter Developer • Open to Work •</textPath>
-          </text>
-        </svg>
-        <div class="rotating-badge-icon">💙</div>
-      </div>
-
       <div class="hero-content">
-        <div class="hero-greeting">Hey, I'm Imtiaz</div>
 
-        <h1 class="hero-title">
-          Flutter Developer<br>
-          building apps that live on<br>
-          <span class="highlight">App Store & Play Store</span>
-        </h1>
+        <!-- Subtitle pill — Drake style bordered pill above heading -->
+        <div class="subtitle scroll-animation" data-animation="fade_from_bottom">
+          <span>👋</span> Say Hi from Imtiaz, Flutter Developer
+        </div>
 
-        <p class="hero-bio" id="hero-short-bio">
-          2.5+ years of experience shipping production-ready cross-platform apps.
-          5+ live apps on iOS and Android. Available immediately for remote or onsite roles.
+        <!-- Heading + rotating badge side by side (Drake layout) -->
+        <div class="hero-top-row scroll-animation" data-animation="fade_from_bottom">
+          <div class="hero-text-block">
+            <!-- h1: 78px, font-weight 300, line-height 90px -->
+            <h1 class="hero-title">
+              I build and ship<br>
+              beautiful apps to<br>
+              <span class="highlight">App Store</span> &amp;
+              <span class="highlight">Play Store.</span>
+            </h1>
+          </div>
+
+          <!-- Rotating badge — 175×175px circle, rotates, links to portfolio -->
+          <a href="#apps-showcase" class="rotating-badge" aria-label="View my apps">
+            <svg viewBox="0 0 175 175" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <path id="badge-circle"
+                  d="M 87.5,87.5 m -70,0 a 70,70 0 1,1 140,0 a 70,70 0 1,1 -140,0"/>
+              </defs>
+              <text font-size="11" font-family="Inter, sans-serif"
+                    fill="#54c5f8" letter-spacing="5.5" font-weight="500">
+                <textPath href="#badge-circle">
+                  Flutter Dev • Open to Work •
+                </textPath>
+              </text>
+            </svg>
+            <span class="rotating-badge-icon">💙</span>
+          </a>
+        </div>
+
+        <!-- Short bio below heading -->
+        <p class="hero-bio scroll-animation" data-animation="fade_from_bottom" id="hero-short-bio">
+          Flutter Developer with 2.5+ years shipping production-ready
+          cross-platform apps for iOS and Android. Available immediately
+          for remote or onsite roles.
         </p>
 
-        <!-- Two CTA buttons — both scroll to the contact section -->
-        <div class="hero-cta">
-          <a href="#contact" class="btn btn-primary btn-lg">💼 Hire Me for a Job</a>
-          <a href="#contact" class="btn btn-outline btn-lg">🚀 Hire Me for Freelance</a>
+        <!-- CTA buttons: pill-shaped, uppercase, 2px border -->
+        <div class="hero-cta scroll-animation" data-animation="fade_from_bottom">
+          <a href="#contact" class="btn">Hire Me for a Job</a>
+          <a href="#contact" class="btn btn-outline">Hire for Freelance</a>
         </div>
 
-        <!-- Animated stat counters -->
-        <div class="hero-stats">
-          <div class="hero-stat">
-            <span class="hero-stat-value">
-              <span data-count="2" data-suffix="+" data-decimal="true">2.5+</span>
-            </span>
-            <span class="hero-stat-label">Years Experience</span>
+        <!-- Facts / stats: 72px numbers, 100px gap, margin-top 55px -->
+        <div class="hero-stats scroll-animation" data-animation="fade_from_bottom">
+          <div>
+            <span class="hero-stat-value" data-count="2" data-suffix="+" data-decimal="true">2.5+</span>
+            <span class="hero-stat-label">Years of<br>Experience</span>
           </div>
-          <div class="hero-stat-divider"></div>
-          <div class="hero-stat">
-            <span class="hero-stat-value">
-              <span data-count="5" data-suffix="+">0+</span>
-            </span>
-            <span class="hero-stat-label">Apps Shipped</span>
+          <div>
+            <span class="hero-stat-value" data-count="5" data-suffix="+">0+</span>
+            <span class="hero-stat-label">Apps on App Store<br>&amp; Play Store</span>
           </div>
-          <div class="hero-stat-divider"></div>
-          <div class="hero-stat">
-            <span class="hero-stat-value">
-              <span data-count="2" data-suffix="">0</span>
-            </span>
-            <span class="hero-stat-label">Platforms (iOS & Android)</span>
-          </div>
-          <div class="hero-stat-divider"></div>
-          <div class="hero-stat">
-            <span class="hero-stat-value">
-              <span data-count="10" data-suffix="+">0+</span>
-            </span>
-            <span class="hero-stat-label">Technologies</span>
+          <div>
+            <span class="hero-stat-value" data-count="10" data-suffix="+">0+</span>
+            <span class="hero-stat-label">Technologies<br>Mastered</span>
           </div>
         </div>
+
       </div>
 
     </section>
@@ -210,12 +253,12 @@
          SECTION 2 — ABOUT
     ════════════════════════════════════════════════════════ -->
     <section id="about">
-      <div class="section-label">About Me</div>
-      <h2 class="section-title">Shipping real apps<br>to real stores.</h2>
+      <div class="section-label scroll-animation" data-animation="fade_from_bottom">About Me</div>
+      <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">Shipping real apps<br>to real stores.</h2>
 
       <div class="about-layout">
         <!-- Left column: profile photo -->
-        <div class="about-photo-wrapper" data-aos="fade-right">
+        <div class="about-photo-wrapper scroll-animation" data-animation="fade_from_left">
           <!-- Replace src with your real photo path -->
           <img
             id="about-photo"
@@ -229,7 +272,7 @@
         </div>
 
         <!-- Right column: story text + info cards -->
-        <div data-aos="fade-left">
+        <div class="scroll-animation" data-animation="fade_from_right">
           <p id="about-bio" style="color:var(--color-text);line-height:1.8;margin-bottom:1.5rem;font-size:1.05rem">
             Flutter Developer with 2.5+ years of experience building and shipping production-ready
             cross-platform mobile apps for iOS and Android. I've delivered 5+ live apps on the
@@ -246,7 +289,7 @@
           </a>
 
           <!-- Info cards grid -->
-          <div class="about-info-cards">
+          <div class="about-info-cards scroll-animation" data-animation="fade_from_bottom">
             <div class="about-info-card">
               <div class="about-info-label">Location</div>
               <div class="about-info-value">📍 Dhaka, Bangladesh</div>
@@ -272,9 +315,9 @@
          SECTION 3 — TECH STACK
     ════════════════════════════════════════════════════════ -->
     <section id="tech-stack">
-      <div class="section-label">Tech Stack</div>
-      <h2 class="section-title">Technologies I work with</h2>
-      <p class="section-subtitle">
+      <div class="section-label scroll-animation" data-animation="fade_from_bottom">Tech Stack</div>
+      <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">Technologies I work with</h2>
+      <p class="section-subtitle scroll-animation" data-animation="fade_from_bottom">
         From the Dart language to payment gateways — the full stack of tools I use to ship apps.
       </p>
       <div id="tech-stack-content" style="margin-top:3rem">
@@ -286,12 +329,12 @@
          SECTION 4 — ARCHITECTURE EXPERTISE
     ════════════════════════════════════════════════════════ -->
     <section id="architecture">
-      <div class="section-label">Architecture</div>
-      <h2 class="section-title">I build apps that scale</h2>
-      <p class="section-subtitle">
+      <div class="section-label scroll-animation" data-animation="fade_from_bottom">Architecture</div>
+      <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">I build apps that scale</h2>
+      <p class="section-subtitle scroll-animation" data-animation="fade_from_bottom">
         Production apps need more than working code — they need structure that survives growth.
       </p>
-      <div id="architecture-grid" style="margin-top:3rem"></div>
+      <div id="architecture-grid" class="scroll-animation" data-animation="fade_from_bottom" style="margin-top:3rem"></div>
     </section>
 
     <!-- ════════════════════════════════════════════════════════
@@ -299,25 +342,25 @@
     ════════════════════════════════════════════════════════ -->
     <section id="apps-showcase-wrapper">
       <div style="padding:4rem 3rem 2rem">
-        <div class="section-label">Apps Showcase</div>
-        <h2 class="section-title">Live on App Store & Play Store</h2>
-        <p class="section-subtitle">
+        <div class="section-label scroll-animation" data-animation="fade_from_bottom">Apps Showcase</div>
+        <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">Live on App Store & Play Store</h2>
+        <p class="section-subtitle scroll-animation" data-animation="fade_from_bottom">
           Real apps, real users, real stores. Swipe to explore each one.
         </p>
       </div>
-      <div id="apps-showcase"></div>
+      <div id="apps-showcase" class="scroll-animation" data-animation="fade_from_bottom"></div>
     </section>
 
     <!-- ════════════════════════════════════════════════════════
          SECTION 6 — EXPERIENCE TIMELINE
     ════════════════════════════════════════════════════════ -->
     <section id="experience">
-      <div class="section-label">Experience</div>
-      <h2 class="section-title">My journey so far</h2>
-      <p class="section-subtitle">
+      <div class="section-label scroll-animation" data-animation="fade_from_bottom">Experience</div>
+      <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">My journey so far</h2>
+      <p class="section-subtitle scroll-animation" data-animation="fade_from_bottom">
         Where I've worked, what I built, and what I learned.
       </p>
-      <div class="timeline" id="experience-timeline" style="margin-top:3rem">
+      <div class="timeline" id="experience-timeline" style="margin-top:3rem" class="scroll-animation" data-animation="fade_from_bottom">
         <div style="color:var(--color-text-muted)">Loading...</div>
       </div>
     </section>
@@ -326,29 +369,29 @@
          SECTION 7 — GITHUB STATS
     ════════════════════════════════════════════════════════ -->
     <section id="github-stats">
-      <div class="section-label">GitHub</div>
-      <h2 class="section-title">My open source activity</h2>
-      <div id="github-content" style="margin-top:3rem"></div>
+      <div class="section-label scroll-animation" data-animation="fade_from_bottom">GitHub</div>
+      <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">My open source activity</h2>
+      <div id="github-content" style="margin-top:3rem" class="scroll-animation" data-animation="fade_from_bottom"></div>
     </section>
 
     <!-- ════════════════════════════════════════════════════════
          SECTION 8 — WHAT I OFFER (Services)
     ════════════════════════════════════════════════════════ -->
     <section id="services">
-      <div class="section-label">What I Offer</div>
-      <h2 class="section-title">How I can help you</h2>
-      <div id="services-grid" class="services-grid" style="margin-top:3rem"></div>
+      <div class="section-label scroll-animation" data-animation="fade_from_bottom">What I Offer</div>
+      <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">How I can help you</h2>
+      <div id="services-grid" class="services-grid scroll-animation" data-animation="fade_from_bottom" style="margin-top:3rem"></div>
     </section>
 
     <!-- ════════════════════════════════════════════════════════
          SECTION 9 — CONTACT
     ════════════════════════════════════════════════════════ -->
     <section id="contact">
-      <div class="section-label">Contact</div>
-      <h2 class="section-title">Let's work together</h2>
+      <div class="section-label scroll-animation" data-animation="fade_from_bottom">Contact</div>
+      <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">Let's work together</h2>
 
       <!-- Two contact intent cards -->
-      <div class="contact-layout" style="margin-top:3rem">
+      <div class="contact-layout scroll-animation" data-animation="fade_from_bottom" style="margin-top:3rem">
         <div class="contact-card">
           <div class="contact-card-icon">💼</div>
           <h3 class="contact-card-title">Hire Me for a Job</h3>
@@ -375,7 +418,7 @@
       </div>
 
       <!-- Contact form -->
-      <div class="contact-form-wrapper">
+      <div class="contact-form-wrapper scroll-animation" data-animation="fade_from_bottom">
         <h3 class="contact-form-title">Send me a message</h3>
         <form id="contact-form" novalidate>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
@@ -410,7 +453,7 @@
       </div>
 
       <!-- Download CV -->
-      <div style="text-align:center;margin-top:3rem">
+      <div class="scroll-animation" data-animation="fade_from_bottom" style="text-align:center;margin-top:3rem">
         <a href="/assets/images/profile/cv.pdf" download class="btn btn-outline btn-lg">
           📄 Download My CV
         </a>
@@ -421,10 +464,10 @@
          FOOTER
     ════════════════════════════════════════════════════════ -->
     <footer>
-      <div class="footer-name">Chowdhury Md. Imtiazul Islam</div>
-      <div class="footer-tagline">Flutter Developer · Dhaka, Bangladesh</div>
+      <div class="footer-name scroll-animation" data-animation="fade_from_bottom">Chowdhury Md. Imtiazul Islam</div>
+      <div class="footer-tagline scroll-animation" data-animation="fade_from_bottom">Flutter Developer · Dhaka, Bangladesh</div>
 
-      <div class="footer-social">
+      <div class="footer-social scroll-animation" data-animation="fade_from_bottom">
         <a href="https://github.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="GitHub">GH</a>
         <a href="https://linkedin.com/in/imtiazchowdhury" target="_blank" rel="noopener" aria-label="LinkedIn">LI</a>
         <a href="https://twitter.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="Twitter">TW</a>
@@ -443,12 +486,9 @@
      SCRIPTS — loaded at end of body for best page load performance
 ═══════════════════════════════════════════════════════════ -->
 
-<!-- Three.js + Vanta.js for animated hero background -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
-
 <!-- Swiper.js for the App Showcase slider -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
 
 <!-- ─── Core utilities (must load before page scripts) ─── -->
 <script src="/assets/js/core/api.js"></script>
@@ -458,6 +498,7 @@
 <script src="/assets/js/core/validator.js"></script>
 
 <!-- ─── Reusable components ──────────────────────────────── -->
+<script src="/assets/js/components/ScrollAnimations.js"></script>
 <script src="/assets/js/components/Toast.js"></script>
 <script src="/assets/js/components/Sidebar.js"></script>
 <script src="/assets/js/components/Navbar.js"></script>

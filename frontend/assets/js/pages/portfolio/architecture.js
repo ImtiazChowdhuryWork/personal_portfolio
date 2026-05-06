@@ -84,9 +84,10 @@ RemoteDS  LocalDS
   }
 
   function buildCard(arch) {
+    // scroll-animation added so each card animates in when scrolled to
     const projects = arch.projects.map(p => `<span class="arch-project-tag">${p}</span>`).join('');
     return `
-      <div class="arch-card">
+      <div class="arch-card scroll-animation" data-animation="fade_from_bottom">
         <div class="arch-card-header">
           <div class="arch-card-num">${arch.num}</div>
           <h3 class="arch-card-name">${arch.name}</h3>

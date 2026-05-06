@@ -18,7 +18,7 @@ const Sidebar = (() => {
    */
   function init() {
     const sections = document.querySelectorAll('section[id]');
-    const navLinks = document.querySelectorAll('.sidebar-nav a, .mobile-menu a');
+    const navLinks = document.querySelectorAll('.right-menu a, .mobile-menu a');
 
     if (!sections.length || !navLinks.length) return;
 

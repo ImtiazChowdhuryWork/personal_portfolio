@@ -95,7 +95,8 @@ const TechStackSection = (() => {
 
   function createGroupEl(cat, skills) {
     const div = document.createElement('div');
-    div.className = 'tech-group';
+    div.className = 'tech-group scroll-animation';
+    div.dataset.animation = 'fade_from_bottom';
     div.innerHTML = `
       <h4 class="tech-group-title">${categoryLabels[cat] || cat}</h4>
       <div data-skill-cat="${cat}"></div>

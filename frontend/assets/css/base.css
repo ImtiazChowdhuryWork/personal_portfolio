@@ -165,12 +165,30 @@ input, textarea, select, button {
   line-height: var(--lh-relaxed);
 }
 
-/* ─── Animation utilities ──────────────────────────────────────*/
-[data-aos] { opacity: 0; transition: opacity 0.6s ease, transform 0.6s ease; }
-[data-aos="fade-up"] { transform: translateY(30px); }
-[data-aos="fade-right"] { transform: translateX(-30px); }
-[data-aos="fade-left"] { transform: translateX(30px); }
-[data-aos].aos-animate { opacity: 1; transform: none; }
+/* ─── Scroll animations ────────────────────────────────────────
+ * Elements start hidden/offset and transition to their natural
+ * position when they scroll into view. cubic-bezier matches
+ * GSAP power4.out — fast start, smooth decelerate like Drake.  */
+.scroll-animation {
+  opacity: 0;
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Default: fade up from below */
+.scroll-animation,
+[data-animation="fade_from_bottom"] { transform: translateY(80px); }
+
+[data-animation="fade_from_top"]   { transform: translateY(-80px); }
+[data-animation="fade_from_left"]  { transform: translateX(-80px); }
+[data-animation="fade_from_right"] { transform: translateX(80px); }
+[data-animation="fade_in"]         { transform: none; }
+
+/* When JS adds .is-visible the element animates to its natural position */
+.scroll-animation.is-visible {
+  opacity: 1;
+  transform: translate(0, 0);
+}
 
 /* ─── Gradient text helper ─────────────────────────────────────*/
 .gradient-text {
