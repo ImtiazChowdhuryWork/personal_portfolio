@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — Imtiaz Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-card {
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2xl);
+      padding: 3rem;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+    }
+    .login-logo { font-size: 2.5rem; text-align: center; margin-bottom: 0.5rem; }
+    .login-title {
+      text-align: center;
+      font-size: var(--fs-2xl);
+      font-weight: var(--fw-black);
+      color: var(--color-heading);
+      margin-bottom: 0.5rem;
+    }
+    .login-sub { text-align: center; color: var(--color-text-muted); font-size: var(--fs-sm); margin-bottom: 2rem; }
+  </style>
+</head>
+<body>
+<div class="login-card">
+  <div class="login-logo">💙</div>
+  <h1 class="login-title">Admin Login</h1>
+  <p class="login-sub">Portfolio Dashboard</p>
+
+  <form id="login-form" novalidate>
+    <div class="form-group">
+      <label class="form-label" for="email">Email</label>
+      <input class="form-control" id="email" name="email" type="email" placeholder="admin@imtiaz.dev" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="password">Password</label>
+      <input class="form-control" id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="login-error" style="display:none;color:var(--color-error);font-size:var(--fs-sm);margin-bottom:1rem;padding:0.75rem;background:rgba(244,67,54,0.1);border-radius:8px;border:1px solid rgba(244,67,54,0.2)"></div>
+    <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-btn">Sign In</button>
+  </form>
+
+  <p style="text-align:center;margin-top:1.5rem;font-size:var(--fs-sm)">
+    <a href="/" style="color:var(--color-text-muted)">← Back to Portfolio</a>
+  </p>
+</div>
+
+<script src="/assets/js/core/api.js"></script>
+<script src="/assets/js/core/auth.js"></script>
+<script src="/assets/js/core/validator.js"></script>
+<script>
+  // Redirect to dashboard if already logged in
+  if (Auth.isLoggedIn()) window.location.href = '/dashboard';
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorEl = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+
+    const { valid, errors } = Validator.validate(
+      { email: { required: true, email: true }, password: { required: true } },
+      { email, password }
+    );
+
+    if (!valid) {
+      errorEl.textContent = Object.values(errors)[0];
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+    errorEl.style.display = 'none';
+
+    try {
+      await Auth.login(email, password);
+      window.location.href = '/dashboard';
+    } catch (err) {
+      errorEl.textContent = err.message || 'Login failed. Please check your credentials.';
+      errorEl.style.display = 'block';
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

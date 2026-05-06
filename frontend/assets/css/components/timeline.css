@@ -1,0 +1,174 @@
+/* ============================================================
+ * FILE: components/timeline.css
+ * WHAT IT STYLES:  Experience timeline in the Experience section
+ * WHERE USED:      experience.js renders .timeline-item elements
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Timeline wrapper ─────────────────────────────────────────*/
+.timeline {
+  position: relative;
+  padding-left: var(--space-10);
+}
+
+/* The vertical line running down the left side */
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--color-primary), transparent);
+}
+
+/* ─── Single timeline entry ────────────────────────────────────*/
+.timeline-item {
+  position: relative;
+  margin-bottom: var(--space-12);
+  padding: var(--space-6);
+  background: var(--color-bg-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-base);
+}
+
+.timeline-item:hover {
+  border-color: var(--color-border-active);
+  box-shadow: var(--shadow-md);
+}
+
+/* The dot on the timeline line */
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-10) - 5px);
+  top: var(--space-6);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 3px solid var(--color-bg);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+/* ─── Timeline header ──────────────────────────────────────────*/
+.timeline-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.timeline-company-info {
+  flex: 1;
+}
+
+.timeline-role {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-heading);
+  margin-bottom: var(--space-1);
+}
+
+.timeline-company {
+  font-size: var(--fs-base);
+  color: var(--color-primary);
+  font-weight: var(--fw-medium);
+}
+
+.timeline-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.timeline-period {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.timeline-type {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  text-transform: capitalize;
+}
+
+.timeline-type.full-time {
+  background: rgba(84, 197, 248, 0.1);
+  border: 1px solid rgba(84, 197, 248, 0.2);
+  color: var(--color-primary);
+}
+.timeline-type.internship {
+  background: rgba(224, 64, 251, 0.1);
+  border: 1px solid rgba(224, 64, 251, 0.2);
+  color: var(--color-secondary);
+}
+
+/* Current job badge */
+.timeline-current {
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.timeline-current::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4caf50;
+  animation: pulse-dot 2s infinite;
+}
+
+/* ─── Achievements list ────────────────────────────────────────*/
+.timeline-achievements {
+  list-style: none;
+  margin: var(--space-4) 0;
+}
+
+.timeline-achievements li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+}
+.timeline-achievements li:last-child { border-bottom: none; }
+
+.timeline-achievements li::before {
+  content: '▸';
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* ─── Tech tags ────────────────────────────────────────────────*/
+.timeline-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.timeline-tech-tag {
+  padding: 3px 10px;
+  background: var(--color-bg-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}

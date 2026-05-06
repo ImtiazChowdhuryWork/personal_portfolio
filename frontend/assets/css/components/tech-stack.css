@@ -1,0 +1,14 @@
+/* ============================================================
+ * FILE: components/tech-stack.css
+ * WHAT IT STYLES:  Tech stack grid layout wrapper
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+.techstack-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-12);
+}
+
+@media (max-width: 768px) {
+  .techstack-layout { grid-template-columns: 1fr; }
+}

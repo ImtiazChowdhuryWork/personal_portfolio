@@ -1,0 +1,121 @@
+/* ============================================================
+ * FILE: components/navbar.css
+ * WHAT IT STYLES:  Mobile top navigation bar (< 1024px)
+ *                  Hamburger menu and slide-down mobile menu
+ * WHERE USED:      index.html .mobile-nav element
+ * VARIABLES USED:  --color-bg-2, --color-primary, --color-border
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Top bar (only shows on mobile) ──────────────────────────*/
+.mobile-nav {
+  display: none; /* Hidden on desktop */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(10, 10, 15, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--color-border);
+  z-index: var(--z-sidebar);
+  padding: 0 var(--space-6);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-nav-logo {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+  letter-spacing: -0.02em;
+}
+
+.mobile-nav-logo span { color: var(--color-primary); }
+
+/* ─── Hamburger button ─────────────────────────────────────────*/
+.hamburger {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-base);
+}
+
+.hamburger:hover { background: var(--color-primary-glow); }
+
+.hamburger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--color-text);
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+  transform-origin: center;
+}
+
+/* Animate hamburger to X when open */
+.hamburger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.hamburger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ─── Fullscreen mobile menu ───────────────────────────────────*/
+.mobile-menu {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 15, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--color-border);
+  z-index: calc(var(--z-sidebar) - 1);
+  padding: var(--space-6);
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: all var(--transition-slow);
+}
+
+.mobile-menu.open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.mobile-menu a {
+  display: block;
+  padding: var(--space-4) var(--space-2);
+  color: var(--color-text);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semi);
+  border-bottom: 1px solid var(--color-border);
+  transition: color var(--transition-base);
+}
+
+.mobile-menu a:hover,
+.mobile-menu a.active {
+  color: var(--color-primary);
+}
+
+.mobile-menu a:last-child { border-bottom: none; }
+
+/* ─── Show mobile nav on small screens ─────────────────────────*/
+@media (max-width: 1023px) {
+  .mobile-nav { display: flex; }
+}

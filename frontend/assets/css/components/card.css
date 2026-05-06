@@ -1,0 +1,100 @@
+/* ============================================================
+ * FILE: components/card.css
+ * WHAT IT STYLES:  Card component used in services, tech stack,
+ *                  architecture, and stats sections
+ * WHERE USED:      Multiple sections in index.html
+ * VARIABLES USED:  --color-bg-3, --color-border, --color-primary
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Base card ────────────────────────────────────────────────*/
+.card {
+  background: var(--color-bg-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle gradient overlay that appears on hover */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--color-primary-glow), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+
+.card:hover {
+  border-color: var(--color-border-active);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl), var(--shadow-glow);
+}
+
+.card:hover::before { opacity: 1; }
+
+/* ─── Card icon ────────────────────────────────────────────────*/
+.card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-glow);
+  border: 1px solid var(--color-border-active);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+  font-size: var(--fs-2xl);
+  color: var(--color-primary);
+}
+
+/* ─── Card title ───────────────────────────────────────────────*/
+.card-title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-heading);
+  margin-bottom: var(--space-3);
+}
+
+/* ─── Card description ─────────────────────────────────────────*/
+.card-desc {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--lh-relaxed);
+}
+
+/* ─── Stat card variant ────────────────────────────────────────*/
+.stat-card {
+  background: var(--color-bg-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  text-align: center;
+  transition: all var(--transition-base);
+}
+
+.stat-card:hover {
+  border-color: var(--color-border-active);
+  box-shadow: var(--shadow-glow);
+}
+
+.stat-value {
+  font-size: var(--fs-5xl);
+  font-weight: var(--fw-black);
+  color: var(--color-primary);
+  line-height: 1;
+  margin-bottom: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

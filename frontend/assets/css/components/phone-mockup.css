@@ -1,0 +1,158 @@
+/* ============================================================
+ * FILE: components/phone-mockup.css
+ * WHAT IT STYLES:  3D phone frame that holds app screenshots
+ *                  in the Apps Showcase section
+ * WHERE USED:      apps.js renders .phone-mockup elements
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Phone frame ──────────────────────────────────────────────*/
+.phone-mockup {
+  position: relative;
+  width: 280px;
+  height: 580px;
+  margin: 0 auto;
+  flex-shrink: 0;
+  animation: phone-float 4s ease-in-out infinite;
+}
+
+@keyframes phone-float {
+  0%, 100% { transform: translateY(0) rotate3d(0, 1, 0, -5deg); }
+  50%       { transform: translateY(-16px) rotate3d(0, 1, 0, 5deg); }
+}
+
+/* The phone shell */
+.phone-frame {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, #1a1a2e 0%, #0d0d1a 100%);
+  border-radius: 44px;
+  border: 2px solid rgba(255,255,255,0.1);
+  box-shadow:
+    0 40px 80px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255,255,255,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+  overflow: hidden;
+}
+
+/* Top notch */
+.phone-notch {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 22px;
+  background: #0a0a0f;
+  border-radius: var(--radius-full);
+  z-index: 2;
+}
+
+/* Dynamic island style */
+.phone-notch::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(84, 197, 248, 0.6);
+  box-shadow: 0 0 8px rgba(84, 197, 248, 0.8);
+}
+
+/* ─── Screenshot container inside phone ───────────────────────*/
+.phone-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 42px;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.phone-screenshot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.phone-screenshot.active { opacity: 1; }
+
+/* Placeholder gradient when no screenshot loaded */
+.phone-screen-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-3) 0%,
+    var(--color-bg-4) 50%,
+    var(--color-bg-3) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-4);
+  color: var(--color-text-dim);
+  font-size: var(--fs-sm);
+}
+
+.phone-screen-placeholder svg {
+  width: 48px;
+  height: 48px;
+  color: var(--color-primary);
+  opacity: 0.5;
+}
+
+/* Side buttons on the phone */
+.phone-btn-right {
+  position: absolute;
+  right: -4px;
+  top: 140px;
+  width: 4px;
+  height: 60px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.phone-btn-left-1,
+.phone-btn-left-2 {
+  position: absolute;
+  left: -4px;
+  width: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+.phone-btn-left-1 { top: 120px; height: 40px; }
+.phone-btn-left-2 { top: 170px; height: 60px; }
+
+/* ─── Screenshot dot indicators ───────────────────────────────*/
+.phone-dots {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  margin-top: var(--space-4);
+}
+
+.phone-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.phone-dot.active {
+  width: 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}

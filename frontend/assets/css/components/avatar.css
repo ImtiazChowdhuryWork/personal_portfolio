@@ -1,0 +1,20 @@
+/* ============================================================
+ * FILE: components/avatar.css
+ * WHAT IT STYLES:  Avatar/profile photo elements
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.avatar-sm  { width: 32px;  height: 32px;  }
+.avatar-md  { width: 48px;  height: 48px;  }
+.avatar-lg  { width: 80px;  height: 80px;  }
+.avatar-xl  { width: 120px; height: 120px; }
+.avatar-2xl { width: 180px; height: 180px; }
+
+.avatar-ring {
+  border: 3px solid var(--color-primary);
+  box-shadow: 0 0 20px var(--color-primary-glow);
+}

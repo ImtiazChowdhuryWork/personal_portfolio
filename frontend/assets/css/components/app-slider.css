@@ -1,0 +1,245 @@
+/* ============================================================
+ * FILE: components/app-slider.css
+ * WHAT IT STYLES:  The full-width Apps Showcase slider section
+ *                  with phone mockup on right, content on left,
+ *                  and thumbnail strip at bottom
+ * WHERE USED:      apps.js → #apps-showcase section
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Showcase section wrapper ─────────────────────────────────*/
+#apps-showcase {
+  background: var(--color-bg-2);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+/* ─── Swiper container (each slide = one app) ──────────────────*/
+.apps-swiper {
+  width: 100%;
+}
+
+/* ─── Single app slide ─────────────────────────────────────────*/
+.app-slide {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: var(--space-16) var(--space-12);
+  min-height: 80vh;
+}
+
+/* ─── Left side — text content ─────────────────────────────────*/
+.app-slide-content {
+  flex: 1;
+  max-width: 500px;
+}
+
+.app-platform-badges {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.platform-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.platform-badge.ios {
+  background: rgba(84, 197, 248, 0.1);
+  border: 1px solid rgba(84, 197, 248, 0.3);
+  color: var(--color-primary);
+}
+.platform-badge.android {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+}
+
+.app-slide-title {
+  font-size: clamp(var(--fs-3xl), 4vw, var(--fs-5xl));
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+  margin-bottom: var(--space-4);
+  line-height: 1.1;
+}
+
+.app-slide-desc {
+  color: var(--color-text-muted);
+  font-size: var(--fs-lg);
+  line-height: var(--lh-relaxed);
+  margin-bottom: var(--space-6);
+}
+
+/* Tech stack tags */
+.app-tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.app-tech-tag {
+  padding: 4px 12px;
+  background: var(--color-bg-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-muted);
+}
+
+/* Features list */
+.app-features {
+  list-style: none;
+  margin-bottom: var(--space-8);
+}
+
+.app-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.app-features li::before {
+  content: '→';
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Store download buttons */
+.app-store-links {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.store-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 20px;
+  background: var(--color-bg-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  text-decoration: none;
+}
+
+.store-badge:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-glow);
+  transform: translateY(-2px);
+}
+
+.store-badge-icon { font-size: var(--fs-2xl); }
+
+.store-badge-text { display: flex; flex-direction: column; }
+.store-badge-sub { font-size: 10px; color: var(--color-text-muted); }
+.store-badge-name { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--color-heading); }
+
+/* ─── Right side — phone mockup ────────────────────────────────*/
+.app-slide-phone {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ─── Thumbnail strip at bottom ────────────────────────────────*/
+.app-thumbnails {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-8);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+  flex-wrap: wrap;
+}
+
+.app-thumbnail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-width: 100px;
+  background: var(--color-bg-3);
+}
+
+.app-thumbnail:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.app-thumbnail.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-glow);
+}
+
+.app-thumbnail-img {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: var(--color-bg-4);
+}
+
+.app-thumbnail-name {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.app-thumbnail.active .app-thumbnail-name {
+  color: var(--color-primary);
+}
+
+/* ─── Swiper navigation arrows ─────────────────────────────────*/
+.apps-swiper .swiper-button-next,
+.apps-swiper .swiper-button-prev {
+  color: var(--color-primary);
+  background: var(--color-bg-3);
+  border: 1px solid var(--color-border);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  top: 50%;
+}
+
+.apps-swiper .swiper-button-next::after,
+.apps-swiper .swiper-button-prev::after {
+  font-size: 16px;
+}
+
+/* ─── Responsive ───────────────────────────────────────────────*/
+@media (max-width: 768px) {
+  .app-slide {
+    flex-direction: column-reverse;
+    padding: var(--space-8) var(--space-6);
+    gap: var(--space-8);
+    min-height: unset;
+  }
+
+  .phone-mockup {
+    width: 200px;
+    height: 420px;
+  }
+}

@@ -1,0 +1,181 @@
+/* ============================================================
+ * FILE: base.css
+ * WHAT IT STYLES:  CSS reset, base element styles, typography
+ * WHERE USED:      Imported in main.css after variables.css
+ * VARIABLES USED:  All --color-*, --font-*, --fs-*, --lh-* variables
+ * DO NOT edit colors here — use variables.css
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Box sizing reset ─────────────────────────────────────────
+ * Makes width/height include padding and border, not just content.
+ * Without this, adding padding unexpectedly increases element size. */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Root & Body ──────────────────────────────────────────────*/
+html {
+  scroll-behavior: smooth;
+  font-size: 16px; /* base for rem calculations */
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-primary);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-normal);
+  line-height: var(--lh-normal);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar styling ────────────────────────────────────────
+ * Custom dark scrollbar that matches the dark theme           */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg-2); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-primary-dark); }
+
+/* ─── Selection color ──────────────────────────────────────────*/
+::selection {
+  background: var(--color-primary);
+  color: var(--color-bg);
+}
+
+/* ─── Typography ───────────────────────────────────────────────*/
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-primary);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  color: var(--color-heading);
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: var(--fs-6xl); }
+h2 { font-size: var(--fs-4xl); }
+h3 { font-size: var(--fs-3xl); }
+h4 { font-size: var(--fs-2xl); }
+h5 { font-size: var(--fs-xl); }
+h6 { font-size: var(--fs-lg); }
+
+p { line-height: var(--lh-relaxed); color: var(--color-text); }
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+a:hover { color: var(--color-primary-dark); }
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+ul, ol { list-style: none; }
+
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* ─── Utility classes ──────────────────────────────────────────*/
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.text-primary  { color: var(--color-primary); }
+.text-muted    { color: var(--color-text-muted); }
+.text-center   { text-align: center; }
+.text-uppercase { text-transform: uppercase; letter-spacing: 0.1em; }
+
+.flex          { display: flex; }
+.flex-col      { flex-direction: column; }
+.items-center  { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap-2         { gap: var(--space-2); }
+.gap-4         { gap: var(--space-4); }
+.gap-6         { gap: var(--space-6); }
+.gap-8         { gap: var(--space-8); }
+
+.grid          { display: grid; }
+.w-full        { width: 100%; }
+.h-full        { height: 100%; }
+.relative      { position: relative; }
+.overflow-hidden { overflow: hidden; }
+
+/* ─── Section base styles ──────────────────────────────────────*/
+.section {
+  padding: var(--space-24) var(--space-8);
+  position: relative;
+}
+
+.section-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 32px;
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.section-title {
+  font-size: clamp(var(--fs-3xl), 4vw, var(--fs-5xl));
+  font-weight: var(--fw-black);
+  color: var(--color-heading);
+  margin-bottom: var(--space-6);
+  line-height: 1.1;
+}
+
+.section-subtitle {
+  font-size: var(--fs-lg);
+  color: var(--color-text-muted);
+  max-width: 600px;
+  line-height: var(--lh-relaxed);
+}
+
+/* ─── Animation utilities ──────────────────────────────────────*/
+[data-aos] { opacity: 0; transition: opacity 0.6s ease, transform 0.6s ease; }
+[data-aos="fade-up"] { transform: translateY(30px); }
+[data-aos="fade-right"] { transform: translateX(-30px); }
+[data-aos="fade-left"] { transform: translateX(30px); }
+[data-aos].aos-animate { opacity: 1; transform: none; }
+
+/* ─── Gradient text helper ─────────────────────────────────────*/
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

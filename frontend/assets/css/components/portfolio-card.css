@@ -1,0 +1,30 @@
+/* ============================================================
+ * FILE: components/portfolio-card.css
+ * WHAT IT STYLES:  Portfolio/project card used in dashboard
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+.portfolio-card {
+  background: var(--color-bg-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+.portfolio-card:hover {
+  border-color: var(--color-border-active);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+.portfolio-card-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: var(--color-bg-4);
+}
+.portfolio-card-body { padding: var(--space-6); }
+.portfolio-card-title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-heading);
+  margin-bottom: var(--space-2);
+}

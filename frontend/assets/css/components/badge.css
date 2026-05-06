@@ -1,0 +1,48 @@
+/* ============================================================
+ * FILE: components/badge.css
+ * WHAT IT STYLES:  Badge and tag elements used throughout the page
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+}
+
+.badge-primary {
+  background: rgba(84, 197, 248, 0.1);
+  border: 1px solid rgba(84, 197, 248, 0.3);
+  color: var(--color-primary);
+}
+
+.badge-success {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+}
+
+.badge-purple {
+  background: rgba(224, 64, 251, 0.1);
+  border: 1px solid rgba(224, 64, 251, 0.3);
+  color: var(--color-secondary);
+}
+
+.badge-live {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #4caf50;
+}
+
+.badge-live::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4caf50;
+  animation: pulse-dot 2s infinite;
+}

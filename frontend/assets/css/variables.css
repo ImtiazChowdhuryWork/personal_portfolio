@@ -1,0 +1,115 @@
+/* ============================================================
+ * FILE: variables.css
+ * WHAT IT STYLES:  CSS custom properties (design tokens)
+ * WHERE USED:      Imported first in main.css — every other CSS
+ *                  file uses these variables for colors, spacing, etc.
+ * DO NOT edit colors in component files — change them here only.
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+:root {
+  /* ─── Brand Colors ─────────────────────────────────────────
+   * Primary accent is Flutter blue — chosen to reinforce the
+   * Flutter developer identity throughout the portfolio       */
+  --color-primary:        #54c5f8;   /* Flutter blue — main accent color     */
+  --color-primary-dark:   #0288d1;   /* Darker blue for hover states         */
+  --color-primary-glow:   rgba(84, 197, 248, 0.15); /* Glow for cards       */
+  --color-secondary:      #e040fb;   /* Purple — used sparingly as accent 2  */
+
+  /* ─── Background Colors ────────────────────────────────────
+   * Dark theme matching Drake's aesthetic                     */
+  --color-bg:             #0a0a0f;   /* Main page background — near black    */
+  --color-bg-2:           #111118;   /* Slightly lighter — sidebar bg        */
+  --color-bg-3:           #16161f;   /* Cards and elevated surfaces          */
+  --color-bg-4:           #1e1e2a;   /* Hover states for cards               */
+  --color-border:         rgba(255, 255, 255, 0.06); /* Subtle borders       */
+  --color-border-active:  rgba(84, 197, 248, 0.3);   /* Blue tinted border   */
+
+  /* ─── Text Colors ──────────────────────────────────────────*/
+  --color-text:           #e8e8f0;   /* Primary text — off-white not pure    */
+  --color-text-muted:     #7a7a8c;   /* Secondary text — labels, captions    */
+  --color-text-dim:       #4a4a5c;   /* Tertiary — placeholders, disabled    */
+  --color-heading:        #ffffff;   /* Section headings — pure white        */
+
+  /* ─── Status Colors ────────────────────────────────────────*/
+  --color-success:        #4caf50;
+  --color-warning:        #ff9800;
+  --color-error:          #f44336;
+  --color-info:           #54c5f8;
+
+  /* ─── Typography ───────────────────────────────────────────*/
+  --font-primary:   'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+  --font-display:   'Clash Display', 'Inter', sans-serif;
+
+  --fs-xs:    0.75rem;    /* 12px */
+  --fs-sm:    0.875rem;   /* 14px */
+  --fs-base:  1rem;       /* 16px */
+  --fs-lg:    1.125rem;   /* 18px */
+  --fs-xl:    1.25rem;    /* 20px */
+  --fs-2xl:   1.5rem;     /* 24px */
+  --fs-3xl:   1.875rem;   /* 30px */
+  --fs-4xl:   2.25rem;    /* 36px */
+  --fs-5xl:   3rem;       /* 48px */
+  --fs-6xl:   3.75rem;    /* 60px */
+  --fs-7xl:   4.5rem;     /* 72px */
+
+  --fw-normal:  400;
+  --fw-medium:  500;
+  --fw-semi:    600;
+  --fw-bold:    700;
+  --fw-black:   900;
+
+  --lh-tight:   1.2;
+  --lh-snug:    1.4;
+  --lh-normal:  1.6;
+  --lh-relaxed: 1.8;
+
+  /* ─── Spacing ──────────────────────────────────────────────*/
+  --space-1:   0.25rem;   /* 4px  */
+  --space-2:   0.5rem;    /* 8px  */
+  --space-3:   0.75rem;   /* 12px */
+  --space-4:   1rem;      /* 16px */
+  --space-5:   1.25rem;   /* 20px */
+  --space-6:   1.5rem;    /* 24px */
+  --space-8:   2rem;      /* 32px */
+  --space-10:  2.5rem;    /* 40px */
+  --space-12:  3rem;      /* 48px */
+  --space-16:  4rem;      /* 64px */
+  --space-20:  5rem;      /* 80px */
+  --space-24:  6rem;      /* 96px */
+
+  /* ─── Layout ───────────────────────────────────────────────*/
+  --sidebar-width:        280px;     /* Fixed left sidebar width             */
+  --content-max-width:    900px;     /* Max width of main content area       */
+  --section-padding:      var(--space-24) var(--space-16); /* Section padding*/
+
+  /* ─── Borders & Radius ─────────────────────────────────────*/
+  --radius-sm:    4px;
+  --radius-md:    8px;
+  --radius-lg:    12px;
+  --radius-xl:    16px;
+  --radius-2xl:   24px;
+  --radius-full:  9999px;
+
+  /* ─── Shadows ──────────────────────────────────────────────*/
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg:  0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-xl:  0 16px 64px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 40px rgba(84, 197, 248, 0.2);
+
+  /* ─── Transitions ──────────────────────────────────────────*/
+  --transition-fast:    150ms ease;
+  --transition-base:    250ms ease;
+  --transition-slow:    400ms ease;
+  --transition-spring:  400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ─── Z-index scale ────────────────────────────────────────*/
+  --z-base:     1;
+  --z-dropdown: 100;
+  --z-sidebar:  200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-toast:    500;
+}

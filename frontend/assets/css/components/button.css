@@ -1,0 +1,123 @@
+/* ============================================================
+ * FILE: components/button.css
+ * WHAT IT STYLES:  All button variants used across the portfolio
+ * WHERE USED:      Hero CTA, contact section, download CV, modals
+ * VARIABLES USED:  --color-primary, --color-bg, --radius-md
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Base button reset ────────────────────────────────────────*/
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 14px 28px;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semi);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.01em;
+}
+
+/* Ripple effect on click */
+.btn::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
+  opacity: 0;
+  left: 50%;
+  top: 50%;
+}
+.btn:active::after {
+  width: 200px;
+  height: 200px;
+  opacity: 1;
+  transition: 0s;
+}
+
+/* ─── Primary button — solid Flutter blue ──────────────────────*/
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-bg);
+}
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(84, 197, 248, 0.4);
+  color: var(--color-bg);
+}
+
+/* ─── Outline button — transparent with border ─────────────────*/
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+.btn-outline:hover {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(84, 197, 248, 0.3);
+}
+
+/* ─── Ghost button — very subtle ───────────────────────────────*/
+.btn-ghost {
+  background: var(--color-bg-4);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+.btn-ghost:hover {
+  background: var(--color-bg-3);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+/* ─── Size variants ────────────────────────────────────────────*/
+.btn-sm { padding: 10px 20px; font-size: var(--fs-sm); }
+.btn-lg { padding: 18px 36px; font-size: var(--fs-lg); }
+
+/* ─── Full width ───────────────────────────────────────────────*/
+.btn-block { width: 100%; }
+
+/* ─── Disabled state ───────────────────────────────────────────*/
+.btn:disabled, .btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── Loading state ────────────────────────────────────────────*/
+.btn.loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.btn.loading::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}

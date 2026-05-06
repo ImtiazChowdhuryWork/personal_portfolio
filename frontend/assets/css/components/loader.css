@@ -1,0 +1,71 @@
+/* ============================================================
+ * FILE: components/loader.css
+ * WHAT IT STYLES:  Loading spinners and skeleton screens
+ * WHERE USED:      Loader.js — shown while API calls are pending
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Page loader overlay ──────────────────────────────────────*/
+.page-loader {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.page-loader.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Flutter logo spin animation */
+.loader-flutter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.loader-icon {
+  font-size: 48px;
+  animation: loader-spin 1.5s linear infinite;
+}
+
+@keyframes loader-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.loader-text {
+  color: var(--color-primary);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: loader-pulse 1.5s ease infinite;
+}
+
+@keyframes loader-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ─── Inline spinner ───────────────────────────────────────────*/
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(84, 197, 248, 0.2);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

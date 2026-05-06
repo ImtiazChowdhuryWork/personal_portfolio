@@ -1,0 +1,113 @@
+/* ============================================================
+ * FILE: components/skill-bar.css
+ * WHAT IT STYLES:  Animated skill bars in the Tech Stack section
+ * WHERE USED:      techstack.js renders .skill-bar elements
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Tech stack group ─────────────────────────────────────────*/
+.tech-group {
+  margin-bottom: var(--space-10);
+}
+
+.tech-group-title {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ─── Individual skill row ─────────────────────────────────────*/
+.skill-item {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  position: relative;
+}
+
+.skill-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-4);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.skill-icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.skill-info { flex: 1; }
+
+.skill-name {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semi);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.skill-desc {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  display: none; /* Shown on hover via JS */
+}
+
+/* ─── Skill bar track ──────────────────────────────────────────*/
+.skill-bar-track {
+  height: 6px;
+  background: var(--color-bg-4);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── Skill bar fill — animates from 0% to actual % ───────────*/
+.skill-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--color-primary-dark), var(--color-primary));
+  width: 0%; /* Start at 0 — JS animates this to the real percentage */
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* Shimmering effect on the fill */
+.skill-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-30px); }
+  to   { transform: translateX(30px); opacity: 0; }
+}
+
+.skill-percent {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+  min-width: 32px;
+  text-align: right;
+}

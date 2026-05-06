@@ -1,0 +1,38 @@
+/* ============================================================
+ * FILE: components/table.css
+ * WHAT IT STYLES:  Data table used in dashboard for messages
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+.table th {
+  background: var(--color-bg-3);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-semi);
+  text-align: left;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.table td {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+.table tr:last-child td { border-bottom: none; }
+.table tbody tr {
+  transition: background var(--transition-fast);
+}
+.table tbody tr:hover { background: var(--color-bg-3); }

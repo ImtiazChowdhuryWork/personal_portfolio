@@ -1,0 +1,66 @@
+/* ============================================================
+ * FILE: components/toast.css
+ * WHAT IT STYLES:  Toast notification popups (success/error/info)
+ * WHERE USED:      Toast.js — shows after form submit, API calls
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── Toast container — bottom right corner ────────────────────*/
+#toast-container {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  pointer-events: none;
+}
+
+/* ─── Individual toast ─────────────────────────────────────────*/
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid;
+  background: var(--color-bg-3);
+  box-shadow: var(--shadow-lg);
+  min-width: 280px;
+  max-width: 400px;
+  pointer-events: all;
+  transform: translateX(120%);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toast.show { transform: translateX(0); }
+
+.toast.success { border-color: var(--color-success); }
+.toast.error   { border-color: var(--color-error); }
+.toast.warning { border-color: var(--color-warning); }
+.toast.info    { border-color: var(--color-primary); }
+
+.toast-icon { font-size: var(--fs-xl); flex-shrink: 0; }
+.toast.success .toast-icon { color: var(--color-success); }
+.toast.error   .toast-icon { color: var(--color-error); }
+.toast.warning .toast-icon { color: var(--color-warning); }
+.toast.info    .toast-icon { color: var(--color-primary); }
+
+.toast-body { flex: 1; }
+.toast-title { font-size: var(--fs-sm); font-weight: var(--fw-semi); color: var(--color-heading); }
+.toast-msg   { font-size: var(--fs-xs); color: var(--color-text-muted); margin-top: 2px; }
+
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-lg);
+  line-height: 1;
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+}
+.toast-close:hover { color: var(--color-text); }

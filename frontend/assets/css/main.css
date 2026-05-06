@@ -1,0 +1,39 @@
+/* ============================================================
+ * FILE: main.css
+ * WHAT IT IS:     Master CSS entry point — imports all CSS files
+ *                 in the correct dependency order
+ * WHERE USED:     index.html, dashboard.html, login.html <head>
+ * IF REMOVED:     All styling breaks — the site becomes unstyled HTML
+ * LAST UPDATED:   2026-05-07 — initial creation
+ * ============================================================ */
+
+/* ─── 1. Design tokens — must be first ────────────────────────*/
+@import './variables.css';
+
+/* ─── 2. Reset and base typography ───────────────────────────*/
+@import './base.css';
+
+/* ─── 3. Component styles ─────────────────────────────────────*/
+@import './components/sidebar.css';
+@import './components/navbar.css';
+@import './components/button.css';
+@import './components/card.css';
+@import './components/badge.css';
+@import './components/avatar.css';
+@import './components/modal.css';
+@import './components/form.css';
+@import './components/toast.css';
+@import './components/loader.css';
+@import './components/skill-bar.css';
+@import './components/timeline.css';
+@import './components/phone-mockup.css';
+@import './components/app-slider.css';
+@import './components/tech-stack.css';
+@import './components/architecture-card.css';
+@import './components/github-stats.css';
+@import './components/stat-card.css';
+@import './components/table.css';
+@import './components/portfolio-card.css';
+
+/* ─── 4. Page-specific styles ────────────────────────────────*/
+@import './pages/portfolio.css';
