@@ -63,6 +63,7 @@ const Auth = (() => {
    * @returns {Promise<object>} user data
    */
   async function login(email, password) {
+    clearToken(); // remove any stale token before requesting a new one
     const res = await API.post('/auth/login', { email, password });
     setToken(res.data.token);
     return res.data.user;

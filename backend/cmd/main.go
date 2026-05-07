@@ -61,6 +61,7 @@ func main() {
 		&models.Experience{},
 		&models.Testimonial{},
 		&models.Message{},
+		&models.MessageReply{},
 		&models.Profile{},
 	); err != nil {
 		log.Fatal("Database migration failed: ", err)

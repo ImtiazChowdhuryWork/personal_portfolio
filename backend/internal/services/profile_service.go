@@ -13,6 +13,8 @@
 package services
 
 import (
+	"strings"
+
 	"imtiaz-portfolio/internal/models"
 	"gorm.io/gorm"
 )
@@ -39,6 +41,11 @@ func (s *ProfileService) Get() (*models.Profile, error) {
 	return &profile, result.Error
 }
 
+// UpdateField updates a single column on the profile without touching other fields.
+func (s *ProfileService) UpdateField(column string, value interface{}) error {
+	return s.db.Model(&models.Profile{}).Where("id = 1").Update(column, value).Error
+}
+
 // Update saves changes to the existing profile record.
 // Uses Save() which updates ALL fields, not just changed ones,
 // so passing the full profile struct is required.
@@ -53,6 +60,43 @@ func (s *ProfileService) Update(updates *models.Profile) (*models.Profile, error
 		return updates, nil
 	}
 	updates.ID = profile.ID
+
+	// Strip spaces from App Password
+	updates.SMTPPass = strings.ReplaceAll(updates.SMTPPass, " ", "")
+
+	// For every string field, if the incoming value is empty preserve the existing one.
+	// This prevents accidentally wiping data when only some fields are submitted.
+	preserve := func(incoming, existing string) string {
+		if incoming == "" {
+			return existing
+		}
+		return incoming
+	}
+
+	updates.FullName        = preserve(updates.FullName, profile.FullName)
+	updates.Title           = preserve(updates.Title, profile.Title)
+	updates.Tagline         = preserve(updates.Tagline, profile.Tagline)
+	updates.Bio             = preserve(updates.Bio, profile.Bio)
+	updates.ShortBio        = preserve(updates.ShortBio, profile.ShortBio)
+	updates.Email           = preserve(updates.Email, profile.Email)
+	updates.Phone           = preserve(updates.Phone, profile.Phone)
+	updates.WhatsApp        = preserve(updates.WhatsApp, profile.WhatsApp)
+	updates.Location        = preserve(updates.Location, profile.Location)
+	updates.GitHub          = preserve(updates.GitHub, profile.GitHub)
+	updates.LinkedIn        = preserve(updates.LinkedIn, profile.LinkedIn)
+	updates.Twitter         = preserve(updates.Twitter, profile.Twitter)
+	updates.Instagram       = preserve(updates.Instagram, profile.Instagram)
+	updates.ProfilePhoto    = preserve(updates.ProfilePhoto, profile.ProfilePhoto)
+	updates.AboutPhoto      = preserve(updates.AboutPhoto, profile.AboutPhoto)
+	updates.CVFile          = preserve(updates.CVFile, profile.CVFile)
+	updates.Availability    = preserve(updates.Availability, profile.Availability)
+	updates.YearsExperience = preserve(updates.YearsExperience, profile.YearsExperience)
+	updates.AppsShipped     = preserve(updates.AppsShipped, profile.AppsShipped)
+	updates.SMTPUser        = preserve(updates.SMTPUser, profile.SMTPUser)
+	updates.SMTPPass        = preserve(updates.SMTPPass, profile.SMTPPass)
+	updates.MetaTitle       = preserve(updates.MetaTitle, profile.MetaTitle)
+	updates.MetaDescription = preserve(updates.MetaDescription, profile.MetaDescription)
+
 	if err := s.db.Save(updates).Error; err != nil {
 		return nil, err
 	}

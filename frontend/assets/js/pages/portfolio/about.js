@@ -29,11 +29,29 @@ const AboutSection = (() => {
     const availEl = document.getElementById('about-availability');
     if (availEl && p.availability) availEl.textContent = p.availability;
 
+    // About section uses its own dedicated photo
     const photoEl = document.getElementById('about-photo');
-    if (photoEl && p.profile_photo) {
-      photoEl.src = p.profile_photo;
+    if (photoEl && p.about_photo) {
+      photoEl.src = p.about_photo;
       photoEl.alt = p.full_name;
+      photoEl.style.display = 'block';
+      // Hide the fallback div that onerror may have shown
+      const fallback = photoEl.nextElementSibling;
+      if (fallback) fallback.style.display = 'none';
     }
+
+    // Show CV buttons only if a CV has been uploaded, hide otherwise
+    ['cv-download-btn-1', 'cv-download-btn-2'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      if (p.cv_file) {
+        btn.href = p.cv_file;
+        btn.setAttribute('download', p.cv_file.split('/').pop());
+        btn.style.display = 'inline-flex';
+      } else {
+        btn.style.display = 'none';
+      }
+    });
   }
 
   function updateHeroSection(p) {
@@ -50,6 +68,17 @@ const AboutSection = (() => {
 
     const locEl = document.getElementById('sidebar-location');
     if (locEl && p.location) locEl.textContent = p.location;
+
+    // Update sidebar profile photo
+    if (p.profile_photo) {
+      const imgEl         = document.getElementById('sidebar-photo');
+      const placeholderEl = document.querySelector('.sidebar-avatar-placeholder');
+      if (imgEl) {
+        imgEl.src           = p.profile_photo;
+        imgEl.style.display = 'block';
+      }
+      if (placeholderEl) placeholderEl.style.display = 'none';
+    }
   }
 
   return { init };

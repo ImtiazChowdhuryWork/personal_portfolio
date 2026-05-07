@@ -46,8 +46,11 @@ type Profile struct {
 	Instagram string `gorm:"type:varchar(500)" json:"instagram"`
 
 	// ─── Media ───────────────────────────────────────────────
-	// ProfilePhoto is the main photo shown in the About section
+	// ProfilePhoto is shown in the sidebar card
 	ProfilePhoto string `gorm:"type:varchar(500)" json:"profile_photo"`
+
+	// AboutPhoto is shown in the About section (can be a different image)
+	AboutPhoto string `gorm:"type:varchar(500)" json:"about_photo"`
 
 	// CVFile is the path to the downloadable CV PDF
 	CVFile string `gorm:"type:varchar(500)" json:"cv_file"`
@@ -62,6 +65,18 @@ type Profile struct {
 
 	// AppsShipped is shown in the stat counters
 	AppsShipped string `gorm:"type:varchar(20);default:'5+'" json:"apps_shipped"`
+
+	// ─── Reply From Emails ───────────────────────────────────
+	// Comma-separated list of email addresses shown in the dashboard
+	// reply compose dropdown so the admin can pick which address to send from.
+	// Example: "work@gmail.com, personal@gmail.com, imtiaz@company.com"
+	ReplyEmails string `gorm:"type:text" json:"reply_emails"`
+
+	// ─── SMTP / Mail Settings ─────────────────────────────────
+	// Stored in DB so the admin can update them from the dashboard
+	// without touching the .env file. Overrides .env if non-empty.
+	SMTPUser string `gorm:"type:varchar(255)" json:"smtp_user"`
+	SMTPPass string `gorm:"type:varchar(255)" json:"smtp_pass"`
 
 	// ─── SEO ─────────────────────────────────────────────────
 	MetaTitle       string `gorm:"type:varchar(200)" json:"meta_title"`
