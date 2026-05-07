@@ -42,7 +42,19 @@
       "Bash(curl -s -o /dev/null -w \"/assets/css/main.css → %{http_code}\\\\n\" http://localhost:8080/assets/css/main.css)",
       "Bash(curl -s -o /dev/null -w \"/api/v1/skills → %{http_code}\\\\n\" http://localhost:8080/api/v1/skills)",
       "WebFetch(domain:wpriverthemes.com)",
-      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:8080/\" -Method Head -ErrorAction SilentlyContinue; Write-Host \"Server status: $\\(\\(Invoke-WebRequest -Uri 'http://localhost:8080/' -Method Head -ErrorAction SilentlyContinue\\).StatusCode\\)\")"
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:8080/\" -Method Head -ErrorAction SilentlyContinue; Write-Host \"Server status: $\\(\\(Invoke-WebRequest -Uri 'http://localhost:8080/' -Method Head -ErrorAction SilentlyContinue\\).StatusCode\\)\")",
+      "Bash(go version *)",
+      "Bash(psql -U postgres -h localhost -c '\\\\l')",
+      "Bash(pg_isready)",
+      "Bash(psql -U imtiazchowdhury -c '\\\\l')",
+      "Bash(psql -U imtiazchowdhury -d postgres -c '\\\\du')",
+      "Bash(psql -U imtiazchowdhury -d postgres -c '\\\\l')",
+      "Bash(createdb -U imtiazchowdhury imtiaz_portfolio)",
+      "Bash(curl -s \"https://wpriverthemes.com/HTML/drake/index.html\")",
+      "Bash(curl -s \"https://wpriverthemes.com/HTML/drake/assets/css/style.css\")",
+      "Bash(curl -s \"https://wpriverthemes.com/HTML/drake/assets/images/logo.png\" -o /tmp/drake-logo.png)",
+      "Read(//tmp/**)",
+      "Bash(curl -s \"https://wpriverthemes.com/HTML/drake/assets/js/main.js\")"
     ]
   }
 }
