@@ -43,6 +43,8 @@ var allowedTypes = map[string]bool{
 	".webp": true,
 	".svg":  true,
 	".pdf":  true,
+	".heic": true,
+	".heif": true,
 }
 
 /**

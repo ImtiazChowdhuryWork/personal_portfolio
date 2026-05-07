@@ -29,6 +29,8 @@ func NewProfileHandler(ps *services.ProfileService) *ProfileHandler {
 
 // Get returns the portfolio profile — public, called when the portfolio loads.
 func (h *ProfileHandler) Get(c *gin.Context) {
+	// Prevent caching so the latest profile_photo and cv_file always loads
+	c.Header("Cache-Control", "no-store")
 	profile, err := h.profileService.Get()
 	if err != nil {
 		utils.InternalError(c, "Failed to fetch profile")
@@ -50,4 +52,52 @@ func (h *ProfileHandler) Update(c *gin.Context) {
 		return
 	}
 	utils.Success(c, "Profile updated successfully", profile)
+}
+
+// UpdatePhoto updates only the profile_photo field — protected, used by photo upload.
+func (h *ProfileHandler) UpdatePhoto(c *gin.Context) {
+	var body struct {
+		ProfilePhoto string `json:"profile_photo"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil || body.ProfilePhoto == "" {
+		utils.BadRequest(c, "profile_photo is required", nil)
+		return
+	}
+	if err := h.profileService.UpdateField("profile_photo", body.ProfilePhoto); err != nil {
+		utils.InternalError(c, "Failed to update profile photo")
+		return
+	}
+	utils.Success(c, "Profile photo updated successfully", gin.H{"profile_photo": body.ProfilePhoto})
+}
+
+// UpdateAboutPhoto updates only the about_photo field — protected.
+func (h *ProfileHandler) UpdateAboutPhoto(c *gin.Context) {
+	var body struct {
+		AboutPhoto string `json:"about_photo"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil || body.AboutPhoto == "" {
+		utils.BadRequest(c, "about_photo is required", nil)
+		return
+	}
+	if err := h.profileService.UpdateField("about_photo", body.AboutPhoto); err != nil {
+		utils.InternalError(c, "Failed to update about photo")
+		return
+	}
+	utils.Success(c, "About photo updated successfully", gin.H{"about_photo": body.AboutPhoto})
+}
+
+// UpdateCV updates only the cv_file field — protected, used by CV upload.
+func (h *ProfileHandler) UpdateCV(c *gin.Context) {
+	var body struct {
+		CVFile string `json:"cv_file"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil || body.CVFile == "" {
+		utils.BadRequest(c, "cv_file is required", nil)
+		return
+	}
+	if err := h.profileService.UpdateField("cv_file", body.CVFile); err != nil {
+		utils.InternalError(c, "Failed to update CV")
+		return
+	}
+	utils.Success(c, "CV updated successfully", gin.H{"cv_file": body.CVFile})
 }

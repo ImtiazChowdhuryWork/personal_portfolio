@@ -16,7 +16,25 @@ const Sidebar = (() => {
    *                 event listener needed.
    * WHERE CALLED:   main.js on DOMContentLoaded
    */
+  function initHireBtnVisibility() {
+    const hireBtn  = document.querySelector('.sidebar-hire-btn');
+    const sideCard = document.querySelector('.sidebar');
+    if (!hireBtn) return;
+
+    function update() {
+      const threshold = window.innerHeight * 0.85;
+      const hide = window.scrollY <= threshold;
+
+      hireBtn.classList.toggle('sidebar-hire-btn--hidden', hide);
+      if (sideCard) sideCard.classList.toggle('sidebar--compact', hide);
+    }
+
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
   function init() {
+    initHireBtnVisibility();
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.right-menu a, .mobile-menu a');
 

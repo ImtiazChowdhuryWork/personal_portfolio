@@ -951,19 +951,25 @@ border: 2px solid var(--color-primary);
 ### Backend ✅
 - [x] Complete Go server with Gin framework
 - [x] PostgreSQL database connection with GORM
-- [x] 7 database models with proper GORM tags
+- [x] 9 database models with proper GORM tags
 - [x] Auto-migration on startup
 - [x] Full seeder (admin + Imtiaz's real data)
 - [x] JWT authentication (login, token validation, 401 handling)
 - [x] bcrypt password hashing (cost 12)
-- [x] 24 API endpoints (public + protected)
+- [x] 30+ API endpoints (public + protected)
 - [x] JWT auth middleware
 - [x] CORS middleware
 - [x] Request logger middleware
-- [x] File upload endpoint (images, PDF)
+- [x] File upload endpoint (images, PDF, up to 10MB)
 - [x] Standard API response format across all endpoints
 - [x] Graceful server shutdown
 - [x] Go backend serves frontend (no separate dev server needed)
+- [x] Gmail SMTP email reply system with attachment support
+- [x] SMTP credentials stored in database (configurable from dashboard)
+- [x] Message reply history stored per message (`message_replies` table)
+- [x] Dedicated endpoints for cv_file and profile_photo partial updates
+- [x] `Cache-Control: no-store` on profile endpoint (always fresh photo/CV)
+- [x] Profile update preserves existing fields when partial data sent
 
 ### Frontend ✅
 - [x] Drake-inspired dark theme (`#1f1f1f` background)
@@ -982,6 +988,23 @@ border: 2px solid var(--color-primary);
 - [x] Footer with social links
 - [x] Admin login page
 - [x] Admin dashboard (overview, projects, skills, experience, messages, profile)
+- [x] WhatsApp-style inbox — split panel, conversation list + chat view
+- [x] Message reply with full chat history (all replies shown as bubbles)
+- [x] Reply compose panel with From email selector, subject, body, attachments
+- [x] File attachments in replies — WhatsApp-style image grid + doc cards
+- [x] In-dashboard attachment lightbox with image carousel (← → navigation)
+- [x] Attachment files uploaded to server, stored, viewable after reload
+- [x] Gmail App Password field (4×4-digit input, show/hide toggle)
+- [x] CV upload from dashboard (PDF, persists and drives Download CV buttons)
+- [x] Profile photo upload with Cropper.js crop modal (drag/zoom/resize)
+- [x] Separate sidebar photo and about section photo — two independent images
+- [x] HEIC/HEIF support — iPhone photos auto-converted to JPEG before upload
+- [x] Live crop preview showing how photo looks in Sidebar + About section
+- [x] Sidebar "Hire Me" button hides on hero section, shows when scrolled past
+- [x] Sidebar card shrinks/expands when Hire Me button shows/hides (animated)
+- [x] Contact form success message auto-dismisses after 6 seconds
+- [x] Scroll animation flickering fixed (once: true, GPU compositing hints)
+- [x] Dashboard login session fix (stale token cleared before new login)
 - [x] Scroll animations on ALL elements (IntersectionObserver + CSS)
 - [x] No alternating section backgrounds (all `#1f1f1f` like Drake)
 - [x] No background animation in hero (plain dark like Drake)
@@ -1030,15 +1053,16 @@ border: 2px solid var(--color-primary);
 
 ### Phase 2 — Content & Polish
 - Add dashboard modals for creating/editing projects, skills, experience
-- Profile photo and CV upload from dashboard
+- ~~Profile photo and CV upload from dashboard~~ ✅ Done
 - Real app screenshots in phone mockup
 - Testimonials section on portfolio
 
 ### Phase 3 — Features
-- Email notification when contact form is submitted
+- ~~Email notification / reply when contact form is submitted~~ ✅ Done (Gmail SMTP)
 - Project detail modal/page (clicking "View Details" on app slide)
 - Dark/light theme toggle
 - CV auto-generation from database content
+- About section photo layout (planned)
 
 ### Phase 4 — Production
 - Deploy backend to Railway or Render
@@ -1097,5 +1121,17 @@ In `frontend/assets/js/core/api.js`, `BASE_URL` is `/api/v1` (relative). Since t
 | 1.8.0 | 2026-05-07 | Right-side navigation rebuilt with Phosphor Icons | navbar.css, index.html |
 | 1.9.0 | 2026-05-07 | README updated for Mac/Windows dual-environment setup (DB credentials, paths, commands) | README.md, backend/.env |
 | 2.0.0 | 2026-05-07 | Sidebar corner icon — rotating sparkle breaks border at top-left, Drake effect | sidebar.css, index.html |
+| 2.1.0 | 2026-05-07 | Scroll animation flicker fix — once:true, GPU compositing, threshold 0.1 | ScrollAnimations.js, base.css |
+| 2.2.0 | 2026-05-07 | Sidebar Hire Me button hides on hero, shows on scroll with card height animation | Sidebar.js, sidebar.css |
+| 2.3.0 | 2026-05-07 | Dashboard login stale-token fix — clear token before login, proper 401 handling | auth.js, api.js |
+| 2.4.0 | 2026-05-07 | WhatsApp-style inbox — split panel, conversation list, chat bubbles, reply compose | dashboard.html |
+| 2.5.0 | 2026-05-07 | Gmail SMTP reply system — App Password stored in DB, send replies from dashboard | email_service.go, profile model |
+| 2.6.0 | 2026-05-07 | Reply history — every reply stored in message_replies table, shown as chat bubbles | message_reply.go, dashboard.html |
+| 2.7.0 | 2026-05-07 | File attachments in replies — WhatsApp image grid, doc cards, lightbox viewer | dashboard.html, message_handler.go |
+| 2.8.0 | 2026-05-07 | CV upload from dashboard — PDF upload, Download CV buttons shown dynamically | profile_handler.go, dashboard.html, about.js |
+| 2.9.0 | 2026-05-07 | Profile photo upload with Cropper.js — drag/zoom crop modal, live previews | dashboard.html, about.js |
+| 3.0.0 | 2026-05-07 | Profile update safety — preserve existing fields, no-store cache on profile API | profile_service.go, profile_handler.go |
+| 3.1.0 | 2026-05-07 | Separate sidebar photo and about section photo — two independent upload fields | profile.go, profile_handler.go, dashboard.html, about.js |
+| 3.2.0 | 2026-05-07 | HEIC/HEIF support — auto-converts iPhone photos to JPEG before upload via heic2any | dashboard.html, upload_service.go |
 
 > **Rule:** Every future change must add a row to this table before the session ends.

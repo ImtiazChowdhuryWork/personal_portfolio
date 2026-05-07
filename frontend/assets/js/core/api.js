@@ -79,14 +79,12 @@ const API = (() => {
     }
 
     // ─── Step 4: Handle 401 Unauthorized ─────────────────────
-    // A 401 means the JWT token has expired or is invalid.
-    // We clear the saved token and redirect to the login page
-    // so the user can get a fresh token.
-    if (response.status === 401) {
+    // Skip session-expiry logic for the login endpoint itself —
+    // a 401 there just means wrong credentials, not an expired session.
+    if (response.status === 401 && !endpoint.includes('/auth/login')) {
       localStorage.removeItem('portfolio_token');
-      // Only redirect to login if we are on a dashboard page
       if (window.location.pathname.includes('dashboard')) {
-        window.location.href = '/login.html';
+        window.location.href = '/login';
       }
       throw new Error('Session expired. Please log in again.');
     }
@@ -150,6 +148,13 @@ const API = (() => {
     return request(endpoint, { method: 'DELETE' });
   }
 
+  async function patch(endpoint, body) {
+    return request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+  }
+
   /**
    * FUNCTION: API.upload
    * WHAT IT DOES: Uploads a file using FormData (not JSON).
@@ -183,5 +188,5 @@ const API = (() => {
   }
 
   // Expose only the public interface — internal functions are private
-  return { get, post, put, delete: del, upload };
+  return { get, post, put, patch, delete: del, upload };
 })();

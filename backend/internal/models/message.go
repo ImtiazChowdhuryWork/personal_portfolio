@@ -43,6 +43,12 @@ type Message struct {
 	// IsReplied tracks whether a reply was sent (for dashboard filtering)
 	IsReplied bool `gorm:"default:false" json:"is_replied"`
 
+	// ReplyText stores the last reply sent to this message — shown in the inbox chat
+	ReplyText string `gorm:"type:text" json:"reply_text"`
+
+	// ReplyAttachments stores comma-separated filenames of attachments sent with the reply
+	ReplyAttachments string `gorm:"type:text" json:"reply_attachments"`
+
 	// IPAddress records where the message came from (for spam filtering)
 	IPAddress string `gorm:"type:varchar(50)" json:"ip_address"`
 

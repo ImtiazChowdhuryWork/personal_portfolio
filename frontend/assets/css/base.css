@@ -171,23 +171,30 @@ input, textarea, select, button {
  * GSAP power4.out — fast start, smooth decelerate like Drake.  */
 .scroll-animation {
   opacity: 0;
+  /* Promote to compositor layer before animation starts —
+     prevents repaint flicker and GPU compositing artifacts. */
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* translateZ(0) forces GPU layer promotion on all browsers */
+  transform: translateY(60px) translateZ(0);
   transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
               transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Default: fade up from below */
+/* Directional variants — translateZ(0) kept on all to maintain layer */
 .scroll-animation,
-[data-animation="fade_from_bottom"] { transform: translateY(80px); }
+[data-animation="fade_from_bottom"] { transform: translateY(60px) translateZ(0); }
 
-[data-animation="fade_from_top"]   { transform: translateY(-80px); }
-[data-animation="fade_from_left"]  { transform: translateX(-80px); }
-[data-animation="fade_from_right"] { transform: translateX(80px); }
-[data-animation="fade_in"]         { transform: none; }
+[data-animation="fade_from_top"]   { transform: translateY(-60px) translateZ(0); }
+[data-animation="fade_from_left"]  { transform: translateX(-60px) translateZ(0); }
+[data-animation="fade_from_right"] { transform: translateX(60px) translateZ(0); }
+[data-animation="fade_in"]         { transform: translateZ(0); }
 
-/* When JS adds .is-visible the element animates to its natural position */
+/* Visible state — translate back to natural position, keep Z for layer stability */
 .scroll-animation.is-visible {
   opacity: 1;
-  transform: translate(0, 0);
+  transform: translate3d(0, 0, 0);
 }
 
 /* ─── Gradient text helper ─────────────────────────────────────*/

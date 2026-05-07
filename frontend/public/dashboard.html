@@ -6,6 +6,8 @@
   <title>Dashboard — Imtiaz Portfolio</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
   <style>
     /* ─── Dashboard layout ───────────────────────────────────── */
     .dash-layout { display: flex; min-height: 100vh; }
@@ -66,6 +68,488 @@
       font-size: 10px; font-weight: 700; padding: 2px 6px;
       border-radius: 9999px; margin-left: 4px;
     }
+
+    /* ══════════════════════════════════════════════════════════
+       WhatsApp Dark Inbox
+    ══════════════════════════════════════════════════════════ */
+    .wa-inbox {
+      display: flex; height: calc(100vh - 180px);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    /* ── Left panel ─────────────────────────────────────────── */
+    .wa-list {
+      width: 360px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      background: #111b21;
+      border-right: 1px solid #2a3942;
+    }
+
+    .wa-list-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: #202c33;
+    }
+    .wa-list-header-title {
+      font-size: 1.1rem; font-weight: 700;
+      color: #e9edef;
+    }
+
+    .wa-search-wrap {
+      padding: 8px 12px;
+      background: #111b21;
+    }
+    .wa-search-input {
+      width: 100%; background: #202c33;
+      border: none; border-radius: 8px;
+      padding: 8px 14px; color: #d1d7db;
+      font-size: 13px; outline: none;
+    }
+    .wa-search-input::placeholder { color: #8696a0; }
+
+    .wa-list-items { overflow-y: auto; flex: 1; }
+    .wa-list-items::-webkit-scrollbar { width: 3px; }
+    .wa-list-items::-webkit-scrollbar-thumb { background: #2a3942; }
+
+    .wa-item {
+      display: flex; align-items: center; gap: 13px;
+      padding: 12px 16px; cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.12s; position: relative;
+    }
+    .wa-item:hover { background: #202c33; }
+    .wa-item.active { background: #2a3942; }
+
+    .wa-avatar {
+      width: 49px; height: 49px; border-radius: 50%;
+      background: #00a884;
+      color: #fff; font-weight: 700; font-size: 17px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; text-transform: uppercase;
+    }
+
+    .wa-item-body { flex: 1; min-width: 0; }
+    .wa-item-top {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 3px;
+    }
+    .wa-item-name {
+      font-size: 15px; font-weight: 500;
+      color: #e9edef; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .wa-item-time { font-size: 11px; color: #8696a0; flex-shrink: 0; }
+    .wa-item-bottom {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 4px;
+    }
+    .wa-item-preview {
+      font-size: 13px; color: #8696a0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex: 1;
+    }
+    .wa-unread-badge {
+      background: #00a884; color: #fff;
+      font-size: 11px; font-weight: 700;
+      min-width: 19px; height: 19px;
+      border-radius: 50%; display: flex;
+      align-items: center; justify-content: center;
+      padding: 0 4px; flex-shrink: 0;
+    }
+
+    /* ── Right: chat area ───────────────────────────────────── */
+    .wa-chat {
+      flex: 1; display: flex; flex-direction: column;
+      background: #0b141a; min-width: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .wa-chat-empty {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: #8696a0; gap: 0.75rem;
+    }
+    .wa-chat-empty-icon { font-size: 4rem; opacity: 0.25; }
+    .wa-chat-empty-text { font-size: 1.2rem; font-weight: 300; }
+    .wa-chat-empty-sub { font-size: 13px; opacity: 0.7; }
+
+    .wa-chat-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px;
+      background: #202c33;
+      border-bottom: 1px solid #2a3942;
+    }
+    .wa-chat-header-info { flex: 1; }
+    .wa-chat-header-name { font-weight: 600; color: #e9edef; font-size: 15px; }
+    .wa-chat-header-sub { font-size: 12px; color: #8696a0; margin-top: 1px; }
+    .wa-chat-header-badge {
+      background: rgba(0,168,132,0.15); color: #00a884;
+      font-size: 11px; font-weight: 600; padding: 3px 10px;
+      border-radius: 20px; border: 1px solid rgba(0,168,132,0.3);
+    }
+    .wa-chat-header-actions { display: flex; gap: 8px; }
+    .wa-chat-header-btn {
+      background: none; border: none; color: #8696a0;
+      font-size: 18px; cursor: pointer; padding: 4px 8px;
+      border-radius: 6px; transition: 0.2s;
+    }
+    .wa-chat-header-btn:hover { color: #e9edef; background: rgba(255,255,255,0.05); }
+
+    .wa-chat-body {
+      flex: 1; overflow-y: auto;
+      padding: 20px 60px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .wa-chat-body::-webkit-scrollbar { width: 4px; }
+    .wa-chat-body::-webkit-scrollbar-thumb { background: #2a3942; }
+
+    /* date separator */
+    .wa-date-sep {
+      text-align: center; margin: 10px 0;
+    }
+    .wa-date-sep span {
+      background: #182229; color: #8696a0;
+      font-size: 11px; padding: 4px 10px; border-radius: 6px;
+    }
+
+    /* bubbles */
+    .wa-bubble-row { display: flex; margin-bottom: 2px; }
+    .wa-bubble-row.received { justify-content: flex-start; }
+    .wa-bubble-row.sent { justify-content: flex-end; }
+
+    .wa-bubble {
+      max-width: 65%; min-width: 80px;
+      padding: 7px 12px 8px;
+      font-size: 14px; line-height: 1.6;
+      word-break: break-word;
+      position: relative;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .wa-bubble.received {
+      background: #202c33; color: #e9edef;
+      border-radius: 0 8px 8px 8px;
+    }
+    .wa-bubble.received::before {
+      content: ''; position: absolute;
+      top: 0; left: -8px;
+      border: 8px solid transparent;
+      border-top-color: #202c33;
+      border-left: none;
+    }
+    .wa-bubble.sent {
+      background: #005c4b; color: #e9edef;
+      border-radius: 8px 0 8px 8px;
+    }
+    .wa-bubble.sent::before {
+      content: ''; position: absolute;
+      top: 0; right: -8px;
+      border: 8px solid transparent;
+      border-top-color: #005c4b;
+      border-right: none;
+    }
+    .wa-bubble-meta {
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 4px; margin-top: 4px;
+    }
+    .wa-bubble-time {
+      font-size: 11px; color: rgba(255,255,255,0.5);
+    }
+    .wa-bubble-tick { font-size: 13px; color: #53bdeb; }
+
+    /* ── Bottom action bar ───────────────────────────────────── */
+    .wa-chat-footer {
+      padding: 10px 16px;
+      background: #202c33;
+      border-top: 1px solid #2a3942;
+      display: flex; gap: 10px; align-items: center;
+    }
+    .wa-reply-btn {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; padding: 9px 20px;
+      background: #00a884; color: #fff;
+      font-weight: 600; font-size: 14px;
+      border-radius: 20px; border: none; cursor: pointer;
+      text-decoration: none; transition: background 0.2s;
+    }
+    .wa-reply-btn:hover { background: #00c59a; color: #fff; }
+    .wa-action-btn {
+      padding: 8px 16px; border-radius: 20px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      border: 1px solid #2a3942;
+      background: transparent; color: #8696a0;
+      transition: 0.2s;
+    }
+    .wa-action-btn:hover { border-color: #54c5f8; color: #54c5f8; }
+    .wa-action-btn.danger:hover { border-color: #f44336; color: #f44336; }
+
+    /* ── Compose panel ───────────────────────────────────────── */
+    .wa-compose {
+      border-top: 1px solid #2a3942;
+      background: #202c33;
+      padding: 12px 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .wa-compose-field {
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid #2a3942;
+      padding-bottom: 8px;
+    }
+    .wa-compose-label {
+      font-size: 12px; color: #8696a0;
+      font-weight: 600; min-width: 48px;
+    }
+    .wa-compose-value {
+      font-size: 13px; color: #e9edef;
+      flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wa-compose-body {
+      width: 100%; background: #2a3942;
+      border: none; border-radius: 8px;
+      padding: 10px 14px; color: #e9edef;
+      font-family: inherit; font-size: 14px;
+      line-height: 1.6; resize: none;
+      outline: none; min-height: 80px;
+    }
+    .wa-compose-body::placeholder { color: #8696a0; }
+    .wa-compose-actions {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .wa-compose-status {
+      font-size: 12px; flex: 1; text-align: right; min-height: 16px; color: #8696a0;
+    }
+
+    /* ── Attachment lightbox ─────────────────────────────────── */
+    .att-lightbox {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92); z-index: 9999;
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    .att-lightbox.open { display: flex; }
+    .att-lightbox-close {
+      position: absolute; top: 16px; right: 20px;
+      background: rgba(255,255,255,0.1); border: none;
+      color: #fff; font-size: 22px; width: 40px; height: 40px;
+      border-radius: 50%; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .att-lightbox-close:hover { background: rgba(255,255,255,0.2); }
+    .att-lightbox-name {
+      color: rgba(255,255,255,0.7); font-size: 13px;
+      margin-bottom: 12px; max-width: 80vw;
+      text-align: center; word-break: break-all;
+    }
+    .att-lightbox img {
+      max-width: 90vw; max-height: 85vh;
+      object-fit: contain; border-radius: 8px;
+    }
+    .att-lightbox iframe {
+      width: 85vw; height: 85vh;
+      border: none; border-radius: 8px; background: #fff;
+    }
+    .att-lightbox-download {
+      margin-top: 14px;
+      background: rgba(255,255,255,0.1); color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 7px 20px;
+      font-size: 13px; cursor: pointer; text-decoration: none;
+      transition: background 0.2s;
+    }
+    .att-lightbox-download:hover { background: rgba(255,255,255,0.2); color: #fff; }
+    /* Carousel nav arrows */
+    .lb-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.12); border: none; color: #fff;
+      font-size: 24px; width: 46px; height: 46px; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s; z-index: 2;
+    }
+    .lb-nav:hover { background: rgba(255,255,255,0.25); }
+    .lb-prev { left: 20px; }
+    .lb-next { right: 20px; }
+    .lb-counter {
+      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.5); color: #fff;
+      font-size: 12px; padding: 3px 12px; border-radius: 20px;
+    }
+
+    /* ─── Image crop modal ──────────────────────────────────── */
+    .crop-modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); z-index: 9998;
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .crop-modal.open { display: flex; }
+    .crop-modal-card {
+      background: #1a1a1a; border-radius: 16px;
+      padding: 24px; max-width: 960px; width: 100%;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .crop-modal-body {
+      display: grid; grid-template-columns: 1fr 200px;
+      gap: 20px; align-items: start;
+    }
+    .crop-modal-title {
+      font-size: 1rem; font-weight: 700;
+      color: var(--color-heading); margin: 0;
+    }
+    .crop-modal-hint {
+      font-size: 12px; color: var(--color-text-muted); margin: 0;
+    }
+    .crop-container {
+      max-height: 380px; overflow: hidden;
+      border-radius: 10px; background: #000;
+    }
+    .crop-container img { display: block; max-width: 100%; }
+
+    /* Live preview column */
+    .crop-preview-col {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .crop-preview-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--color-text-muted);
+      margin-bottom: 6px;
+    }
+    /* Sidebar preview — matches sidebar card width ~272px, shown at 160px */
+    .preview-sidebar {
+      width: 160px; height: 160px;
+      overflow: hidden; border-radius: 20px;
+      background: #1a1a1a;
+      border: 1px solid var(--color-border);
+    }
+    /* About section preview — square column */
+    .preview-about {
+      width: 160px; height: 160px;
+      overflow: hidden; border-radius: 12px;
+      background: #1a1a1a;
+      border: 1px solid var(--color-border);
+    }
+    .crop-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .crop-ratio-btns { display: flex; gap: 8px; }
+    .crop-ratio-btn {
+      padding: 5px 12px; border-radius: 20px; font-size: 12px;
+      font-weight: 600; cursor: pointer; border: 1px solid var(--color-border);
+      background: transparent; color: var(--color-text-muted); transition: 0.2s;
+    }
+    .crop-ratio-btn.active, .crop-ratio-btn:hover {
+      border-color: var(--color-primary); color: var(--color-primary);
+    }
+
+    /* ─── WhatsApp image grid ────────────────────────────────── */
+    .wa-img-grid {
+      display: grid; gap: 3px;
+      border-radius: 10px; overflow: hidden;
+      max-width: 280px;
+    }
+    .wa-img-grid.grid-1 { grid-template-columns: 1fr; }
+    .wa-img-grid.grid-2 { grid-template-columns: 1fr 1fr; }
+    .wa-img-grid.grid-3 { grid-template-columns: 1fr 1fr; }
+    .wa-img-grid.grid-4 { grid-template-columns: 1fr 1fr; }
+    .wa-img-grid.grid-many { grid-template-columns: 1fr 1fr; }
+
+    .wa-img-cell {
+      position: relative; overflow: hidden;
+      cursor: pointer; background: #2a3942;
+    }
+    .wa-img-cell img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      pointer-events: none;
+    }
+    .wa-img-cell.tall { grid-row: span 2; }
+
+    .grid-1    .wa-img-cell { height: 200px; }
+    .grid-2    .wa-img-cell { height: 130px; }
+    .grid-3    .wa-img-cell { height: 100px; }
+    .grid-3    .wa-img-cell.tall { height: 203px; }
+    .grid-4    .wa-img-cell { height: 110px; }
+    .grid-many .wa-img-cell { height: 110px; }
+
+    .wa-img-more {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 22px; font-weight: 700;
+    }
+    .wa-img-remove {
+      position: absolute; top: 4px; right: 4px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(0,0,0,0.65); color: #fff;
+      border: none; cursor: pointer; font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2;
+    }
+
+    /* ─── Attachment previews in compose ─────────────────────── */
+    .wa-att-preview-row {
+      display: none;
+      max-height: 260px;
+      overflow-y: auto;
+      padding: 8px 0 4px;
+      scrollbar-width: thin;
+      scrollbar-color: #2a3942 transparent;
+    }
+    .wa-att-preview-row::-webkit-scrollbar { width: 4px; }
+    .wa-att-preview-row::-webkit-scrollbar-thumb { background: #2a3942; border-radius: 4px; }
+    .wa-att-item {
+      position: relative; border-radius: 10px;
+      overflow: hidden; flex-shrink: 0;
+    }
+    /* Image preview */
+    .wa-att-img-wrap { width: 80px; height: 80px; position: relative; }
+    .wa-att-img-wrap img {
+      width: 80px; height: 80px; object-fit: cover;
+      border-radius: 10px; display: block;
+    }
+    /* Doc preview */
+    .wa-att-doc-card {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--color-bg); border: 1px solid var(--color-border);
+      border-radius: 10px; padding: 8px 12px; max-width: 200px;
+    }
+    .wa-att-doc-icon { font-size: 22px; flex-shrink: 0; }
+    .wa-att-doc-name {
+      font-size: 12px; font-weight: 600; color: var(--color-text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    .wa-att-doc-size { font-size: 10px; color: var(--color-text-muted); }
+    /* Remove button on each item */
+    .wa-att-remove {
+      position: absolute; top: 3px; right: 3px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(0,0,0,0.65); color: #fff;
+      border: none; cursor: pointer; font-size: 10px;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+    .wa-att-doc-card .wa-att-remove {
+      position: static; background: transparent;
+      color: var(--color-text-muted); font-size: 13px;
+      width: auto; height: auto; margin-left: auto;
+    }
+
+    /* ─── Attachment bubbles in chat ─────────────────────────── */
+    .wa-bubble-images {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;
+    }
+    .wa-bubble-images img {
+      width: 120px; height: 100px; object-fit: cover;
+      border-radius: 8px; display: block;
+    }
+    .wa-bubble-doc {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(0,0,0,0.15); border-radius: 8px;
+      padding: 8px 10px; margin-bottom: 4px;
+      font-size: 12px; color: var(--color-text);
+    }
+    .wa-bubble-doc-icon { font-size: 20px; }
+    .wa-bubble-doc-name { font-weight: 600; }
+    .wa-bubble-doc-size { font-size: 10px; color: var(--color-text-muted); }
   </style>
 </head>
 <body>
@@ -160,13 +644,31 @@
 
     <!-- MESSAGES section -->
     <div class="dash-section" id="section-messages">
-      <div class="dash-panel">
-        <div class="dash-panel-header">
-          <h3 class="dash-panel-title">Contact Messages</h3>
+      <div class="wa-inbox">
+
+        <!-- Left: conversation list -->
+        <div class="wa-list">
+          <div class="wa-list-header">
+            <span class="wa-list-header-title">Messages</span>
+          </div>
+          <div class="wa-search-wrap">
+            <input class="wa-search-input" type="text" placeholder="🔍  Search messages..."
+              oninput="filterMessages(this.value)">
+          </div>
+          <div class="wa-list-items" id="wa-list-items">
+            <div style="padding:1rem;color:#8696a0;font-size:13px">Loading...</div>
+          </div>
         </div>
-        <div id="messages-table-wrapper">
-          <div style="color:var(--color-text-muted)">Loading...</div>
+
+        <!-- Right: chat view -->
+        <div class="wa-chat" id="wa-chat">
+          <div class="wa-chat-empty">
+            <div class="wa-chat-empty-icon">💬</div>
+            <div class="wa-chat-empty-text">Your messages</div>
+            <div class="wa-chat-empty-sub">Select a conversation to start reading</div>
+          </div>
         </div>
+
       </div>
     </div>
 
@@ -195,6 +697,123 @@
           </div>
           <div class="form-group"><label class="form-label">Bio</label><textarea class="form-control" name="bio" rows="4"></textarea></div>
           <div class="form-group"><label class="form-label">Short Bio (hero)</label><input class="form-control" name="short_bio"></div>
+
+          <!-- Sidebar Photo Upload -->
+          <div class="form-group" style="border-top:1px solid var(--color-border);padding-top:1.5rem;margin-top:0.5rem">
+            <label class="form-label" style="font-size:1rem;margin-bottom:0.25rem">🖼 Sidebar Card Photo</label>
+            <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:1rem">
+              Shown in the <strong style="color:var(--color-heading)">left sidebar card</strong> on the portfolio.
+              Recommended: <strong style="color:var(--color-heading)">800×800px square</strong>, JPG or PNG, max 10MB.
+            </p>
+            <div id="photo-preview-wrap" style="display:none;margin-bottom:12px">
+              <img id="photo-preview" src="" alt="Sidebar photo"
+                style="width:120px;height:120px;object-fit:cover;border-radius:16px;
+                       border:2px solid var(--color-border);display:block">
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <input type="file" id="photo-file-input" accept=".jpg,.jpeg,.png,.webp,.heic,.heif" style="display:none"
+                onchange="handlePhotoUpload(this)">
+              <button type="button" onclick="document.getElementById('photo-file-input').click()"
+                class="btn btn-ghost btn-sm">🖼 Upload Sidebar Photo</button>
+              <span id="photo-upload-status" style="font-size:13px;color:var(--color-text-muted)"></span>
+            </div>
+          </div>
+
+          <!-- About Section Photo Upload -->
+          <div class="form-group" style="border-top:1px solid var(--color-border);padding-top:1.5rem;margin-top:0.5rem">
+            <label class="form-label" style="font-size:1rem;margin-bottom:0.25rem">🖼 About Section Photo</label>
+            <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:1rem">
+              Shown in the <strong style="color:var(--color-heading)">About Me section</strong> of the portfolio.
+              Recommended: <strong style="color:var(--color-heading)">600×800px portrait</strong>, JPG or PNG, max 10MB.
+            </p>
+            <div id="about-photo-preview-wrap" style="display:none;margin-bottom:12px">
+              <img id="about-photo-preview" src="" alt="About section photo"
+                style="width:90px;height:120px;object-fit:cover;border-radius:12px;
+                       border:2px solid var(--color-border);display:block">
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <input type="file" id="about-photo-file-input" accept=".jpg,.jpeg,.png,.webp,.heic,.heif" style="display:none"
+                onchange="handleAboutPhotoUpload(this)">
+              <button type="button" onclick="document.getElementById('about-photo-file-input').click()"
+                class="btn btn-ghost btn-sm">🖼 Upload About Photo</button>
+              <span id="about-photo-upload-status" style="font-size:13px;color:var(--color-text-muted)"></span>
+            </div>
+          </div>
+
+          <!-- CV Upload -->
+          <div class="form-group" style="border-top:1px solid var(--color-border);padding-top:1.5rem;margin-top:0.5rem">
+            <label class="form-label" style="font-size:1rem;margin-bottom:0.25rem">📄 CV / Resume</label>
+            <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:1rem">
+              Upload your CV as a PDF. It will be used for the "Download CV" button on your portfolio.
+            </p>
+            <div id="cv-current" style="display:none;align-items:center;gap:10px;
+              background:var(--color-bg);border:1px solid var(--color-border);
+              border-radius:10px;padding:12px 16px;margin-bottom:12px">
+              <span style="font-size:22px">📕</span>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600;color:var(--color-heading)" id="cv-filename">cv.pdf</div>
+                <div style="font-size:11px;color:var(--color-text-muted)">Currently uploaded</div>
+              </div>
+              <a id="cv-view-btn" href="#" target="_blank"
+                style="font-size:12px;color:var(--color-primary);text-decoration:none">View</a>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <input type="file" id="cv-file-input" accept=".pdf" style="display:none"
+                onchange="handleCVUpload(this)">
+              <button type="button" onclick="document.getElementById('cv-file-input').click()"
+                class="btn btn-ghost btn-sm">⬆ Upload PDF</button>
+              <span id="cv-upload-status" style="font-size:13px;color:var(--color-text-muted)"></span>
+            </div>
+          </div>
+
+          <!-- Mail / SMTP Settings -->
+          <div class="form-group" style="border-top:1px solid var(--color-border);padding-top:1.5rem;margin-top:0.5rem">
+            <label class="form-label" style="font-size:1rem;margin-bottom:0.25rem">📧 Mail Settings</label>
+            <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:1rem">
+              The Gmail account used to actually <strong>send</strong> replies.
+              Must match the account you generated the App Password from.
+            </p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Sending Gmail Address</label>
+                <input class="form-control" name="smtp_user" type="email"
+                  placeholder="work.imtiazchowdhury@gmail.com">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Gmail App Password (16 characters)</label>
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap" id="smtp-pass-boxes">
+                  <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
+                  <span style="color:var(--color-text-muted);font-size:16px;flex-shrink:0">—</span>
+                  <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
+                  <span style="color:var(--color-text-muted);font-size:16px;flex-shrink:0">—</span>
+                  <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
+                  <span style="color:var(--color-text-muted);font-size:16px;flex-shrink:0">—</span>
+                  <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
+                  <button type="button" id="smtp-toggle-btn" onclick="toggleSmtpVisibility()"
+                    style="background:none;border:1px solid var(--color-border);border-radius:8px;
+                           padding:6px 10px;color:var(--color-text-muted);cursor:pointer;
+                           font-size:16px;transition:0.2s;flex-shrink:0"
+                    title="Show / Hide">👁</button>
+                </div>
+                <!-- Hidden field that holds the combined value for form submission -->
+                <input type="hidden" name="smtp_pass" id="smtp-pass-combined">
+                <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                  Leave all boxes empty to keep the existing password.
+                </p>
+              </div>
+            </div>
+            <div style="margin-top:10px;background:rgba(84,197,248,0.06);border:1px solid rgba(84,197,248,0.2);border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.9;color:var(--color-text-muted)">
+              <strong style="color:var(--color-primary);display:block;margin-bottom:4px">📌 How to get your App Password from Google:</strong>
+              1. Go to <strong style="color:var(--color-text)">myaccount.google.com</strong> and sign in with the Gmail you want to send from<br>
+              2. Click <strong style="color:var(--color-text)">Security</strong> in the left sidebar<br>
+              3. Make sure <strong style="color:var(--color-text)">2-Step Verification</strong> is turned ON<br>
+              4. Search <strong style="color:var(--color-text)">"App passwords"</strong> at the top and open it<br>
+              5. Type a name (e.g. <strong style="color:var(--color-text)">Portfolio</strong>) → click <strong style="color:var(--color-text)">Create</strong><br>
+              6. Google shows a 16-character password — copy and paste it into the 4 boxes above<br>
+              <span style="color:var(--color-error)">⚠ Google only shows this password once. Save it here immediately — you cannot view it again later.</span>
+            </div>
+          </div>
+
           <button type="submit" class="btn btn-primary">Save Profile</button>
         </form>
       </div>
@@ -348,39 +967,834 @@ async function deleteExp(id) {
   catch (e) { Toast.show(e.message,'error'); }
 }
 
+let _messages = [];
+
+let _lbSet   = [];   // current image set for carousel
+let _lbIndex = 0;    // current index
+
+function openLightbox(url, name, set, index) {
+  _lbSet   = set   || [{ src: url, name: name }];
+  _lbIndex = index != null ? index : 0;
+  renderLightboxSlide();
+  document.getElementById('att-lightbox').classList.add('open');
+  document.addEventListener('keydown', lbKeyNav);
+}
+
+function renderLightboxSlide() {
+  const lb      = document.getElementById('att-lightbox');
+  const content = document.getElementById('att-lightbox-content');
+  const title   = document.getElementById('att-lightbox-name');
+  const dl      = document.getElementById('att-lightbox-dl');
+
+  const item  = _lbSet[_lbIndex];
+  const url   = item.src || item.url || item;
+  const name  = item.name || '';
+  const isImg = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(name) || /image/.test(url);
+  const isPdf = /\.pdf$/i.test(name);
+
+  title.textContent = name;
+  dl.href = url; dl.download = name;
+
+  if (isImg) {
+    content.innerHTML = `<img src="${url}" alt="${name}" style="max-width:90vw;max-height:80vh;object-fit:contain;border-radius:8px">`;
+  } else if (isPdf) {
+    content.innerHTML = `<iframe src="${url}" style="width:85vw;height:82vh;border:none;border-radius:8px;background:#fff"></iframe>`;
+  } else {
+    content.innerHTML = `<div style="color:#fff;font-size:48px;margin-bottom:12px">${fileIcon(name)}</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:14px">Preview not available.</div>`;
+  }
+
+  // Show nav arrows only when there are multiple images
+  const prevBtn = lb.querySelector('.lb-prev');
+  const nextBtn = lb.querySelector('.lb-next');
+  const counter = lb.querySelector('.lb-counter');
+  if (prevBtn) prevBtn.style.display = _lbSet.length > 1 ? 'flex' : 'none';
+  if (nextBtn) nextBtn.style.display = _lbSet.length > 1 ? 'flex' : 'none';
+  if (counter) counter.textContent   = _lbSet.length > 1 ? `${_lbIndex + 1} / ${_lbSet.length}` : '';
+}
+
+function lbNav(dir) {
+  _lbIndex = (_lbIndex + dir + _lbSet.length) % _lbSet.length;
+  renderLightboxSlide();
+}
+
+function lbKeyNav(e) {
+  if (e.key === 'Escape')       { document.getElementById('att-lightbox').classList.remove('open'); }
+  if (e.key === 'ArrowRight')   lbNav(1);
+  if (e.key === 'ArrowLeft')    lbNav(-1);
+}
+
+function lbKeyClose(e) {
+  if (e.key === 'Escape') {
+    document.getElementById('att-lightbox').classList.remove('open');
+    document.getElementById('att-lightbox-content').innerHTML = '';
+  }
+}
+
+function filterMessages(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('.wa-item').forEach(item => {
+    const name    = item.dataset.name    || '';
+    const preview = item.dataset.preview || '';
+    item.style.display = (!q || name.includes(q) || preview.includes(q)) ? '' : 'none';
+  });
+}
+
+function getInitials(name) {
+  return name.trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function timeAgo(dateStr) {
+  const d = new Date(dateStr), now = new Date();
+  const diff = now - d;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+}
+
+async function openMessage(id) {
+  const m = _messages.find(x => x.id === id);
+  if (!m) return;
+
+  // Highlight active item in list
+  document.querySelectorAll('.wa-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.wa-item[data-id="${id}"]`)?.classList.add('active');
+
+  // Remove unread dot from list item when opened
+  document.querySelector(`.wa-item[data-id="${id}"] .wa-unread-dot`)?.remove();
+
+  // Render chat panel
+  const chat = document.getElementById('wa-chat');
+  const replyLink = `mailto:${m.email}?subject=${encodeURIComponent('Re: ' + m.type)}&body=${encodeURIComponent('Hi ' + m.name + ',\n\n\n\n---\nYour original message:\n' + m.content)}`;
+
+  const receivedTime = new Date(m.created_at).toLocaleString('en-US',{hour:'2-digit',minute:'2-digit'});
+  const receivedDate = new Date(m.created_at).toLocaleDateString('en-US',{day:'numeric',month:'long',year:'numeric'});
+  const sentTime = m.updated_at ? new Date(m.updated_at).toLocaleString('en-US',{hour:'2-digit',minute:'2-digit'}) : '';
+
+  // Load all replies for this message from the server
+  let replies = [];
+  try {
+    const rRes = await API.get(`/messages/${m.id}/replies`);
+    replies = rRes.data || [];
+  } catch { /* fall back to legacy reply_text if API fails */ }
+
+  // If no reply records yet, fall back to the legacy single reply stored on the message
+  if (replies.length === 0 && m.reply_text) {
+    replies = [{ reply_text: m.reply_text, attachments: m.reply_attachments, created_at: m.updated_at }];
+  }
+
+  function renderReplies(replies) {
+    return replies.map(r => {
+      const atts = parseAttachments(r.attachments);
+      const attHtml = attachmentHtml(atts);
+      const t = r.created_at ? new Date(r.created_at).toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}) : '';
+      return `<div class="wa-bubble-row sent">
+        <div class="wa-bubble sent">
+          ${attHtml}
+          ${r.reply_text}
+          <div class="wa-bubble-meta">
+            <span class="wa-bubble-time">${t}</span>
+            <span class="wa-bubble-tick">✓✓</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  chat.innerHTML = `
+    <!-- Header -->
+    <div class="wa-chat-header">
+      <div class="wa-avatar">${getInitials(m.name)}</div>
+      <div class="wa-chat-header-info">
+        <div class="wa-chat-header-name">${m.name}</div>
+        <div class="wa-chat-header-sub">${m.email}</div>
+      </div>
+      <span class="wa-chat-header-badge">${m.type}</span>
+      <div class="wa-chat-header-actions">
+        ${!m.is_read ? `<button class="wa-chat-header-btn" onclick="markRead(${m.id})" title="Mark as read">✓</button>` : ''}
+        <button class="wa-chat-header-btn" style="color:#f44336" onclick="deleteMsg(${m.id})" title="Delete">🗑</button>
+      </div>
+    </div>
+
+    <!-- Chat body -->
+    <div class="wa-chat-body" id="wa-chat-body">
+      <div class="wa-date-sep"><span>${receivedDate}</span></div>
+
+      <!-- Received bubble -->
+      <div class="wa-bubble-row received">
+        <div class="wa-bubble received">
+          ${m.content}
+          <div class="wa-bubble-meta">
+            <span class="wa-bubble-time">${receivedTime}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- All sent replies in chronological order -->
+      ${renderReplies(replies)}
+    </div>
+
+    <!-- Action bar -->
+    <div class="wa-chat-footer" id="wa-action-bar">
+      <button class="wa-reply-btn" onclick="toggleCompose()">✉&nbsp; Reply</button>
+    </div>
+
+    <!-- Compose panel (hidden by default, toggles on Reply click) -->
+    <div class="wa-compose" id="wa-compose" style="display:none">
+      <div class="wa-compose-title">✉ New Reply</div>
+
+      <div class="wa-compose-field">
+        <span class="wa-compose-label">From</span>
+        <select id="reply-from" style="flex:1;background:var(--color-bg);border:none;
+          color:var(--color-text);font-size:13px;outline:none;padding:2px 0;cursor:pointer">
+          <option value="">Loading addresses...</option>
+        </select>
+      </div>
+
+      <div class="wa-compose-field">
+        <span class="wa-compose-label">To</span>
+        <span class="wa-compose-value">${m.name} &lt;${m.email}&gt;</span>
+      </div>
+
+      <div class="wa-compose-field">
+        <span class="wa-compose-label">Subject</span>
+        <span class="wa-compose-value">Re: ${m.type}</span>
+      </div>
+
+      <textarea class="wa-compose-body" id="reply-textarea"
+        placeholder="Write your reply here..."></textarea>
+
+      <!-- WhatsApp-style attachment previews -->
+      <div id="wa-att-preview-row" class="wa-att-preview-row"></div>
+
+      <!-- Attach button + file count -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="file" id="reply-attachments" multiple style="display:none"
+          onchange="handleAttachmentSelect(this)">
+        <button type="button"
+          onclick="document.getElementById('reply-attachments').click()"
+          style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+                 font-size:13px;color:#8696a0;background:none;
+                 border:1px dashed #2a3942;border-radius:8px;
+                 padding:7px 14px;transition:0.2s;flex-shrink:0"
+          onmouseover="this.style.borderColor='#00a884';this.style.color='#00a884'"
+          onmouseout="this.style.borderColor='#2a3942';this.style.color='#8696a0'">
+          📎 Attach
+        </button>
+        <div id="att-count-badge" style="display:none;align-items:center;gap:6px">
+          <span id="att-count-text"
+            style="background:#00a884;color:#fff;font-size:11px;font-weight:700;
+                   padding:3px 10px;border-radius:20px">
+          </span>
+          <span style="font-size:12px;color:#8696a0">selected</span>
+          <button type="button" onclick="clearAllAttachments()"
+            style="font-size:11px;color:#f44336;background:none;border:none;cursor:pointer;padding:0">
+            Clear all
+          </button>
+        </div>
+      </div>
+
+      <div class="wa-compose-actions">
+        <button class="wa-reply-btn" style="padding:0.6rem 1.5rem;font-size:13px" onclick="sendReply(${m.id})">
+          Send
+        </button>
+        <button class="wa-action-btn" onclick="toggleCompose()">Cancel</button>
+        <span class="wa-compose-status" id="reply-status"></span>
+      </div>
+    </div>
+  `;
+
+  // Auto mark as read
+  if (!m.is_read) markRead(m.id);
+}
+
 async function loadMessages() {
-  const w = document.getElementById('messages-table-wrapper');
+  const w = document.getElementById('wa-list-items');
   try {
     const res = await API.get('/messages');
-    const msgs = res.data || [];
-    if (!msgs.length) { w.innerHTML = '<p style="color:var(--color-text-muted)">No messages yet.</p>'; return; }
-    w.innerHTML = `<div class="table-wrapper"><table class="table">
-      <thead><tr><th>Name</th><th>Email</th><th>Type</th><th>Date</th><th>Actions</th></tr></thead>
-      <tbody>${msgs.map(m => `
-        <tr style="${m.is_read ? '' : 'background:rgba(84,197,248,0.03)'}">
-          <td><strong>${m.name}</strong>${!m.is_read ? ' <span class="badge badge-primary" style="font-size:10px">New</span>' : ''}</td>
-          <td>${m.email}</td>
-          <td>${m.type}</td>
-          <td>${new Date(m.created_at).toLocaleDateString()}</td>
-          <td style="display:flex;gap:0.5rem">
-            ${!m.is_read ? `<button class="btn btn-ghost btn-sm" onclick="markRead(${m.id})">Mark Read</button>` : ''}
-            <button class="btn btn-ghost btn-sm" onclick="deleteMsg(${m.id})">Delete</button>
-          </td>
-        </tr>
-      `).join('')}</tbody>
-    </table></div>`;
-  } catch (e) { w.innerHTML = `<p style="color:var(--color-error)">${e.message}</p>`; }
+    _messages = res.data || [];
+    if (!_messages.length) {
+      w.innerHTML = '<div style="padding:1.5rem;color:var(--color-text-muted);font-size:13px;text-align:center">No messages yet</div>';
+      return;
+    }
+    w.innerHTML = _messages.map(m => `
+      <div class="wa-item" data-id="${m.id}" data-name="${m.name.toLowerCase()}" data-preview="${m.content.toLowerCase()}" onclick="openMessage(${m.id})">
+        <div class="wa-avatar">${getInitials(m.name)}</div>
+        <div class="wa-item-body">
+          <div class="wa-item-top">
+            <span class="wa-item-name">${m.name}</span>
+            <span class="wa-item-time" style="${!m.is_read ? 'color:#00a884;font-weight:600' : ''}">${timeAgo(m.created_at)}</span>
+          </div>
+          <div class="wa-item-bottom">
+            <span class="wa-item-preview">${m.is_replied ? '✓ ' : ''}${m.content}</span>
+            ${!m.is_read ? '<span class="wa-unread-badge">1</span>' : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    w.innerHTML = `<div style="padding:1rem;color:var(--color-error);font-size:13px">${e.message}</div>`;
+  }
+}
+
+async function toggleCompose() {
+  const panel     = document.getElementById('wa-compose');
+  const actionBar = document.getElementById('wa-action-bar');
+  if (!panel) return;
+  const isHidden = panel.style.display === 'none';
+  panel.style.display     = isHidden ? 'flex' : 'none';
+  if (actionBar) actionBar.style.display = isHidden ? 'none' : 'flex';
+
+  if (isHidden) {
+    // Populate From dropdown from the saved sending Gmail address
+    const select = document.getElementById('reply-from');
+    if (select && select.options.length <= 1) {
+      try {
+        const res = await API.get('/profile');
+        const smtpUser = res.data?.smtp_user || '';
+        if (smtpUser) {
+          select.innerHTML = `<option value="${smtpUser}">${smtpUser}</option>`;
+        } else {
+          select.innerHTML = '<option value="">No address saved — set it in Profile → Mail Settings</option>';
+        }
+      } catch {
+        select.innerHTML = '<option value="">Could not load address</option>';
+      }
+    }
+    document.getElementById('reply-textarea')?.focus();
+  }
+}
+
+let _attachedFiles = [];
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+// Build WhatsApp grid. imgs = [{src, name}], groupId = unique key for carousel
+function buildImageGrid(imgs, showRemove = false, groupId = 'lb') {
+  const n = imgs.length;
+  if (n === 0) return '';
+
+  const MAX = 4;
+  const shown = imgs.slice(0, MAX);
+  const extra = n - MAX;
+
+  const gridClass = n === 1 ? 'grid-1'
+    : n === 2 ? 'grid-2'
+    : n === 3 ? 'grid-3'
+    : n === 4 ? 'grid-4' : 'grid-many';
+
+  // Store image set for carousel navigation
+  const safeSet = JSON.stringify(imgs.map(i => ({ src: i.src, name: i.name })))
+    .replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+  const cells = shown.map((img, i) => {
+    const isTall = n === 3 && i === 0;
+    const isLast = i === shown.length - 1 && extra > 0;
+    const moreOverlay = isLast ? `<div class="wa-img-more">+${extra}</div>` : '';
+    const removeBtn = showRemove
+      ? `<button class="wa-img-remove" onclick="event.stopPropagation();removeAttachmentByName('${img.name}')">✕</button>` : '';
+
+    return `<div class="wa-img-cell att-trigger${isTall ? ' tall' : ''}"
+      data-url="${img.src}" data-name="${img.name}"
+      data-set='${safeSet}' data-index="${i}">
+      <img src="${img.src}" alt="${img.name}">
+      ${moreOverlay}${removeBtn}
+    </div>`;
+  }).join('');
+
+  return `<div class="wa-img-grid ${gridClass}">${cells}</div>`;
+}
+
+function parseAttachments(raw) {
+  if (!raw) return [];
+  try { return JSON.parse(raw); } catch { /* not JSON */ }
+  return raw.split(',').filter(Boolean).map(n => ({ name: n.trim(), url: null }));
+}
+
+function attachmentHtml(atts) {
+  const images = atts.filter(a => a.url && (a.type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(a.name)));
+  const docs   = atts.filter(a => !images.includes(a));
+
+  const gridHtml = images.length
+    ? buildImageGrid(images.map(a => ({ src: a.url, name: a.name })), false)
+    : '';
+
+  const docsHtml = docs.map(a => {
+    if (!a.url) return `<div class="wa-bubble-doc">
+      <div class="wa-bubble-doc-icon">${fileIcon(a.name)}</div>
+      <div><div class="wa-bubble-doc-name">${a.name}</div></div>
+    </div>`;
+    return `<div class="att-trigger wa-bubble-doc" data-url="${a.url}" data-name="${a.name}" style="cursor:pointer">
+      <div class="wa-bubble-doc-icon">${fileIcon(a.name)}</div>
+      <div>
+        <div class="wa-bubble-doc-name">${a.name}</div>
+        ${a.size ? `<div class="wa-bubble-doc-size">${formatBytes(a.size)}</div>` : ''}
+      </div>
+      <span style="margin-left:auto;font-size:12px;color:#8696a0">👁</span>
+    </div>`;
+  }).join('');
+
+  return gridHtml + docsHtml;
+}
+
+// Delegated listener — catches all .att-trigger clicks no matter when they're added to DOM
+document.addEventListener('click', function(e) {
+  // Open lightbox
+  const trigger = e.target.closest('.att-trigger');
+  if (trigger) {
+    let set   = null;
+    let index = 0;
+    try {
+      if (trigger.dataset.set) {
+        set   = JSON.parse(trigger.dataset.set);
+        index = parseInt(trigger.dataset.index) || 0;
+      }
+    } catch {}
+    openLightbox(trigger.dataset.url, trigger.dataset.name, set, index);
+    return;
+  }
+
+  // Close lightbox — background or close button
+  if (e.target.id === 'att-lightbox' || e.target.id === 'att-lightbox-close-btn') {
+    document.getElementById('att-lightbox').classList.remove('open');
+    document.getElementById('att-lightbox-content').innerHTML = '';
+    document.removeEventListener('keydown', lbKeyNav);
+  }
+});
+
+function fileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (['pdf'].includes(ext)) return '📕';
+  if (['doc','docx'].includes(ext)) return '📝';
+  if (['xls','xlsx'].includes(ext)) return '📊';
+  if (['zip','rar'].includes(ext)) return '🗜️';
+  if (['mp4','mov','avi'].includes(ext)) return '🎬';
+  if (['mp3','wav'].includes(ext)) return '🎵';
+  return '📄';
+}
+
+function handleAttachmentSelect(input) {
+  _attachedFiles = [..._attachedFiles, ...Array.from(input.files)];
+  input.value = '';
+  renderAttachmentPreviews();
+}
+
+function removeAttachment(idx) {
+  _attachedFiles.splice(idx, 1);
+  renderAttachmentPreviews();
+}
+
+function removeAttachmentByName(name) {
+  _attachedFiles = _attachedFiles.filter(f => f.name !== name);
+  renderAttachmentPreviews();
+}
+
+function clearAllAttachments() {
+  _attachedFiles = [];
+  renderAttachmentPreviews();
+}
+
+function renderAttachmentPreviews() {
+  const row   = document.getElementById('wa-att-preview-row');
+  const badge = document.getElementById('att-count-badge');
+  const count = document.getElementById('att-count-text');
+  if (!row) return;
+
+  if (_attachedFiles.length === 0) {
+    row.style.display = 'none';
+    row.innerHTML = '';
+    if (badge) badge.style.display = 'none';
+    return;
+  }
+
+  // Update count badge
+  if (badge && count) {
+    badge.style.display = 'flex';
+    const imgs = _attachedFiles.filter(f => f.type.startsWith('image/')).length;
+    const docs = _attachedFiles.length - imgs;
+    const parts = [];
+    if (imgs) parts.push(`${imgs} image${imgs > 1 ? 's' : ''}`);
+    if (docs) parts.push(`${docs} file${docs > 1 ? 's' : ''}`);
+    count.textContent = parts.join(' + ');
+  }
+
+  row.style.display = 'block';
+
+  // Separate images and docs
+  const imgFiles = _attachedFiles.filter(f => f.type.startsWith('image/'));
+  const docFiles = _attachedFiles.filter(f => !f.type.startsWith('image/'));
+
+  // Build WhatsApp grid with object URLs (local preview, no upload yet)
+  const gridHtml = imgFiles.length
+    ? buildImageGrid(imgFiles.map(f => ({
+        src: URL.createObjectURL(f),
+        name: f.name
+      })), true)
+    : '';
+
+  // Build doc cards with remove buttons
+  const docHtml = docFiles.map((f, i) => {
+    const realIdx = _attachedFiles.indexOf(f);
+    return `<div class="wa-att-doc-card" style="margin-bottom:4px">
+      <div class="wa-att-doc-icon">${fileIcon(f.name)}</div>
+      <div>
+        <div class="wa-att-doc-name">${f.name}</div>
+        <div class="wa-att-doc-size">${formatBytes(f.size)}</div>
+      </div>
+      <button class="wa-att-remove" style="position:static;width:auto;height:auto;
+        background:none;color:#8696a0;font-size:14px" onclick="removeAttachment(${realIdx})">✕</button>
+    </div>`;
+  }).join('');
+
+  // Remove-all for images shown as a small link below the grid
+  const imgRemoveHint = imgFiles.length
+    ? `<div style="font-size:11px;color:#8696a0;margin-top:4px;cursor:pointer"
+         onclick="clearImageAttachments()">✕ Remove all images</div>`
+    : '';
+
+  row.innerHTML = gridHtml + imgRemoveHint + (docFiles.length ? `<div style="margin-top:6px">${docHtml}</div>` : '');
+}
+
+function clearImageAttachments() {
+  _attachedFiles = _attachedFiles.filter(f => !f.type.startsWith('image/'));
+  renderAttachmentPreviews();
+}
+
+async function sendReply(id) {
+  const textarea  = document.getElementById('reply-textarea');
+  const status    = document.getElementById('reply-status');
+  const fromEmail = document.getElementById('reply-from')?.value || '';
+  const replyText = textarea?.value?.trim();
+  if (!replyText) { status.textContent = 'Please write a reply first.'; status.style.color = 'var(--color-error)'; return; }
+
+  status.textContent = 'Sending...';
+  status.style.color = 'var(--color-text-muted)';
+  try {
+    // Use FormData so files can be included
+    // Upload each attachment to the server first so they can be viewed later
+    const uploadedFiles = [];
+    for (const f of _attachedFiles) {
+      try {
+        const fd = new FormData();
+        fd.append('file', f);
+        fd.append('folder', 'replies');
+        const token = localStorage.getItem('portfolio_token');
+        const upRes = await fetch('/api/v1/upload', {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          body: fd,
+        });
+        const upData = await upRes.json();
+        if (upData.success) {
+          uploadedFiles.push({ name: f.name, url: upData.data.url, type: f.type, size: f.size });
+        }
+      } catch { /* skip failed uploads */ }
+    }
+
+    const formData = new FormData();
+    formData.append('reply_text', replyText);
+    formData.append('from_email', fromEmail);
+    formData.append('attachment_urls', JSON.stringify(uploadedFiles));
+    _attachedFiles.forEach(f => formData.append('attachments', f));
+
+    const token = localStorage.getItem('portfolio_token');
+    const res = await fetch(`/api/v1/messages/${id}/reply`, {
+      method: 'POST',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'Failed to send');
+
+    status.textContent = '✓ Reply sent successfully!';
+    status.style.color = 'var(--color-primary)';
+
+    // Append sent bubble immediately to the chat body
+    const chatBody = document.getElementById('wa-chat-body');
+    if (chatBody) {
+      const now = new Date().toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short',year:'numeric'});
+      const bubble = document.createElement('div');
+      bubble.className = 'wa-bubble-row sent';
+      // Build WhatsApp grid from uploaded URLs
+      const liveAttachHtml = attachmentHtml(
+        uploadedFiles.map(f => ({ ...f, type: f.type || '' }))
+      );
+
+      bubble.innerHTML = `<div class="wa-bubble sent">
+        ${liveAttachHtml}
+        ${replyText}
+        <div class="wa-bubble-meta">
+          <span class="wa-bubble-time">${now}</span>
+          <span class="wa-bubble-tick">✓✓</span>
+        </div>
+      </div>`;
+      chatBody.appendChild(bubble);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    textarea.value = '';
+    _attachedFiles = [];
+    renderAttachmentPreviews();
+    const badge = document.getElementById('att-count-badge');
+    if (badge) badge.style.display = 'none';
+
+    // Brief pause so user sees the success message, then minimize
+    setTimeout(() => {
+      toggleCompose();
+      loadMessages();
+      loadStats();
+    }, 900);
+  } catch (e) {
+    status.textContent = e.message;
+    status.style.color = 'var(--color-error)';
+  }
 }
 
 async function markRead(id) {
   try { await API.put(`/messages/${id}`, {}); loadMessages(); loadStats(); }
-  catch (e) { Toast.show(e.message,'error'); }
+  catch (e) { Toast.show(e.message, 'error'); }
 }
 
 async function deleteMsg(id) {
   if (!confirm('Delete this message?')) return;
-  try { await API.delete(`/messages/${id}`); Toast.show('Deleted','success'); loadMessages(); loadStats(); }
-  catch (e) { Toast.show(e.message,'error'); }
+  try { await API.delete(`/messages/${id}`); Toast.show('Deleted', 'success'); loadMessages(); loadStats(); }
+  catch (e) { Toast.show(e.message, 'error'); }
+}
+
+function toggleSmtpVisibility() {
+  const boxes  = document.querySelectorAll('.smtp-chunk');
+  const btn    = document.getElementById('smtp-toggle-btn');
+  const hidden = boxes[0]?.type === 'password';
+  boxes.forEach(b => { b.type = hidden ? 'text' : 'password'; });
+  btn.textContent = hidden ? '🙈' : '👁';
+  btn.title = hidden ? 'Hide' : 'Show';
+}
+
+function initSmtpPassBoxes() {
+  const boxes = document.querySelectorAll('.smtp-chunk');
+  const combined = document.getElementById('smtp-pass-combined');
+  if (!boxes.length || !combined) return;
+
+  function updateCombined() {
+    combined.value = Array.from(boxes).map(b => b.value).join('');
+  }
+
+  boxes.forEach((box, i) => {
+    // Auto-advance to next box when 4 chars are entered
+    box.addEventListener('input', () => {
+      box.value = box.value.replace(/\s/g, ''); // strip spaces
+      updateCombined();
+      if (box.value.length === 4 && i < boxes.length - 1) {
+        boxes[i + 1].focus();
+      }
+    });
+
+    // Backspace on empty box moves to previous
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && box.value === '' && i > 0) {
+        boxes[i - 1].focus();
+      }
+    });
+
+    // Handle paste of full 16-char string into any box
+    box.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const raw = (e.clipboardData.getData('text') || '').replace(/\s/g, '');
+      if (raw.length >= 8) {
+        // Distribute across all boxes
+        boxes.forEach((b, idx) => { b.value = raw.slice(idx * 4, idx * 4 + 4); });
+        boxes[boxes.length - 1].focus();
+      } else {
+        box.value = raw.slice(0, 4);
+      }
+      updateCombined();
+    });
+  });
+}
+
+let _cropper = null;
+let _cropFilename = 'profile-photo.jpg';
+let _cropTarget = 'sidebar'; // 'sidebar' or 'about'
+
+// Convert HEIC/HEIF to JPEG if needed, then open the crop modal
+async function prepareAndCrop(file, target) {
+  _cropTarget = target;
+  _cropFilename = file.name.replace(/\.(heic|heif)$/i, '.jpg');
+
+  let processedFile = file;
+
+  if (/\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif') {
+    try {
+      const status = document.getElementById(target === 'about' ? 'about-photo-upload-status' : 'photo-upload-status');
+      if (status) { status.textContent = 'Converting HEIC…'; status.style.color = 'var(--color-text-muted)'; }
+
+      const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
+      processedFile = new File([blob], _cropFilename, { type: 'image/jpeg' });
+
+      if (status) status.textContent = '';
+    } catch (e) {
+      const status = document.getElementById(target === 'about' ? 'about-photo-upload-status' : 'photo-upload-status');
+      if (status) { status.textContent = 'HEIC conversion failed — try a JPG or PNG instead'; status.style.color = 'var(--color-error)'; }
+      return;
+    }
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => openCropModal(e.target.result);
+  reader.readAsDataURL(processedFile);
+}
+
+function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  prepareAndCrop(file, 'sidebar');
+}
+
+function openCropModal(src) {
+  const modal = document.getElementById('crop-modal');
+  const img   = document.getElementById('crop-img');
+  img.src = src;
+  modal.classList.add('open');
+
+  // Destroy previous instance
+  if (_cropper) { _cropper.destroy(); _cropper = null; }
+
+  img.onload = () => {
+    _cropper = new Cropper(img, {
+      aspectRatio: 1,
+      viewMode: 0,
+      dragMode: 'move',
+      autoCropArea: 0.5,
+      responsive: true,
+      background: true,
+      wheelZoomRatio: 0.05,
+      preview: '.crop-preview-item',   // live preview targets
+      ready() {
+        const cd = this.cropper.getContainerData();
+        const id = this.cropper.getImageData();
+        const fitRatio = Math.min(cd.width / id.naturalWidth, cd.height / id.naturalHeight) * 0.9;
+        this.cropper.zoomTo(fitRatio);
+      },
+    });
+  };
+}
+
+function setCropRatio(w, h, btn) {
+  document.querySelectorAll('.crop-ratio-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (_cropper) _cropper.setAspectRatio(isNaN(w) ? NaN : w / h);
+}
+
+function closeCropModal() {
+  document.getElementById('crop-modal').classList.remove('open');
+  if (_cropper) { _cropper.destroy(); _cropper = null; }
+}
+
+async function applyCrop() {
+  if (!_cropper) return;
+
+  const btn    = document.getElementById('crop-apply-btn');
+  const status = document.getElementById('crop-status');
+  btn.disabled = true;
+  status.textContent = 'Uploading...';
+
+  try {
+    // Get cropped canvas at 800×800 max
+    const canvas = _cropper.getCroppedCanvas({ width: 800, height: 800, imageSmoothingQuality: 'high' });
+
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+
+    const formData = new FormData();
+    formData.append('file', blob, _cropFilename.replace(/\.[^.]+$/, '') + '_cropped.jpg');
+    formData.append('folder', 'profile');
+
+    const uploaded = await API.upload('/upload', formData);
+    const url = uploaded.data.url;
+
+    // Save to the correct field based on which upload was triggered
+    if (_cropTarget === 'about') {
+      await API.put('/profile/about-photo', { about_photo: url });
+      const wrap = document.getElementById('about-photo-preview-wrap');
+      const img  = document.getElementById('about-photo-preview');
+      if (wrap && img) { wrap.style.display = 'block'; img.src = url; }
+    } else {
+      await API.put('/profile/photo', { profile_photo: url });
+      const wrap = document.getElementById('photo-preview-wrap');
+      const img  = document.getElementById('photo-preview');
+      if (wrap && img) { wrap.style.display = 'block'; img.src = url; }
+    }
+
+    const uploadStatus = document.getElementById(
+      _cropTarget === 'about' ? 'about-photo-upload-status' : 'photo-upload-status'
+    );
+    if (uploadStatus) {
+      uploadStatus.textContent = '✓ Photo saved!';
+      uploadStatus.style.color = 'var(--color-primary)';
+      setTimeout(() => { uploadStatus.textContent = ''; }, 4000);
+    }
+
+    closeCropModal();
+  } catch (err) {
+    status.textContent = err.message || 'Upload failed';
+    status.style.color = 'var(--color-error)';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function handleAboutPhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  prepareAndCrop(file, 'about');
+}
+
+async function handleCVUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const status = document.getElementById('cv-upload-status');
+  status.textContent = 'Uploading...';
+  status.style.color = 'var(--color-text-muted)';
+
+  try {
+    // Step 1 — Upload the file
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'cv');
+    const uploaded = await API.upload('/upload', formData);
+    const url = uploaded.data.url;
+
+    // Step 2 — Save only cv_file using the dedicated endpoint (no other fields touched)
+    await API.put('/profile/cv', { cv_file: url });
+
+    // Step 4 — Update the UI
+    const cvSection  = document.getElementById('cv-current');
+    const cvFilename = document.getElementById('cv-filename');
+    const cvViewBtn  = document.getElementById('cv-view-btn');
+    if (cvSection) {
+      cvSection.style.display = 'flex';
+      cvFilename.textContent  = file.name;
+      cvViewBtn.href          = url;
+    }
+
+    status.textContent = '✓ CV uploaded successfully!';
+    status.style.color = 'var(--color-primary)';
+    setTimeout(() => { status.textContent = ''; }, 4000);
+  } catch (err) {
+    status.textContent = err.message || 'Upload failed';
+    status.style.color = 'var(--color-error)';
+  }
+
+  input.value = '';
 }
 
 async function loadProfile() {
@@ -390,8 +1804,48 @@ async function loadProfile() {
     const form = document.getElementById('profile-form');
     Object.keys(p).forEach(key => {
       const input = form.querySelector(`[name="${key}"]`);
-      if (input) input.value = p[key] || '';
+      if (!input) return;
+      // Never pre-fill the password field — leave blank for security
+      if (key === 'smtp_pass') return;
+      input.value = p[key] || '';
     });
+    // Populate the 4 boxes with the saved password split into chunks
+    if (p.smtp_pass) {
+      const pass = p.smtp_pass.replace(/\s/g, '');
+      const boxes = document.querySelectorAll('.smtp-chunk');
+      boxes.forEach((b, i) => {
+        b.value = pass.slice(i * 4, i * 4 + 4);
+        b.type = 'password'; // start hidden
+      });
+      document.getElementById('smtp-pass-combined').value = pass;
+    }
+    initSmtpPassBoxes();
+
+    // Show current sidebar photo if one is uploaded
+    if (p.profile_photo) {
+      const wrap = document.getElementById('photo-preview-wrap');
+      const img  = document.getElementById('photo-preview');
+      if (wrap && img) { wrap.style.display = 'block'; img.src = p.profile_photo; }
+    }
+
+    // Show current about section photo if one is uploaded
+    if (p.about_photo) {
+      const wrap = document.getElementById('about-photo-preview-wrap');
+      const img  = document.getElementById('about-photo-preview');
+      if (wrap && img) { wrap.style.display = 'block'; img.src = p.about_photo; }
+    }
+
+    // Show current CV if one is uploaded
+    if (p.cv_file) {
+      const cvSection = document.getElementById('cv-current');
+      const cvFilename = document.getElementById('cv-filename');
+      const cvViewBtn  = document.getElementById('cv-view-btn');
+      if (cvSection) {
+        cvSection.style.display = 'flex';
+        cvFilename.textContent  = p.cv_file.split('/').pop();
+        cvViewBtn.href          = p.cv_file;
+      }
+    }
   } catch { /* ignore */ }
 }
 
@@ -417,5 +1871,63 @@ function openAddProjectModal() { Toast.show('Add project form coming soon', 'inf
 function openAddSkillModal()   { Toast.show('Add skill form coming soon', 'info'); }
 function openAddExpModal()     { Toast.show('Add experience form coming soon', 'info'); }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<!-- Profile photo crop modal -->
+<div class="crop-modal" id="crop-modal">
+  <div class="crop-modal-card">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <p class="crop-modal-title">✂️ Crop Your Photo</p>
+        <p class="crop-modal-hint">Drag to move • Pinch/scroll to zoom • Drag corners to resize selection</p>
+      </div>
+      <div class="crop-ratio-btns">
+        <button class="crop-ratio-btn active" onclick="setCropRatio(1,1,this)">1:1</button>
+        <button class="crop-ratio-btn" onclick="setCropRatio(4,3,this)">4:3</button>
+        <button class="crop-ratio-btn" onclick="setCropRatio(NaN,NaN,this)">Free</button>
+      </div>
+    </div>
+    <div class="crop-modal-body">
+      <!-- Left: cropper -->
+      <div class="crop-container">
+        <img id="crop-img" src="" alt="Crop">
+      </div>
+
+      <!-- Right: live previews -->
+      <div class="crop-preview-col">
+        <div>
+          <div class="crop-preview-label">📌 Sidebar Card</div>
+          <div class="preview-sidebar crop-preview-item"></div>
+        </div>
+        <div>
+          <div class="crop-preview-label">📌 About Section</div>
+          <div class="preview-about crop-preview-item"></div>
+        </div>
+        <p style="font-size:11px;color:var(--color-text-muted);line-height:1.5;margin-top:4px">
+          Previews update live as you adjust the selection.
+        </p>
+      </div>
+    </div>
+
+    <div class="crop-modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeCropModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="crop-apply-btn" onclick="applyCrop()">
+        Apply & Upload
+      </button>
+      <span id="crop-status" style="font-size:13px;color:var(--color-text-muted);align-self:center"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Attachment lightbox -->
+<div class="att-lightbox" id="att-lightbox">
+  <button class="att-lightbox-close" id="att-lightbox-close-btn">✕</button>
+  <div class="lb-counter"></div>
+  <button class="lb-nav lb-prev" onclick="lbNav(-1)">‹</button>
+  <button class="lb-nav lb-next" onclick="lbNav(1)">›</button>
+  <div class="att-lightbox-name" id="att-lightbox-name"></div>
+  <div id="att-lightbox-content"></div>
+  <a class="att-lightbox-download" id="att-lightbox-dl" href="#" download target="_blank">⬇ Download</a>
+</div>
 </body>
 </html>

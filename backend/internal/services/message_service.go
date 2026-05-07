@@ -56,6 +56,37 @@ func (s *MessageService) Delete(id uint) error {
 	return result.Error
 }
 
+// GetByID returns a single message by ID.
+func (s *MessageService) GetByID(id uint) (*models.Message, error) {
+	var msg models.Message
+	result := s.db.First(&msg, id)
+	if result.Error != nil {
+		return nil, errors.New("message not found")
+	}
+	return &msg, nil
+}
+
+// MarkAsReplied sets IsReplied=true, saves the reply text and attachment filenames.
+func (s *MessageService) MarkAsReplied(id uint, replyText, attachmentNames string) error {
+	return s.db.Model(&models.Message{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"is_replied":        true,
+		"reply_text":        replyText,
+		"reply_attachments": attachmentNames,
+	}).Error
+}
+
+// CreateReply saves a new reply record for a message.
+func (s *MessageService) CreateReply(reply *models.MessageReply) error {
+	return s.db.Create(reply).Error
+}
+
+// GetReplies returns all replies for a message ordered oldest first.
+func (s *MessageService) GetReplies(messageID uint) ([]models.MessageReply, error) {
+	var replies []models.MessageReply
+	err := s.db.Where("message_id = ?", messageID).Order("created_at ASC").Find(&replies).Error
+	return replies, err
+}
+
 // CountUnread returns the number of unread messages for the dashboard badge.
 func (s *MessageService) CountUnread() (int64, error) {
 	var count int64

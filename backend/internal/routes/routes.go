@@ -81,6 +81,7 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	skillSvc := services.NewSkillService(db)
 	expSvc := services.NewExperienceService(db)
 	msgSvc := services.NewMessageService(db)
+	emailSvc := services.NewEmailService(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPass)
 	profileSvc := services.NewProfileService(db)
 	uploadSvc := services.NewUploadService(cfg)
 
@@ -90,7 +91,7 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	projectHandler := handlers.NewProjectHandler(projectSvc)
 	skillHandler := handlers.NewSkillHandler(skillSvc)
 	expHandler := handlers.NewExperienceHandler(expSvc)
-	msgHandler := handlers.NewMessageHandler(msgSvc)
+	msgHandler := handlers.NewMessageHandler(msgSvc, emailSvc, profileSvc)
 	profileHandler := handlers.NewProfileHandler(profileSvc)
 	uploadHandler := handlers.NewUploadHandler(uploadSvc)
 	statsHandler := handlers.NewStatsHandler(db)
@@ -143,10 +144,15 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// Message management (dashboard inbox)
 	protected.GET("/messages", msgHandler.GetAll)
 	protected.PUT("/messages/:id", msgHandler.MarkAsRead)
+	protected.POST("/messages/:id/reply", msgHandler.Reply)
+	protected.GET("/messages/:id/replies", msgHandler.GetReplies)
 	protected.DELETE("/messages/:id", msgHandler.Delete)
 
 	// Profile editing (dashboard settings)
 	protected.PUT("/profile", profileHandler.Update)
+	protected.PUT("/profile/cv", profileHandler.UpdateCV)
+	protected.PUT("/profile/photo", profileHandler.UpdatePhoto)
+	protected.PUT("/profile/about-photo", profileHandler.UpdateAboutPhoto)
 
 	// File uploads (images, CV PDF — dashboard only)
 	protected.POST("/upload", uploadHandler.Upload)

@@ -12,6 +12,10 @@
 package handlers
 
 import (
+	"io"
+	"mime"
+	"strings"
+
 	"imtiaz-portfolio/internal/models"
 	"imtiaz-portfolio/internal/services"
 	"imtiaz-portfolio/internal/utils"
@@ -22,12 +26,14 @@ import (
 
 // MessageHandler holds the message service dependency.
 type MessageHandler struct {
-	msgService *services.MessageService
+	msgService     *services.MessageService
+	emailService   *services.EmailService
+	profileService *services.ProfileService
 }
 
 // NewMessageHandler creates a new MessageHandler.
-func NewMessageHandler(ms *services.MessageService) *MessageHandler {
-	return &MessageHandler{msgService: ms}
+func NewMessageHandler(ms *services.MessageService, es *services.EmailService, ps *services.ProfileService) *MessageHandler {
+	return &MessageHandler{msgService: ms, emailService: es, profileService: ps}
 }
 
 // GetAll returns all contact messages — protected, dashboard only.
@@ -85,6 +91,130 @@ func (h *MessageHandler) MarkAsRead(c *gin.Context) {
 		return
 	}
 	utils.Success(c, "Message marked as read", nil)
+}
+
+// Reply sends an email reply to the message sender [protected].
+func (h *MessageHandler) Reply(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.BadRequest(c, "Invalid message ID", nil)
+		return
+	}
+
+	// Parse as multipart form so we can handle file attachments
+	if err := c.Request.ParseMultipartForm(50 << 20); err != nil {
+		// Fall back to JSON if no files attached
+		utils.BadRequest(c, "Invalid form data", nil)
+		return
+	}
+	replyText := c.Request.FormValue("reply_text")
+	fromEmail := c.Request.FormValue("from_email")
+
+	if replyText == "" {
+		utils.BadRequest(c, "Reply text is required", nil)
+		return
+	}
+
+	// Collect attachments if any were uploaded
+	var attachments []services.Attachment
+	if c.Request.MultipartForm != nil {
+		for _, fileHeaders := range c.Request.MultipartForm.File {
+			for _, fh := range fileHeaders {
+				f, err := fh.Open()
+				if err != nil {
+					continue
+				}
+				data, err := io.ReadAll(f)
+				f.Close()
+				if err != nil {
+					continue
+				}
+				ct := fh.Header.Get("Content-Type")
+				if ct == "" {
+					ct = mime.TypeByExtension(fh.Filename)
+				}
+				if ct == "" {
+					ct = "application/octet-stream"
+				}
+				attachments = append(attachments, services.Attachment{
+					Filename:    fh.Filename,
+					ContentType: ct,
+					Data:        data,
+				})
+			}
+		}
+	}
+
+	// Alias so code below uses same names
+	body := struct {
+		ReplyText string
+		FromEmail string
+	}{ReplyText: replyText, FromEmail: fromEmail}
+
+	// Fetch the original message so we can reply to the right person
+	msg, err := h.msgService.GetByID(uint(id))
+	if err != nil {
+		utils.NotFound(c, "Message not found")
+		return
+	}
+
+	subject := "Re: " + msg.Type + " — Imtiaz Portfolio"
+	fullBody := body.ReplyText + "\n\n---\nOriginal message from " + msg.Name + ":\n" + msg.Content
+
+	// Use SMTP credentials from DB profile if set — overrides .env
+	emailSvc := h.emailService
+	if profile, err := h.profileService.Get(); err == nil && profile.SMTPUser != "" && profile.SMTPPass != "" {
+		emailSvc = services.NewEmailService(
+			h.emailService.Host(),
+			h.emailService.Port(),
+			profile.SMTPUser,
+			profile.SMTPPass,
+		)
+	}
+
+	if err := emailSvc.Send(msg.Name, msg.Email, body.FromEmail, subject, fullBody, attachments); err != nil {
+		utils.InternalError(c, "Failed to send email: "+err.Error())
+		return
+	}
+
+	// Use pre-uploaded file URLs if provided, otherwise fall back to filenames
+	attachmentNames := c.Request.FormValue("attachment_urls")
+	if attachmentNames == "" {
+		var filenames []string
+		for _, att := range attachments {
+			filenames = append(filenames, att.Filename)
+		}
+		attachmentNames = strings.Join(filenames, ",")
+	}
+
+	// Save the reply as a new record so full history is preserved
+	_ = h.msgService.CreateReply(&models.MessageReply{
+		MessageID:   uint(id),
+		ReplyText:   body.ReplyText,
+		FromEmail:   body.FromEmail,
+		Attachments: attachmentNames,
+	})
+
+	// Also update the message flags
+	_ = h.msgService.MarkAsReplied(uint(id), body.ReplyText, attachmentNames)
+	_ = h.msgService.MarkAsRead(uint(id))
+
+	utils.Success(c, "Reply sent successfully", nil)
+}
+
+// GetReplies returns all replies for a message [protected].
+func (h *MessageHandler) GetReplies(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.BadRequest(c, "Invalid message ID", nil)
+		return
+	}
+	replies, err := h.msgService.GetReplies(uint(id))
+	if err != nil {
+		utils.InternalError(c, "Failed to fetch replies")
+		return
+	}
+	utils.Success(c, "Replies fetched", replies)
 }
 
 // Delete removes a message [protected].

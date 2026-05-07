@@ -45,7 +45,10 @@ const ContactSection = (() => {
         form.reset();
         Toast.show('Message sent! I\'ll get back to you soon.', 'success', 6000);
         const successEl = document.getElementById('contact-success');
-        if (successEl) successEl.classList.add('visible');
+        if (successEl) {
+          successEl.classList.add('visible');
+          setTimeout(() => successEl.classList.remove('visible'), 6000);
+        }
       } catch (err) {
         Toast.show(err.message || 'Failed to send message. Please try again.', 'error');
       } finally {

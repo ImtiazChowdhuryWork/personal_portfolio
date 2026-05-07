@@ -54,6 +54,12 @@ type Config struct {
 	// ─── Admin ───────────────────────────────────────────────
 	AdminEmail    string // Default admin email created on first boot
 	AdminPassword string // Default admin password (should be changed after login)
+
+	// ─── SMTP (email sending) ────────────────────────────────
+	SMTPHost string // e.g. smtp.gmail.com
+	SMTPPort string // e.g. 587
+	SMTPUser string // Gmail address
+	SMTPPass string // Gmail App Password (not regular password)
 }
 
 /**
@@ -110,6 +116,10 @@ func Load() *Config {
 		AllowedOrigins:   getEnv("ALLOWED_ORIGINS", "http://localhost:3000"),
 		AdminEmail:       getEnv("ADMIN_EMAIL", "admin@imtiaz.dev"),
 		AdminPassword:    getEnv("ADMIN_PASSWORD", "Admin@1234"),
+		SMTPHost:         getEnv("SMTP_HOST", "smtp.gmail.com"),
+		SMTPPort:         getEnv("SMTP_PORT", "587"),
+		SMTPUser:         getEnv("SMTP_USER", ""),
+		SMTPPass:         getEnv("SMTP_PASS", ""),
 	}
 }
 
