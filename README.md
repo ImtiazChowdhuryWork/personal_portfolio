@@ -316,14 +316,19 @@ personal_portfolio/
 ### Prerequisites
 
 - **Go** 1.21 or higher — [download](https://go.dev/dl/)
-- **PostgreSQL** 17 — already installed at `C:\Program Files\PostgreSQL\17`
+- **PostgreSQL** — installed via Homebrew on Mac (office), or at `C:\Program Files\PostgreSQL\17` on Windows (home)
 - A modern web browser (Chrome recommended)
 
 ### First-time Setup
 
 **Step 1 — Start PostgreSQL**
 
-The service name is `postgresql-x64-17`. Start it via Services or PowerShell:
+**Mac (office):**
+```bash
+brew services start postgresql@17
+```
+
+**Windows (home):**
 ```powershell
 Start-Service "postgresql-x64-17"
 ```
@@ -331,6 +336,13 @@ Start-Service "postgresql-x64-17"
 **Step 2 — Create the database**
 
 The database was already created. If you ever need to recreate it:
+
+**Mac (office):**
+```bash
+createdb -U imtiazchowdhury imtiaz_portfolio
+```
+
+**Windows (home):**
 ```powershell
 $env:PGPASSWORD = "postgres123"
 & "C:\Program Files\PostgreSQL\17\bin\createdb.exe" -U postgres -h 127.0.0.1 imtiaz_portfolio
@@ -338,7 +350,29 @@ $env:PGPASSWORD = "postgres123"
 
 **Step 3 — Check your `.env` file**
 
-Located at `backend/.env`. Current working values:
+Located at `backend/.env`. Values differ by machine — see section 6.
+
+**Mac (office):**
+```env
+SERVER_PORT=8080
+APP_ENV=development
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=imtiazchowdhury
+DB_PASSWORD=
+DB_NAME=imtiaz_portfolio
+DB_SSLMODE=disable
+JWT_SECRET=imtiaz-portfolio-secret-key-2024-change-in-production
+JWT_EXPIRY=24h
+JWT_REFRESH_EXPIRY=168h
+UPLOAD_DIR=./uploads
+MAX_UPLOAD_SIZE_MB=10
+ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:5500,http://localhost:5500
+ADMIN_EMAIL=admin@imtiaz.dev
+ADMIN_PASSWORD=Admin@1234
+```
+
+**Windows (home):**
 ```env
 SERVER_PORT=8080
 APP_ENV=development
@@ -363,6 +397,17 @@ ADMIN_PASSWORD=Admin@1234
 ## 6. Credentials
 
 ### PostgreSQL Database
+
+**Mac (office):**
+| Field | Value |
+|-------|-------|
+| Host | localhost |
+| Port | 5432 |
+| Username | imtiazchowdhury |
+| Password | *(none)* |
+| Database | imtiaz_portfolio |
+
+**Windows (home):**
 | Field | Value |
 |-------|-------|
 | Host | localhost |
@@ -386,6 +431,13 @@ ADMIN_PASSWORD=Admin@1234
 
 ### Start the server (one command does everything)
 
+**Mac (office):**
+```bash
+cd ~/Development/Projects/Portfolio/personal_portfolio/backend
+go run ./cmd/main.go
+```
+
+**Windows (home):**
 ```powershell
 cd I:\website\personal_portfolio\backend
 go run ./cmd/main.go
@@ -413,6 +465,12 @@ Press `Ctrl+C` in the terminal. The server shuts down gracefully (waits for in-f
 
 ### If port 8080 is already in use
 
+**Mac (office):**
+```bash
+lsof -ti :8080 | xargs kill -9
+```
+
+**Windows (home):**
 ```powershell
 $p = Get-NetTCPConnection -LocalPort 8080 | Where-Object State -eq "Listen" | Select-Object -First 1 OwningProcess
 Stop-Process -Id $p.OwningProcess -Force
@@ -1037,5 +1095,7 @@ In `frontend/assets/js/core/api.js`, `BASE_URL` is `/api/v1` (relative). Since t
 | 1.6.0 | 2026-05-07 | Scroll animations — IntersectionObserver + CSS transitions | base.css, ScrollAnimations.js, main.js, all section JS |
 | 1.7.0 | 2026-05-07 | Scroll animations applied to ALL elements (hero, contact, footer, dynamic content) | index.html, architecture.js, github.js, techstack.js, experience.js |
 | 1.8.0 | 2026-05-07 | Right-side navigation rebuilt with Phosphor Icons | navbar.css, index.html |
+| 1.9.0 | 2026-05-07 | README updated for Mac/Windows dual-environment setup (DB credentials, paths, commands) | README.md, backend/.env |
+| 2.0.0 | 2026-05-07 | Sidebar corner icon — rotating sparkle breaks border at top-left, Drake effect | sidebar.css, index.html |
 
 > **Rule:** Every future change must add a row to this table before the session ends.

@@ -81,53 +81,65 @@
   <!-- ── LEFT SIDEBAR: Drake exact layout ────────────────────────
        Photo → Name+Designation row → email/location → copyright
        → social icons (50px circles) → full-width Hire Me button -->
-  <aside class="sidebar">
+  <div class="sidebar-wrapper">
 
-    <!-- Profile photo (rounded rect, like Drake's me.jpg) -->
-    <img
-      id="sidebar-photo"
-      class="sidebar-avatar"
-      src="/assets/images/profile/placeholder.jpg"
-      alt="Chowdhury Md. Imtiazul Islam"
-      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-    >
-    <div class="sidebar-avatar-placeholder" style="display:none">CI</div>
+    <!-- Gear icon — absolute to wrapper, top-left corner of card -->
+    <span class="sidebar-corner-icon" aria-hidden="true">
+      <i class="ph ph-gear"></i>
+    </span>
 
-    <!-- Name on left, designation on right — Drake sidebar-header -->
-    <div class="sidebar-header">
-      <h2 class="sidebar-name" id="sidebar-name">Chowdhury Md. Imtiazul Islam</h2>
-      <div class="sidebar-designation">Flutter<br>Developer</div>
+    <div class="sidebar-border">
+    <aside class="sidebar">
+
+      <!-- Name left, title right — same row (reference: header is FIRST, above photo) -->
+      <div class="sidebar-header">
+        <h2 class="sidebar-name" id="sidebar-name">Chowdhury Md. Imtiazul Islam</h2>
+        <div class="sidebar-designation">Flutter<br>Developer</div>
+      </div>
+
+      <!-- Profile photo — below the name, matches reference order -->
+      <img
+        id="sidebar-photo"
+        class="sidebar-avatar"
+        src="/assets/images/profile/placeholder.jpg"
+        alt="Chowdhury Md. Imtiazul Islam"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      >
+      <div class="sidebar-avatar-placeholder" style="display:none">CI</div>
+
+      <!-- Address / contact info -->
+      <div class="sidebar-address">
+        <p id="sidebar-email">work.imtiazchowdhury@gmail.com</p>
+        <p id="sidebar-location">Based in Dhaka, Bangladesh</p>
+      </div>
+
+      <!-- Copyright -->
+      <div class="sidebar-copy">© 2025 Imtiaz. All Rights Reserved.</div>
+
+      <!-- Social icons — single non-wrapping row -->
+      <div class="sidebar-social">
+        <a href="https://github.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="GitHub">
+          <i class="ph ph-github-logo"></i>
+        </a>
+        <a href="https://linkedin.com/in/imtiazchowdhury" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <i class="ph ph-linkedin-logo"></i>
+        </a>
+        <a href="https://twitter.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="Twitter">
+          <i class="ph ph-twitter-logo"></i>
+        </a>
+        <a href="https://instagram.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="Instagram">
+          <i class="ph ph-instagram-logo"></i>
+        </a>
+      </div>
+
+      <!-- Hire Me button with envelope icon -->
+      <a href="#contact" class="sidebar-hire-btn">
+        <i class="ph ph-envelope"></i> Hire Me!
+      </a>
+
+    </aside>
     </div>
-
-    <!-- Address / contact info -->
-    <div class="sidebar-address">
-      <p id="sidebar-email">work.imtiazchowdhury@gmail.com</p>
-      <p id="sidebar-location">Based in Dhaka, Bangladesh</p>
-    </div>
-
-    <!-- Copyright -->
-    <div class="sidebar-copy">© 2025 Imtiaz. All Rights Reserved.</div>
-
-    <!-- Social profile icons — Drake: 50×50px circles, gap 8px -->
-    <div class="sidebar-social">
-      <a href="https://github.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="GitHub">
-        <i class="ph ph-github-logo"></i>
-      </a>
-      <a href="https://linkedin.com/in/imtiazchowdhury" target="_blank" rel="noopener" aria-label="LinkedIn">
-        <i class="ph ph-linkedin-logo"></i>
-      </a>
-      <a href="https://twitter.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="Twitter">
-        <i class="ph ph-twitter-logo"></i>
-      </a>
-      <a href="https://instagram.com/imtiazchowdhury" target="_blank" rel="noopener" aria-label="Instagram">
-        <i class="ph ph-instagram-logo"></i>
-      </a>
-    </div>
-
-    <!-- Full-width Hire Me button at bottom — Drake's theme-btn -->
-    <a href="#contact" class="sidebar-hire-btn">Hire Me!</a>
-
-  </aside>
+  </div>
 
   <!-- ── RIGHT-SIDE ICON NAVIGATION — Drake style ──────────────
        Fixed vertical pill card on the right, icon-only links
@@ -205,14 +217,15 @@
                 <path id="badge-circle"
                   d="M 87.5,87.5 m -70,0 a 70,70 0 1,1 140,0 a 70,70 0 1,1 -140,0"/>
               </defs>
-              <text font-size="11" font-family="Inter, sans-serif"
-                    fill="#54c5f8" letter-spacing="5.5" font-weight="500">
-                <textPath href="#badge-circle">
-                  Flutter Dev • Open to Work •
-                </textPath>
+              <text font-size="11.5" font-family="Inter, sans-serif"
+                    fill="#54c5f8" font-weight="500"
+                    textLength="432" lengthAdjust="spacing">
+                <textPath href="#badge-circle">Flutter Dev • Open to Work •&#160;</textPath>
               </text>
             </svg>
-            <span class="rotating-badge-icon">💙</span>
+            <span class="rotating-badge-icon">
+              <i class="ph ph-arrow-down"></i>
+            </span>
           </a>
         </div>
 
