@@ -7,7 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/main.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/css/intlTelInput.css">
   <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/intlTelInput.min.js"></script>
   <style>
     /* ─── Dashboard layout ───────────────────────────────────── */
     .dash-layout { display: flex; min-height: 100vh; }
@@ -550,6 +552,20 @@
     .wa-bubble-doc-icon { font-size: 20px; }
     .wa-bubble-doc-name { font-weight: 600; }
     .wa-bubble-doc-size { font-size: 10px; color: var(--color-text-muted); }
+
+    /* ── intl-tel-input dark theme tweaks ─────────────────────── */
+    .iti { display: block; width: 100%; }
+    .iti__country-list {
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      max-height: 260px;
+    }
+    .iti__country.iti__highlight,
+    .iti__country:hover { background: var(--color-primary-glow); }
+    .iti__dial-code { color: var(--color-text-muted); }
+    .iti__selected-flag { background: rgba(255,255,255,0.04); }
+    .iti--separate-dial-code .iti__selected-dial-code { color: var(--color-text); }
   </style>
 </head>
 <body>
@@ -568,6 +584,9 @@
         <span class="unread-badge" id="unread-count" style="display:none">0</span>
       </a>
       <a href="#" data-section="profile">👤 Profile</a>
+      <a href="#" data-section="social">🔗 Social Links</a>
+      <a href="#" data-section="mail">📧 Mail Settings</a>
+      <a href="#" data-section="github">🐙 GitHub Stats</a>
     </nav>
     <div style="margin-top:auto;padding-top:2rem;border-top:1px solid var(--color-border)">
       <a href="/" style="color:var(--color-text-muted);font-size:0.875rem;text-decoration:none">← View Portfolio</a><br><br>
@@ -684,9 +703,6 @@
             <div class="form-group"><label class="form-label">Title</label><input class="form-control" name="title" placeholder="Flutter Developer"></div>
             <div class="form-group"><label class="form-label">Email</label><input class="form-control" name="email" type="email"></div>
             <div class="form-group"><label class="form-label">Location</label><input class="form-control" name="location" placeholder="Dhaka, Bangladesh"></div>
-            <div class="form-group"><label class="form-label">GitHub URL</label><input class="form-control" name="github" placeholder="https://github.com/..."></div>
-            <div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-control" name="linkedin" placeholder="https://linkedin.com/in/..."></div>
-            <div class="form-group"><label class="form-label">Twitter URL</label><input class="form-control" name="twitter" placeholder="https://twitter.com/..."></div>
             <div class="form-group"><label class="form-label">Availability</label>
               <select class="form-control" name="availability">
                 <option>Open to Work</option>
@@ -766,55 +782,176 @@
             </div>
           </div>
 
-          <!-- Mail / SMTP Settings -->
-          <div class="form-group" style="border-top:1px solid var(--color-border);padding-top:1.5rem;margin-top:0.5rem">
-            <label class="form-label" style="font-size:1rem;margin-bottom:0.25rem">📧 Mail Settings</label>
-            <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:1rem">
-              The Gmail account used to actually <strong>send</strong> replies.
-              Must match the account you generated the App Password from.
-            </p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-              <div class="form-group" style="margin:0">
-                <label class="form-label">Sending Gmail Address</label>
-                <input class="form-control" name="smtp_user" type="email"
-                  placeholder="work.imtiazchowdhury@gmail.com">
-              </div>
-              <div class="form-group" style="margin:0">
-                <label class="form-label">Gmail App Password (16 characters)</label>
-                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap" id="smtp-pass-boxes">
-                  <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
-                  <span style="color:var(--color-text-muted);font-size:16px;flex-shrink:0">—</span>
-                  <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
-                  <span style="color:var(--color-text-muted);font-size:16px;flex-shrink:0">—</span>
-                  <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
-                  <span style="color:var(--color-text-muted);font-size:16px;flex-shrink:0">—</span>
-                  <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
-                  <button type="button" id="smtp-toggle-btn" onclick="toggleSmtpVisibility()"
-                    style="background:none;border:1px solid var(--color-border);border-radius:8px;
-                           padding:6px 10px;color:var(--color-text-muted);cursor:pointer;
-                           font-size:16px;transition:0.2s;flex-shrink:0"
-                    title="Show / Hide">👁</button>
-                </div>
-                <!-- Hidden field that holds the combined value for form submission -->
-                <input type="hidden" name="smtp_pass" id="smtp-pass-combined">
-                <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
-                  Leave all boxes empty to keep the existing password.
-                </p>
-              </div>
+          <button type="submit" class="btn btn-primary">Save Profile</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- SOCIAL LINKS section -->
+    <div class="dash-section" id="section-social">
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">Social Links</h3>
+        </div>
+        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:1.5rem">
+          Manage all your social and contact links here. These appear in the portfolio sidebar, footer, and contact section.
+          Leave a field blank to hide that icon on the portfolio.
+        </p>
+        <form id="social-form" novalidate>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+            <div class="form-group"><label class="form-label">GitHub URL</label><input class="form-control" name="github" type="url" placeholder="https://github.com/yourusername"></div>
+            <div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-control" name="linkedin" type="url" placeholder="https://linkedin.com/in/yourusername"></div>
+            <div class="form-group"><label class="form-label">Twitter / X URL</label><input class="form-control" name="twitter" type="url" placeholder="https://twitter.com/yourusername"></div>
+            <div class="form-group"><label class="form-label">Instagram URL</label><input class="form-control" name="instagram" type="url" placeholder="https://instagram.com/yourusername"></div>
+            <div class="form-group" style="grid-column:1 / -1">
+              <label class="form-label">WhatsApp Number</label>
+              <input class="form-control" id="whatsapp-input" name="whatsapp" type="tel" placeholder="171234567">
+              <p style="font-size:12px;color:var(--color-text-muted);margin-top:6px">
+                Pick your country from the flag dropdown, then type the rest of your number.
+                Used to build your <code>https://wa.me/</code> link.
+              </p>
             </div>
-            <div style="margin-top:10px;background:rgba(84,197,248,0.06);border:1px solid rgba(84,197,248,0.2);border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.9;color:var(--color-text-muted)">
-              <strong style="color:var(--color-primary);display:block;margin-bottom:4px">📌 How to get your App Password from Google:</strong>
-              1. Go to <strong style="color:var(--color-text)">myaccount.google.com</strong> and sign in with the Gmail you want to send from<br>
-              2. Click <strong style="color:var(--color-text)">Security</strong> in the left sidebar<br>
-              3. Make sure <strong style="color:var(--color-text)">2-Step Verification</strong> is turned ON<br>
-              4. Search <strong style="color:var(--color-text)">"App passwords"</strong> at the top and open it<br>
-              5. Type a name (e.g. <strong style="color:var(--color-text)">Portfolio</strong>) → click <strong style="color:var(--color-text)">Create</strong><br>
-              6. Google shows a 16-character password — copy and paste it into the 4 boxes above<br>
-              <span style="color:var(--color-error)">⚠ Google only shows this password once. Save it here immediately — you cannot view it again later.</span>
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top:1rem">Save Social Links</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MAIL SETTINGS section -->
+    <div class="dash-section" id="section-mail">
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">Mail Settings</h3>
+        </div>
+        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:1.5rem">
+          Configure the Gmail account used to <strong>send replies</strong> to messages from your inbox.
+          The address must match the account that generated the App Password.
+        </p>
+        <form id="mail-form" novalidate>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Sending Gmail Address</label>
+              <input class="form-control" name="smtp_user" type="email"
+                placeholder="work.imtiazchowdhury@gmail.com">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Gmail App Password (16 characters)</label>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap" id="smtp-pass-boxes">
+                <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
+                <span style="color:var(--color-text-muted);font-size:16px;flex-shrink:0">—</span>
+                <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
+                <span style="color:var(--color-text-muted);font-size:16px;flex-shrink:0">—</span>
+                <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
+                <span style="color:var(--color-text-muted);font-size:16px;flex-shrink:0">—</span>
+                <input class="form-control smtp-chunk" maxlength="4" style="width:56px;text-align:center;letter-spacing:1px;font-family:monospace;font-size:14px;padding:8px 4px" placeholder="••••">
+                <button type="button" id="smtp-toggle-btn" onclick="toggleSmtpVisibility()"
+                  style="background:none;border:1px solid var(--color-border);border-radius:8px;
+                         padding:6px 10px;color:var(--color-text-muted);cursor:pointer;
+                         font-size:16px;transition:0.2s;flex-shrink:0"
+                  title="Show / Hide">👁</button>
+              </div>
+              <!-- Hidden field that holds the combined value for form submission -->
+              <input type="hidden" name="smtp_pass" id="smtp-pass-combined">
+              <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                Leave all boxes empty to keep the existing password.
+              </p>
+            </div>
+          </div>
+          <div style="margin-top:10px;background:rgba(84,197,248,0.06);border:1px solid rgba(84,197,248,0.2);border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.9;color:var(--color-text-muted)">
+            <strong style="color:var(--color-primary);display:block;margin-bottom:4px">📌 How to get your App Password from Google:</strong>
+            1. Go to <strong style="color:var(--color-text)">myaccount.google.com</strong> and sign in with the Gmail you want to send from<br>
+            2. Click <strong style="color:var(--color-text)">Security</strong> in the left sidebar<br>
+            3. Make sure <strong style="color:var(--color-text)">2-Step Verification</strong> is turned ON<br>
+            4. Search <strong style="color:var(--color-text)">"App passwords"</strong> at the top and open it<br>
+            5. Type a name (e.g. <strong style="color:var(--color-text)">Portfolio</strong>) → click <strong style="color:var(--color-text)">Create</strong><br>
+            6. Google shows a 16-character password — copy and paste it into the 4 boxes above<br>
+            <span style="color:var(--color-error)">⚠ Google only shows this password once. Save it here immediately — you cannot view it again later.</span>
+          </div>
+          <div style="display:flex;gap:0.75rem;align-items:center;margin-top:1rem;flex-wrap:wrap">
+            <button type="submit" class="btn btn-primary">Save Mail Settings</button>
+            <span id="mail-form-test-status" style="font-size:13px;color:var(--color-text-muted)"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Available accounts panel — one card per unique Gmail (deduped) -->
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">Available Accounts</h3>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <span id="mail-accounts-toggle"></span>
+            <button class="btn btn-ghost btn-sm" onclick="loadMailHistory()">Refresh</button>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:1rem">
+          Each unique Gmail you've ever saved appears here. Click "↺ Use this account" on any card to make it the active sender. Hidden accounts stay safely in the App Password History below — only their card is removed from this view.
+        </p>
+        <div id="mail-accounts-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px">
+          <p style="color:var(--color-text-muted);font-size:13px">Loading…</p>
+        </div>
+      </div>
+
+      <!-- Password history panel -->
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">App Password History</h3>
+          <button class="btn btn-ghost btn-sm" onclick="loadMailHistory()">Refresh</button>
+        </div>
+        <div style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--color-text-muted);margin-bottom:1rem">
+          ⚠ This list stores every Gmail App Password you've saved, in plaintext.
+          Anyone with database access can read them. Use the trash icon to prune entries you no longer need.
+        </div>
+        <div id="mail-history-body">
+          <p style="color:var(--color-text-muted);font-size:13px">Loading…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GITHUB STATS section -->
+    <div class="dash-section" id="section-github">
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">GitHub Stats</h3>
+        </div>
+        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:1.5rem">
+          Your portfolio's GitHub section auto-fetches stats from <code style="font-family:monospace">api.github.com</code>.
+          Each card below has a manual override — leave blank for auto, or type a value to display that instead.
+        </p>
+        <form id="github-form" novalidate>
+          <div class="form-group">
+            <label class="form-label">GitHub Username</label>
+            <input class="form-control" name="github_username" placeholder="imtiazchowdhury">
+            <p style="font-size:12px;color:var(--color-text-muted);margin-top:6px">
+              Just the handle, no <code style="font-family:monospace">https://</code>. Drives the API calls and the embed badges. Leave blank to use static fallbacks everywhere.
+            </p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.5rem">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">📦 Repositories</label>
+              <input class="form-control" name="github_repos" placeholder="auto">
+              <p style="font-size:12px;color:var(--color-text-muted);margin-top:6px">Blank = auto from API</p>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">✅ Total Commits</label>
+              <input class="form-control" name="github_commits" placeholder="e.g. 500+">
+              <p style="font-size:12px;color:var(--color-text-muted);margin-top:6px">
+                Manual only. GitHub's API doesn't expose total commit counts cheaply.
+              </p>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">⭐ Top Language</label>
+              <input class="form-control" name="github_top_language" placeholder="auto">
+              <p style="font-size:12px;color:var(--color-text-muted);margin-top:6px">Blank = auto from your most recent 100 repos</p>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">🔥 Years Active</label>
+              <input class="form-control" name="github_years_active" placeholder="auto">
+              <p style="font-size:12px;color:var(--color-text-muted);margin-top:6px">Blank = computed from account creation date</p>
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary">Save Profile</button>
+          <button type="submit" class="btn btn-primary" style="margin-top:1rem">Save GitHub Stats</button>
         </form>
       </div>
     </div>
@@ -848,10 +985,28 @@
     });
   });
 
-  // Profile form
+  // Initialize WhatsApp country code picker
+  initWhatsAppPicker();
+
+  // Profile form (also populates Social Links + Mail Settings + GitHub Stats forms)
   loadProfile();
   document.getElementById('profile-form').addEventListener('submit', saveProfile);
+  document.getElementById('social-form').addEventListener('submit', saveSocial);
+  document.getElementById('mail-form').addEventListener('submit', saveMail);
+  document.getElementById('github-form').addEventListener('submit', saveGitHub);
 })();
+
+let whatsappITI = null;
+function initWhatsAppPicker() {
+  const input = document.getElementById('whatsapp-input');
+  if (!input || !window.intlTelInput) return;
+  whatsappITI = window.intlTelInput(input, {
+    initialCountry: 'bd',
+    preferredCountries: ['bd', 'us', 'gb', 'in', 'ae'],
+    separateDialCode: true,
+    utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/utils.js',
+  });
+}
 
 function showSection(name) {
   document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
@@ -860,13 +1015,43 @@ function showSection(name) {
   document.querySelector(`.dash-nav a[data-section="${name}"]`)?.classList.add('active');
   document.getElementById('dash-title').textContent =
     { overview:'Overview', projects:'Projects', skills:'Skills',
-      experience:'Experience', messages:'Messages', profile:'Profile' }[name] || name;
+      experience:'Experience', messages:'Messages', profile:'Profile',
+      social:'Social Links', mail:'Mail Settings',
+      github:'GitHub Stats' }[name] || name;
 
   // Lazy-load section data
   if (name === 'projects') loadProjects();
   else if (name === 'skills') loadSkills();
   else if (name === 'experience') loadExperience();
   else if (name === 'messages') loadMessages();
+  else if (name === 'mail') {
+    loadMailHistory();
+    autoTestMailForm();
+  }
+}
+
+// Tests the values currently in the Mail Settings form (typically prefilled
+// from the saved profile). Updates the inline status next to the Test button.
+async function autoTestMailForm() {
+  const form   = document.getElementById('mail-form');
+  const status = document.getElementById('mail-form-test-status');
+  if (!form || !status) return;
+  const user = (form.querySelector('[name="smtp_user"]').value || '').trim();
+  const pass = (form.querySelector('[name="smtp_pass"]').value || '').replace(/\s/g, '');
+  if (!user || !pass) {
+    status.textContent = '';
+    return;
+  }
+  status.textContent = '⏳ Testing saved credentials…';
+  status.style.color = 'var(--color-text-muted)';
+  const { ok, error } = await verifyMailCredentials(user, pass);
+  if (ok) {
+    status.textContent = '✅ Active credentials valid';
+    status.style.color = '#22c55e';
+  } else {
+    status.textContent = `❌ ${error || 'Verification failed'}`;
+    status.style.color = 'var(--color-error)';
+  }
 }
 
 async function loadStats() {
@@ -1801,14 +1986,24 @@ async function loadProfile() {
   try {
     const res = await API.get('/profile');
     const p = res.data;
-    const form = document.getElementById('profile-form');
-    Object.keys(p).forEach(key => {
-      const input = form.querySelector(`[name="${key}"]`);
-      if (!input) return;
+    // Populate inputs across the Profile, Social Links, Mail Settings, and GitHub Stats forms
+    const inputs = document.querySelectorAll('#profile-form [name], #social-form [name], #mail-form [name], #github-form [name]');
+    inputs.forEach(input => {
+      const key = input.name;
       // Never pre-fill the password field — leave blank for security
       if (key === 'smtp_pass') return;
-      input.value = p[key] || '';
+      // WhatsApp is handled by the intl-tel-input picker below
+      if (key === 'whatsapp') return;
+      if (p[key] !== undefined) input.value = p[key] || '';
     });
+
+    // Feed the saved WhatsApp number into the country code picker.
+    // Stored format is "8801712345678" (no +). The library expects "+8801712345678"
+    // so it can detect the country and split the dial code from the local number.
+    if (whatsappITI && p.whatsapp) {
+      const stored = String(p.whatsapp).trim();
+      whatsappITI.setNumber(stored.startsWith('+') ? stored : '+' + stored);
+    }
     // Populate the 4 boxes with the saved password split into chunks
     if (p.smtp_pass) {
       const pass = p.smtp_pass.replace(/\s/g, '');
@@ -1859,6 +2054,431 @@ async function saveProfile(e) {
   try {
     await API.put('/profile', data);
     Toast.show('Profile saved!', 'success');
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+
+async function loadMailHistory() {
+  const body = document.getElementById('mail-history-body');
+  if (!body) return;
+  try {
+    const res = await API.get('/profile/mail/history');
+    const items = res.data || [];
+    if (items.length === 0) {
+      body.innerHTML = '<p style="color:var(--color-text-muted);font-size:13px">No saved passwords yet.</p>';
+      return;
+    }
+    body.innerHTML = `
+      <div style="overflow-x:auto">
+        <table class="table" style="width:100%">
+          <thead>
+            <tr>
+              <th style="text-align:left">Saved</th>
+              <th style="text-align:left">Gmail</th>
+              <th style="text-align:left">App Password</th>
+              <th style="text-align:left">Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(it => mailHistoryRow(it)).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    // Verify every entry against Gmail in the background
+    autoTestMailHistory(items);
+    // Render the deduped Available Accounts panel from the same data
+    renderMailAccounts(items);
+  } catch (err) {
+    body.innerHTML = `<p style="color:var(--color-error);font-size:13px">Failed to load history: ${err.message}</p>`;
+  }
+}
+
+function mailHistoryRow(it) {
+  const when = new Date(it.created_at).toLocaleString();
+  const safe = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const activePill = it.is_active
+    ? `<span style="display:inline-block;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.4);padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;margin-left:6px">● Active</span>`
+    : '';
+  const useBtn = it.is_active
+    ? ''
+    : `<button class="btn btn-ghost btn-sm" onclick="useMailHistory(${it.id})" title="Activate this password">↺ Use this</button>`;
+  const rowStyle = it.is_active ? 'background:rgba(34,197,94,0.04)' : '';
+  return `
+    <tr style="${rowStyle}">
+      <td style="white-space:nowrap;color:var(--color-text-muted);font-size:12px">${safe(when)}${activePill}</td>
+      <td style="font-size:13px">${safe(it.gmail_address) || '<span style="color:var(--color-text-muted)">—</span>'}</td>
+      <td>
+        <span id="mail-pass-${it.id}"
+          data-pass="${safe(it.app_password)}"
+          data-gmail="${safe(it.gmail_address)}"
+          data-hidden="true"
+          style="display:inline-flex;align-items:center;gap:0;flex-wrap:nowrap">
+          ${formatPassBoxes(it.app_password, true)}
+        </span>
+        <button class="btn btn-ghost btn-sm" style="margin-left:6px" onclick="toggleMailHistoryRow(${it.id})">Show</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyMailHistoryRow(${it.id})">Copy</button>
+        ${useBtn}
+      </td>
+      <td id="mail-status-${it.id}" style="font-size:12px;color:var(--color-text-muted);white-space:nowrap">
+        ⏳ Pending…
+      </td>
+      <td style="text-align:right">
+        <button class="btn btn-ghost btn-sm" style="color:var(--color-error)" onclick="deleteMailHistory(${it.id})" title="Delete this entry">🗑</button>
+      </td>
+    </tr>
+  `;
+}
+
+// Verify every history row against Gmail in parallel. Each row's status
+// updates as soon as its own SMTP probe finishes — rows don't wait on each
+// other. With many entries (~20+) Gmail may briefly rate-limit; if rows
+// start showing transient errors at scale, switch this back to a sequential
+// loop or cap concurrency.
+async function autoTestMailHistory(items) {
+  await Promise.all(items.map(async (it) => {
+    const cell = document.getElementById('mail-status-' + it.id);
+    if (!cell) return;
+    if (!it.gmail_address || !it.app_password) {
+      cell.innerHTML = '<span style="color:var(--color-text-muted)">— skipped (missing data)</span>';
+      return;
+    }
+    cell.innerHTML = '<span style="color:var(--color-text-muted)">⏳ Testing…</span>';
+    const { ok, error } = await verifyMailCredentials(it.gmail_address, it.app_password);
+    if (ok) {
+      cell.innerHTML = '<span style="color:#22c55e">✅ Valid</span>';
+    } else {
+      const safe = String(error || 'failed').replace(/"/g, '&quot;');
+      cell.innerHTML = `<span style="color:var(--color-error)" title="${safe}">❌ Invalid</span>`;
+    }
+  }));
+}
+
+// Asks the backend to actually log in to Gmail's SMTP with the given credentials.
+// Returns { ok: bool, error: string|null } so callers can show inline status.
+async function verifyMailCredentials(smtpUser, smtpPass) {
+  try {
+    const res = await API.post('/profile/mail/verify', { smtp_user: smtpUser, smtp_pass: smtpPass });
+    return { ok: !!res.data?.valid, error: res.data?.error || null };
+  } catch (err) {
+    return { ok: false, error: err.message || 'Request failed' };
+  }
+}
+
+// Toggle for whether hidden accounts are included in the Available Accounts grid.
+let mailAccountsShowHidden = false;
+
+// Builds the Available Accounts panel by deduping the history list — one
+// card per unique Gmail address, using the most recent password for each
+// (the API already returns rows newest-first, so the first occurrence wins).
+// Hidden accounts are filtered out unless the user toggles "Show N hidden".
+function renderMailAccounts(items) {
+  const body = document.getElementById('mail-accounts-body');
+  const toggleHost = document.getElementById('mail-accounts-toggle');
+  if (!body) return;
+  const seen = new Map();
+  for (const it of items) {
+    if (!it.gmail_address) continue;
+    if (!seen.has(it.gmail_address)) seen.set(it.gmail_address, it);
+  }
+  const allAccounts = Array.from(seen.values());
+  const hiddenCount = allAccounts.filter(a => a.is_hidden).length;
+  const visible = mailAccountsShowHidden ? allAccounts : allAccounts.filter(a => !a.is_hidden);
+
+  // Render the "Show N hidden" / "Hide N hidden" toggle, or clear it if none
+  if (toggleHost) {
+    if (hiddenCount > 0) {
+      const label = mailAccountsShowHidden
+        ? `Hide ${hiddenCount} hidden account${hiddenCount === 1 ? '' : 's'}`
+        : `Show ${hiddenCount} hidden account${hiddenCount === 1 ? '' : 's'}`;
+      toggleHost.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="toggleMailAccountsHidden()">${label}</button>`;
+    } else {
+      toggleHost.innerHTML = '';
+    }
+  }
+
+  if (visible.length === 0) {
+    body.innerHTML = mailAccountsShowHidden || hiddenCount === 0
+      ? '<p style="color:var(--color-text-muted);font-size:13px">No accounts saved yet. Save a password in Mail Settings to populate this list.</p>'
+      : `<p style="color:var(--color-text-muted);font-size:13px">All ${hiddenCount} accounts are hidden — toggle above to view them.</p>`;
+    return;
+  }
+  body.innerHTML = visible.map(it => mailAccountCard(it)).join('');
+  autoTestMailAccounts(visible);
+}
+
+function toggleMailAccountsHidden() {
+  mailAccountsShowHidden = !mailAccountsShowHidden;
+  loadMailHistory();
+}
+
+function mailAccountCard(it) {
+  const safe = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  // Header pill (active or hidden takes precedence)
+  let headerPill = '';
+  if (it.is_active) {
+    headerPill = '<span style="display:inline-block;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.4);padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600">● Active</span>';
+  } else if (it.is_hidden) {
+    headerPill = '<span style="display:inline-block;background:rgba(148,163,184,0.15);color:#94a3b8;border:1px solid rgba(148,163,184,0.4);padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600">Hidden</span>';
+  }
+
+  // Card border + background reflect state
+  let cardStyle;
+  if (it.is_active) {
+    cardStyle = 'border:1px solid rgba(34,197,94,0.35);background:rgba(34,197,94,0.04);opacity:1';
+  } else if (it.is_hidden) {
+    cardStyle = 'border:1px dashed var(--color-border);background:var(--color-bg-3);opacity:0.6';
+  } else {
+    cardStyle = 'border:1px solid var(--color-border);background:var(--color-bg-3);opacity:1';
+  }
+
+  // Secondary action button (Hide / Restore / —)
+  let visibilityBtn = '';
+  if (it.is_active) {
+    visibilityBtn = '';
+  } else if (it.is_hidden) {
+    visibilityBtn = `<button class="btn btn-ghost btn-sm" onclick="unhideMailAccount(${it.id})">↺ Restore</button>`;
+  } else {
+    visibilityBtn = `<button class="btn btn-ghost btn-sm" style="color:var(--color-error)" onclick="hideMailAccount(${it.id})">🚫 Hide</button>`;
+  }
+
+  // Primary action under the card (Use / active note)
+  const useBtn = it.is_active
+    ? '<span style="font-size:12px;color:#22c55e">Currently active sender</span>'
+    : `<button class="btn btn-primary btn-sm" onclick="useMailHistory(${it.id})">↺ Use this account</button>`;
+
+  return `
+    <div style="${cardStyle};border-radius:12px;padding:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+        <strong style="color:var(--color-heading);font-size:13px;word-break:break-all">📧 ${safe(it.gmail_address)}</strong>
+        ${headerPill}
+      </div>
+      <div style="margin:8px 0">
+        <span id="mail-pass-acct-${it.id}"
+          data-pass="${safe(it.app_password)}"
+          data-gmail="${safe(it.gmail_address)}"
+          data-hidden="true"
+          style="display:inline-flex;align-items:center;gap:0;flex-wrap:nowrap">
+          ${formatPassBoxes(it.app_password, true)}
+        </span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="btn btn-ghost btn-sm" onclick="toggleMailHistoryRow('acct-${it.id}')">Show</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyMailHistoryRow('acct-${it.id}')">Copy</button>
+        ${visibilityBtn}
+      </div>
+      <div id="mail-acct-status-${it.id}" style="font-size:12px;margin-bottom:10px;color:var(--color-text-muted)">
+        ⏳ Pending…
+      </div>
+      <div>${useBtn}</div>
+    </div>
+  `;
+}
+
+async function autoTestMailAccounts(accounts) {
+  await Promise.all(accounts.map(async (it) => {
+    const cell = document.getElementById('mail-acct-status-' + it.id);
+    if (!cell) return;
+    cell.innerHTML = '<span style="color:var(--color-text-muted)">⏳ Testing…</span>';
+    const { ok, error } = await verifyMailCredentials(it.gmail_address, it.app_password);
+    if (ok) {
+      cell.innerHTML = '<span style="color:#22c55e">✅ Valid — Gmail accepts this</span>';
+    } else {
+      const safe = String(error || 'failed').replace(/"/g, '&quot;');
+      cell.innerHTML = `<span style="color:var(--color-error)" title="${safe}">❌ Invalid</span>`;
+    }
+  }));
+}
+
+// Removes every history row for the Gmail address shown on a card.
+// The id passed in is the latest history row id for that account; we read
+// the email from its data attribute so the gmail string never has to round
+// trip through an inline event handler (avoids HTML/JS escaping bugs).
+// Hide / unhide an account from Available Accounts. The associated history
+// rows stay in the App Password History panel below — this only toggles the
+// row in the hidden_mail_accounts table.
+async function hideMailAccount(id) {
+  const el = document.getElementById('mail-pass-acct-' + id);
+  const email = (el && el.dataset && el.dataset.gmail) || 'this account';
+  try {
+    await API.post(`/profile/mail/accounts/${id}/hide`);
+    Toast.show(`Hid ${email}`, 'success');
+    loadMailHistory();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  }
+}
+
+async function unhideMailAccount(id) {
+  const el = document.getElementById('mail-pass-acct-' + id);
+  const email = (el && el.dataset && el.dataset.gmail) || 'this account';
+  try {
+    await API.post(`/profile/mail/accounts/${id}/unhide`);
+    Toast.show(`Restored ${email}`, 'success');
+    loadMailHistory();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  }
+}
+
+async function useMailHistory(id) {
+  // Look up the account card first (Available Accounts panel), then fall back
+  // to the history row — both store data-pass and data-gmail attributes.
+  const el = document.getElementById('mail-pass-acct-' + id) || document.getElementById('mail-pass-' + id);
+  if (!el) {
+    Toast.show('Could not find this entry', 'error');
+    return;
+  }
+  const password = el.dataset.pass || '';
+  const gmail    = el.dataset.gmail || '';
+  if (!password) { Toast.show('Empty password — cannot activate', 'error'); return; }
+  try {
+    await API.put('/profile/mail', { smtp_user: gmail, smtp_pass: password });
+    Toast.show(`Activated ${gmail || 'this account'}`, 'success');
+    // Refresh the form (await so values land before re-testing), then the table
+    await loadProfile();
+    loadMailHistory();
+    autoTestMailForm();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  }
+}
+
+// Renders a 16-char Gmail App Password as four boxes joined by em-dashes,
+// matching the visual style of the Mail Settings input form.
+function formatPassBoxes(pass, hidden) {
+  const escape = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const clean = String(pass || '').replace(/\s/g, '');
+  const chunks = [];
+  for (let i = 0; i < 4; i++) {
+    chunks.push(hidden ? '••••' : escape(clean.slice(i * 4, i * 4 + 4)));
+  }
+  const box = (c) =>
+    `<span style="display:inline-block;font-family:monospace;background:rgba(255,255,255,0.04);
+                  border:1px solid var(--color-border);border-radius:6px;
+                  padding:3px 8px;font-size:12px;letter-spacing:1px;
+                  min-width:48px;text-align:center">${c}</span>`;
+  const sep = '<span style="color:var(--color-text-muted);margin:0 4px">—</span>';
+  return chunks.map(box).join(sep);
+}
+
+function toggleMailHistoryRow(id) {
+  const el = document.getElementById('mail-pass-' + id);
+  if (!el) return;
+  const btn = el.nextElementSibling;
+  const hidden = el.dataset.hidden !== 'false';
+  el.innerHTML = formatPassBoxes(el.dataset.pass, !hidden);
+  el.dataset.hidden = hidden ? 'false' : 'true';
+  if (btn) btn.textContent = hidden ? 'Hide' : 'Show';
+}
+
+async function copyMailHistoryRow(id) {
+  const el = document.getElementById('mail-pass-' + id);
+  if (!el) return;
+  try {
+    await navigator.clipboard.writeText(el.dataset.pass || '');
+    Toast.show('Copied to clipboard', 'success');
+  } catch {
+    Toast.show('Could not copy', 'error');
+  }
+}
+
+async function deleteMailHistory(id) {
+  if (!confirm('Delete this password from the history?')) return;
+  try {
+    await API.delete(`/profile/mail/history/${id}`);
+    Toast.show('Deleted', 'success');
+    loadMailHistory();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  }
+}
+
+async function saveGitHub(e) {
+  e.preventDefault();
+  const form = e.target;
+  // Always send every field, even blank ones, so emptying an override
+  // re-enables auto-mode for that card on the public portfolio.
+  const payload = {
+    github_username:     (form.querySelector('[name="github_username"]').value || '').trim(),
+    github_repos:        (form.querySelector('[name="github_repos"]').value || '').trim(),
+    github_commits:      (form.querySelector('[name="github_commits"]').value || '').trim(),
+    github_top_language: (form.querySelector('[name="github_top_language"]').value || '').trim(),
+    github_years_active: (form.querySelector('[name="github_years_active"]').value || '').trim(),
+  };
+  const btn = form.querySelector('[type="submit"]');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    await API.put('/profile/github', payload);
+    Toast.show('GitHub stats saved!', 'success');
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+
+async function saveMail(e) {
+  e.preventDefault();
+  const form = e.target;
+  // Read smtp_user from the email input. smtp_pass comes from the hidden
+  // combined field that initSmtpPassBoxes keeps in sync with the 4 chunks.
+  const payload = {
+    smtp_user: (form.querySelector('[name="smtp_user"]').value || '').trim(),
+    smtp_pass: (form.querySelector('[name="smtp_pass"]').value || '').replace(/\s/g, ''),
+  };
+  const btn = form.querySelector('[type="submit"]');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    await API.put('/profile/mail', payload);
+    Toast.show('Mail settings saved!', 'success');
+    loadMailHistory();
+    autoTestMailForm();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+
+async function saveSocial(e) {
+  e.preventDefault();
+  const form = e.target;
+  // Build the payload with only the 5 social fields. Always send each one,
+  // even when blank, so the new /profile/social endpoint can clear values.
+  const payload = {
+    github:    (form.querySelector('[name="github"]').value    || '').trim(),
+    linkedin:  (form.querySelector('[name="linkedin"]').value  || '').trim(),
+    twitter:   (form.querySelector('[name="twitter"]').value   || '').trim(),
+    instagram: (form.querySelector('[name="instagram"]').value || '').trim(),
+    whatsapp:  '',
+  };
+
+  // Combine country code + national number from the picker into a single E.164
+  // string, then strip the leading "+" to match the existing storage format.
+  if (whatsappITI) {
+    const localNumber = (form.querySelector('[name="whatsapp"]').value || '').replace(/\D/g, '');
+    if (localNumber === '') {
+      payload.whatsapp = '';
+    } else {
+      const e164 = whatsappITI.getNumber() || '';
+      payload.whatsapp = e164.replace(/^\+/, '');
+    }
+  }
+
+  const btn = form.querySelector('[type="submit"]');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    await API.put('/profile/social', payload);
+    Toast.show('Social links saved!', 'success');
   } catch (err) {
     Toast.show(err.message, 'error');
   } finally {

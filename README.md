@@ -661,7 +661,18 @@ When element leaves viewport:
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | /profile | No | Get portfolio profile |
-| PUT | /profile | ✅ | Update profile |
+| PUT | /profile | ✅ | Update profile (preserves untouched fields) |
+| PUT | /profile/photo | ✅ | Update sidebar profile photo only |
+| PUT | /profile/about-photo | ✅ | Update About-section photo only |
+| PUT | /profile/cv | ✅ | Update CV PDF path only |
+| PUT | /profile/social | ✅ | Update social links only (GitHub, LinkedIn, Twitter, Instagram, WhatsApp). Empty values clear the field. |
+| PUT | /profile/github | ✅ | Update GitHub Stats fields (username + 4 manual overrides) |
+| PUT | /profile/mail | ✅ | Update SMTP credentials only. Records each new password in `mail_password_histories`. |
+| POST | /profile/mail/verify | ✅ | Test arbitrary `{ smtp_user, smtp_pass }` against Gmail without sending mail. Returns `{ valid, error }`. |
+| GET | /profile/mail/history | ✅ | List every saved Gmail App Password (newest first). Each row carries `is_active` and `is_hidden` flags. |
+| DELETE | /profile/mail/history/:id | ✅ | Delete a single password-history row |
+| POST | /profile/mail/accounts/:id/hide | ✅ | Hide an account from the dashboard's Available Accounts panel without touching its history |
+| POST | /profile/mail/accounts/:id/unhide | ✅ | Restore a hidden account |
 
 ### Upload & Stats
 
@@ -705,11 +716,20 @@ When element leaves viewport:
 | linked_in | VARCHAR(500) | LinkedIn profile URL |
 | twitter | VARCHAR(500) | |
 | instagram | VARCHAR(500) | |
-| profile_photo | VARCHAR(500) | Path to profile photo |
+| profile_photo | VARCHAR(500) | Path to sidebar profile photo |
+| about_photo | VARCHAR(500) | Path to About-section photo (separate image) |
 | cv_file | VARCHAR(500) | Path to CV PDF |
 | availability | VARCHAR(100) | "Open to Work" etc. |
 | years_experience | VARCHAR(20) | "2.5+" |
 | apps_shipped | VARCHAR(20) | "5+" |
+| reply_emails | TEXT | Comma-separated list shown in the dashboard inbox's "From" picker |
+| smtp_user | VARCHAR(255) | Sending Gmail address (overrides `.env` if non-empty) |
+| smtp_pass | VARCHAR(255) | Gmail App Password (overrides `.env` if non-empty) |
+| git_hub_username | VARCHAR(100) | Drives live GitHub API fetch on the public portfolio |
+| git_hub_repos | VARCHAR(20) | Manual override for the Repositories card. Blank = auto. |
+| git_hub_commits | VARCHAR(20) | Manual-only value for Total Commits (no cheap API). Blank = static fallback. |
+| git_hub_top_language | VARCHAR(50) | Manual override for Top Language. Blank = auto from recent repos. |
+| git_hub_years_active | VARCHAR(20) | Manual override for Years Active. Blank = computed from account creation date. |
 | meta_title | VARCHAR(200) | SEO title |
 | meta_description | VARCHAR(500) | SEO description |
 
@@ -784,6 +804,38 @@ When element leaves viewport:
 | is_published | BOOLEAN | Only published ones show publicly |
 | sort_order | BIGINT | |
 
+### message_replies
+| Column | Type | Notes |
+|--------|------|-------|
+| id | SERIAL | |
+| message_id | BIGINT | FK to `messages.id` |
+| from_email | VARCHAR(255) | Address the reply was sent from |
+| subject | VARCHAR(500) | |
+| body | TEXT | |
+| attachments | TEXT | JSON array of uploaded file URLs |
+| sent_at | TIMESTAMPTZ | |
+
+### mail_password_histories
+Append-only audit log of every Gmail App Password ever saved through the dashboard.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | SERIAL | |
+| gmail_address | VARCHAR(255) | The sending Gmail address paired with this password |
+| app_password | VARCHAR(255) | **Stored in plaintext at the admin's explicit request** — treat as sensitive |
+| created_at | TIMESTAMPTZ | When the password was saved |
+
+The `is_active` and `is_hidden` flags returned by `GET /profile/mail/history` are computed at read time, not stored.
+
+### hidden_mail_accounts
+Lightweight list of Gmail addresses the admin has chosen to hide from the dashboard's Available Accounts panel. History rows for the email are preserved, only the deduped view filters them out.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | SERIAL | |
+| email | VARCHAR(255) | Unique — one row per hidden Gmail address |
+| hidden_at | TIMESTAMPTZ | When the account was hidden |
+
 ---
 
 ## 11. Frontend Pages
@@ -823,13 +875,18 @@ When element leaves viewport:
 
 **Purpose:** Content management for all portfolio data.
 
-**Sections:**
-- **Overview** — Stat cards: total projects, skills, messages, unread count
-- **Projects** — Table of all apps with delete button
-- **Skills** — Table of all skills with delete button
-- **Experience** — Table of work history with delete button
-- **Messages** — Inbox table with mark-as-read and delete
-- **Profile** — Form to edit all profile fields (name, bio, social links, availability, etc.)
+**Sections (sidebar tabs):**
+- **📊 Overview** — Stat cards: total projects, skills, messages, unread count
+- **📱 Projects** — Table of all apps with delete button
+- **⚡ Skills** — Table of all skills with delete button
+- **💼 Experience** — Table of work history with delete button
+- **✉ Messages** — WhatsApp-style inbox: list + chat view, replies with attachments
+- **👤 Profile** — Form for bio, contact, photos, availability, CV upload (no longer holds social or SMTP fields)
+- **🔗 Social Links** — GitHub, LinkedIn, Twitter, Instagram, WhatsApp. WhatsApp uses an `intl-tel-input` country code picker. Saving an empty value clears that link on the public portfolio.
+- **📧 Mail Settings** — Sending Gmail address + 16-character App Password (4×4 boxes with show/hide). Auto-tests credentials against Gmail when the tab opens. Below the form:
+  - **Available Accounts** — One card per unique Gmail ever saved (deduped from history). Each card shows the password as 4 boxes, an auto-test status, and buttons: Show / Copy / Use this account / Hide. Hidden accounts can be revealed via the "Show N hidden" toggle and restored.
+  - **App Password History** — Append-only audit table of every save. Each row auto-tests in parallel and shows ✅ Valid / ❌ Invalid with the SMTP error on hover.
+- **🐙 GitHub Stats** — Username + 4 manual override inputs (Repositories, Total Commits, Top Language, Years Active). Blank override = use auto-fetched value from GitHub API on the public portfolio.
 
 **Auth:** Every page load calls `GET /api/v1/auth/me`. If it returns 401, the page redirects to `/login` immediately.
 
@@ -970,6 +1027,12 @@ border: 2px solid var(--color-primary);
 - [x] Dedicated endpoints for cv_file and profile_photo partial updates
 - [x] `Cache-Control: no-store` on profile endpoint (always fresh photo/CV)
 - [x] Profile update preserves existing fields when partial data sent
+- [x] Dedicated `PUT /profile/social` endpoint — empty values clear social links (preserve logic intentionally bypassed)
+- [x] Dedicated `PUT /profile/mail` endpoint that auto-records every save into `mail_password_histories`
+- [x] `mail_password_histories` table — append-only audit log of every Gmail App Password ever saved
+- [x] `POST /profile/mail/verify` — connects to Gmail SMTP and runs AUTH PLAIN against arbitrary credentials without sending mail
+- [x] `hidden_mail_accounts` table + hide/unhide endpoints — soft-hide accounts from the dashboard while keeping audit history intact
+- [x] `PUT /profile/github` endpoint with 5 GitHub-related profile fields (username + 4 stat overrides)
 
 ### Frontend ✅
 - [x] Drake-inspired dark theme (`#1f1f1f` background)
@@ -1015,11 +1078,19 @@ border: 2px solid var(--color-primary);
 - [x] Form validation
 - [x] Page loader
 - [x] `Ctrl+Shift+R` to see changes instantly (no build step needed)
+- [x] Dashboard sidebar split — Profile / Social Links / Mail Settings / GitHub Stats are now separate tabs (was one giant Profile form)
+- [x] Social Links tab with `intl-tel-input` country code picker for the WhatsApp field
+- [x] Public portfolio's sidebar/footer/WhatsApp icons all driven by profile data via `data-social="…"` attributes — empty values hide the icon
+- [x] Mail Settings auto-tests saved credentials against Gmail when the tab opens
+- [x] Available Accounts panel — deduplicated cards per unique Gmail with parallel auto-test, ↺ Use this account, 🚫 Hide, ↺ Restore, "Show N hidden" toggle
+- [x] App Password History panel — auto-tests every entry in parallel; Show / Copy / Use this / Delete-row controls
+- [x] Click-twice confirmation pattern (no native `confirm()` — robust against Firefox dialog suppression)
+- [x] GitHub Stats section combines live API auto-fetch with per-card manual overrides; falls back gracefully on rate limit / network error
 
 ### Database ✅
 - [x] PostgreSQL 17 installed and running as Windows service `postgresql-x64-17`
 - [x] Database `imtiaz_portfolio` created
-- [x] All 7 tables created via AutoMigrate
+- [x] All 9 tables created via AutoMigrate (added `mail_password_histories` and `hidden_mail_accounts`)
 - [x] Seeded: 1 admin, 1 profile, 17 skills, 3 experience entries, 2 projects
 
 ---
@@ -1031,9 +1102,9 @@ border: 2px solid var(--color-primary);
 - [ ] **CV PDF** — `frontend/assets/images/profile/cv.pdf` doesn't exist yet. Add real CV.
 - [ ] **App screenshots** — Projects have empty `screenshots` arrays. Add real app screenshots.
 - [ ] **App Store / Play Store links** — Currently `https://apps.apple.com` / `https://play.google.com` (generic). Update to real app listings.
-- [ ] **Social links** — GitHub, LinkedIn, Twitter, Instagram URLs in sidebar and footer need real profile URLs. Update in DB via dashboard or seeder.
-- [ ] **WhatsApp number** — Contact section has `https://wa.me/8801XXXXXXXXX`. Replace with real number.
-- [ ] **GitHub username** — `github.js` uses `imtiazchowdhury`. Update to real GitHub username.
+- [x] ~~**Social links**~~ — now driven by the dashboard's Social Links tab; icons hide automatically when a URL is blank.
+- [x] ~~**WhatsApp number**~~ — now driven by the dashboard. Contact button hides when no number is saved.
+- [x] ~~**GitHub username**~~ — now driven by the dashboard's GitHub Stats tab. The `imtiazchowdhury` placeholder in `github.js` only acts as a fallback when no username is configured.
 
 ### Dashboard
 - [ ] **Add modals** — "Add Project", "Add Skill", "Add Experience" buttons show placeholder toast. Real forms need to be built.
@@ -1059,6 +1130,10 @@ border: 2px solid var(--color-primary);
 
 ### Phase 3 — Features
 - ~~Email notification / reply when contact form is submitted~~ ✅ Done (Gmail SMTP)
+- ~~Dashboard-driven social links and WhatsApp~~ ✅ Done
+- ~~Multi-account Gmail App Password management with audit log~~ ✅ Done
+- ~~SMTP credential auto-verification against Gmail~~ ✅ Done
+- ~~GitHub stats with live API + manual override~~ ✅ Done
 - Project detail modal/page (clicking "View Details" on app slide)
 - Dark/light theme toggle
 - CV auto-generation from database content
@@ -1133,5 +1208,16 @@ In `frontend/assets/js/core/api.js`, `BASE_URL` is `/api/v1` (relative). Since t
 | 3.0.0 | 2026-05-07 | Profile update safety — preserve existing fields, no-store cache on profile API | profile_service.go, profile_handler.go |
 | 3.1.0 | 2026-05-07 | Separate sidebar photo and about section photo — two independent upload fields | profile.go, profile_handler.go, dashboard.html, about.js |
 | 3.2.0 | 2026-05-07 | HEIC/HEIF support — auto-converts iPhone photos to JPEG before upload via heic2any | dashboard.html, upload_service.go |
+| 3.3.0 | 2026-05-08 | Social Links sidebar tab — split GitHub/LinkedIn/Twitter/Instagram/WhatsApp out of Profile; new `PUT /profile/social` endpoint that allows clearing fields | dashboard.html, profile_handler.go, profile_service.go, routes.go |
+| 3.4.0 | 2026-05-08 | WhatsApp country code picker via `intl-tel-input` — dark-themed flag dropdown, stores E.164 without leading `+` | dashboard.html |
+| 3.5.0 | 2026-05-08 | Public portfolio social icons + WhatsApp button now driven by profile data via `data-social="…"` attributes; empty values hide the icon | index.html, about.js |
+| 3.6.0 | 2026-05-08 | Mail Settings sidebar tab — split SMTP credentials out of Profile; new `PUT /profile/mail` endpoint | dashboard.html, profile_handler.go, routes.go |
+| 3.7.0 | 2026-05-08 | App Password History audit log — `mail_password_histories` table, history panel with Show/Hide/Copy/Use this/Delete row | mail_password_history.go, profile_handler.go, profile_service.go, dashboard.html |
+| 3.8.0 | 2026-05-08 | SMTP credential auto-verification — `POST /profile/mail/verify` runs Gmail AUTH PLAIN without sending mail; auto-tests on tab open and after every save | email_service.go, profile_handler.go, dashboard.html |
+| 3.9.0 | 2026-05-08 | Available Accounts panel — deduped per-Gmail cards with parallel auto-test, ↺ Use this account, password as 4 boxes | dashboard.html |
+| 3.10.0 | 2026-05-09 | Hide / Restore for Gmail accounts — `hidden_mail_accounts` table replaces destructive delete; audit log preserved | hidden_mail_account.go, profile_handler.go, profile_service.go, dashboard.html |
+| 3.11.0 | 2026-05-09 | Click-twice confirmation pattern across destructive dashboard actions — robust against Firefox dialog suppression | dashboard.html |
+| 3.12.0 | 2026-05-09 | GitHub Stats sidebar tab + dynamic public section — live `api.github.com` fetch (Repositories, Top Language, Years Active) with per-card manual overrides; Total Commits is manual-only | profile.go, profile_handler.go, profile_service.go, routes.go, dashboard.html, github.js |
+| 3.13.0 | 2026-05-09 | README brought current — new endpoints, new tables, new dashboard tabs, Known Issues / Roadmap reconciled | README.md |
 
 > **Rule:** Every future change must add a row to this table before the session ends.
