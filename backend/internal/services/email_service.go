@@ -2,11 +2,14 @@ package services
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"mime/multipart"
+	"net"
 	"net/smtp"
 	"net/textproto"
+	"time"
 )
 
 type EmailService struct {
@@ -28,6 +31,34 @@ func NewEmailService(host, port, user, pass string) *EmailService {
 
 func (s *EmailService) Host() string { return s.host }
 func (s *EmailService) Port() string { return s.port }
+
+// Verify connects to the configured SMTP server, performs STARTTLS if offered,
+// and attempts authentication with the supplied credentials. It does NOT send
+// any mail. Returns nil if Gmail accepts the credentials, a descriptive error
+// otherwise (auth failure, network error, TLS error).
+func (s *EmailService) Verify(user, pass string) error {
+	addr := s.host + ":" + s.port
+	conn, err := net.DialTimeout("tcp", addr, 10*time.Second)
+	if err != nil {
+		return fmt.Errorf("could not reach %s: %v", addr, err)
+	}
+	client, err := smtp.NewClient(conn, s.host)
+	if err != nil {
+		conn.Close()
+		return fmt.Errorf("smtp handshake failed: %v", err)
+	}
+	defer client.Close()
+	if ok, _ := client.Extension("STARTTLS"); ok {
+		if err := client.StartTLS(&tls.Config{ServerName: s.host}); err != nil {
+			return fmt.Errorf("STARTTLS failed: %v", err)
+		}
+	}
+	auth := smtp.PlainAuth("", user, pass, s.host)
+	if err := client.Auth(auth); err != nil {
+		return fmt.Errorf("authentication failed: %v", err)
+	}
+	return client.Quit()
+}
 
 // Send sends a plain-text email, optionally with file attachments.
 func (s *EmailService) Send(toName, toEmail, fromEmail, subject, body string, attachments []Attachment) error {

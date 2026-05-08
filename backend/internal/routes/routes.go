@@ -92,7 +92,7 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	skillHandler := handlers.NewSkillHandler(skillSvc)
 	expHandler := handlers.NewExperienceHandler(expSvc)
 	msgHandler := handlers.NewMessageHandler(msgSvc, emailSvc, profileSvc)
-	profileHandler := handlers.NewProfileHandler(profileSvc)
+	profileHandler := handlers.NewProfileHandler(profileSvc, emailSvc)
 	uploadHandler := handlers.NewUploadHandler(uploadSvc)
 	statsHandler := handlers.NewStatsHandler(db)
 
@@ -153,6 +153,14 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	protected.PUT("/profile/cv", profileHandler.UpdateCV)
 	protected.PUT("/profile/photo", profileHandler.UpdatePhoto)
 	protected.PUT("/profile/about-photo", profileHandler.UpdateAboutPhoto)
+	protected.PUT("/profile/social", profileHandler.UpdateSocial)
+	protected.PUT("/profile/mail", profileHandler.UpdateMail)
+	protected.PUT("/profile/github", profileHandler.UpdateGitHub)
+	protected.GET("/profile/mail/history", profileHandler.GetMailHistory)
+	protected.DELETE("/profile/mail/history/:id", profileHandler.DeleteMailHistory)
+	protected.POST("/profile/mail/accounts/:id/hide", profileHandler.HideMailAccount)
+	protected.POST("/profile/mail/accounts/:id/unhide", profileHandler.UnhideMailAccount)
+	protected.POST("/profile/mail/verify", profileHandler.VerifyMail)
 
 	// File uploads (images, CV PDF — dashboard only)
 	protected.POST("/upload", uploadHandler.Upload)

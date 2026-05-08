@@ -78,6 +78,17 @@ type Profile struct {
 	SMTPUser string `gorm:"type:varchar(255)" json:"smtp_user"`
 	SMTPPass string `gorm:"type:varchar(255)" json:"smtp_pass"`
 
+	// ─── GitHub Stats ─────────────────────────────────────────
+	// GitHubUsername drives the live API fetch in the public portfolio.
+	// The four override fields are blank by default — when blank, the
+	// frontend uses the auto-computed value from GitHub. Setting any of
+	// them substitutes that value in the matching stat card.
+	GitHubUsername    string `gorm:"type:varchar(100)" json:"github_username"`
+	GitHubRepos       string `gorm:"type:varchar(20)"  json:"github_repos"`
+	GitHubCommits     string `gorm:"type:varchar(20)"  json:"github_commits"`
+	GitHubTopLanguage string `gorm:"type:varchar(50)"  json:"github_top_language"`
+	GitHubYearsActive string `gorm:"type:varchar(20)"  json:"github_years_active"`
+
 	// ─── SEO ─────────────────────────────────────────────────
 	MetaTitle       string `gorm:"type:varchar(200)" json:"meta_title"`
 	MetaDescription string `gorm:"type:varchar(500)" json:"meta_description"`

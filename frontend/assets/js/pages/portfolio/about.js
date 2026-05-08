@@ -17,6 +17,7 @@ const AboutSection = (() => {
       updateAboutSection(profile);
       updateHeroSection(profile);
       updateSidebar(profile);
+      updateSocialLinks(profile);
     } catch {
       // Profile API failed — static HTML fallback already in index.html
     }
@@ -79,6 +80,27 @@ const AboutSection = (() => {
       }
       if (placeholderEl) placeholderEl.style.display = 'none';
     }
+  }
+
+  // Wires every <a data-social="..."> on the page to the matching profile field.
+  // If a value is empty the link stays hidden, so the page never shows broken icons.
+  function updateSocialLinks(p) {
+    document.querySelectorAll('[data-social]').forEach(el => {
+      const platform = el.dataset.social;
+      let url = '';
+      if (platform === 'whatsapp') {
+        const num = (p.whatsapp || '').replace(/\D/g, '');
+        url = num ? `https://wa.me/${num}` : '';
+      } else {
+        url = (p[platform] || '').trim();
+      }
+      if (url) {
+        el.href = url;
+        el.style.display = '';
+      } else {
+        el.style.display = 'none';
+      }
+    });
   }
 
   return { init };
