@@ -7,6 +7,11 @@
 
 const Utils = (() => {
 
+  // Tracks per-element rAF ids so a fresh animation cancels any in-flight one
+  // on the same element (prevents two loops fighting over textContent when the
+  // profile fetch updates a stat mid-animation).
+  const _animationFrames = new WeakMap();
+
   /**
    * Animates a number counter from 0 to the target value.
    * Used for the hero stats section (2.5+ years, 5+ apps etc.)
@@ -14,19 +19,31 @@ const Utils = (() => {
    * @param {number} target - the final number to count to
    * @param {number} duration - how long the animation takes in ms
    * @param {string} suffix - appended after the number ('+', '%', etc.)
+   * @param {number} decimals - decimal places to render (1 → 0.0, 0.5, 1.0…)
    */
-  function animateCounter(el, target, duration = 1500, suffix = '') {
+  function animateCounter(el, target, duration = 1800, suffix = '', decimals = 0) {
+    const existing = _animationFrames.get(el);
+    if (existing) cancelAnimationFrame(existing);
+
+    const targetNum = parseFloat(target) || 0;
     const start = performance.now();
+    const format = (n) => decimals > 0 ? n.toFixed(decimals) : String(Math.round(n));
     const update = (time) => {
       const elapsed = time - start;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease out cubic — starts fast, slows at the end
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.floor(eased * target);
-      el.textContent = current + suffix;
-      if (progress < 1) requestAnimationFrame(update);
+      // easeOutQuart — gentler tail than cubic, no harsh snap at the end
+      const eased = 1 - Math.pow(1 - progress, 4);
+      const current = eased * targetNum;
+      el.textContent = format(current) + suffix;
+      if (progress < 1) {
+        _animationFrames.set(el, requestAnimationFrame(update));
+      } else {
+        // Land exactly on the target so rounding doesn't leave us at "2.4+"
+        el.textContent = format(targetNum) + suffix;
+        _animationFrames.delete(el);
+      }
     };
-    requestAnimationFrame(update);
+    _animationFrames.set(el, requestAnimationFrame(update));
   }
 
   /**

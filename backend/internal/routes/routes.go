@@ -85,6 +85,9 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	profileSvc := services.NewProfileService(db)
 	uploadSvc := services.NewUploadService(cfg)
 	cvGenSvc := services.NewCVGeneratorService(db, profileSvc, cfg.UploadDir)
+	// Real-time notification broker — every connected dashboard subscribes
+	// via /api/v1/events and gets pushed when new messages arrive.
+	broker := services.NewEventBroker()
 
 	// ─── Step 4: Initialize all handlers with their services ──
 	// Handlers handle HTTP — they read requests and call services
@@ -92,10 +95,11 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	projectHandler := handlers.NewProjectHandler(projectSvc)
 	skillHandler := handlers.NewSkillHandler(skillSvc)
 	expHandler := handlers.NewExperienceHandler(expSvc)
-	msgHandler := handlers.NewMessageHandler(msgSvc, emailSvc, profileSvc)
+	msgHandler := handlers.NewMessageHandler(msgSvc, emailSvc, profileSvc, broker, cfg.UploadDir)
 	profileHandler := handlers.NewProfileHandler(profileSvc, emailSvc, cvGenSvc, cfg.UploadDir)
 	uploadHandler := handlers.NewUploadHandler(uploadSvc)
 	statsHandler := handlers.NewStatsHandler(db)
+	sseHandler := handlers.NewSSEHandler(broker, cfg)
 
 	// ─── Step 5: API version prefix ───────────────────────────
 	// All routes are under /api/v1/ — adding v2 later won't break existing clients
@@ -121,6 +125,12 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// Public CV download counter — fired by the portfolio when a visitor
 	// clicks "Download CV", just before navigating to the PDF
 	v1.POST("/profile/cv/download", profileHandler.RecordCVDownload)
+
+	// Real-time event stream for the dashboard. Auth lives inside the
+	// handler (?token=…) because EventSource cannot send headers; the
+	// route itself stays in the public group so the middleware doesn't
+	// reject it before the handler can read the query.
+	v1.GET("/events", sseHandler.Stream)
 
 	// ─── Step 7: Protected routes (JWT required) ──────────────
 	// The AuthMiddleware checks the Authorization: Bearer <token> header.

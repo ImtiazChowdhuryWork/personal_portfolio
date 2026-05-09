@@ -12,8 +12,11 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io"
 	"mime"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"imtiaz-portfolio/internal/models"
@@ -29,11 +32,13 @@ type MessageHandler struct {
 	msgService     *services.MessageService
 	emailService   *services.EmailService
 	profileService *services.ProfileService
+	broker         *services.EventBroker
+	uploadDir      string
 }
 
 // NewMessageHandler creates a new MessageHandler.
-func NewMessageHandler(ms *services.MessageService, es *services.EmailService, ps *services.ProfileService) *MessageHandler {
-	return &MessageHandler{msgService: ms, emailService: es, profileService: ps}
+func NewMessageHandler(ms *services.MessageService, es *services.EmailService, ps *services.ProfileService, broker *services.EventBroker, uploadDir string) *MessageHandler {
+	return &MessageHandler{msgService: ms, emailService: es, profileService: ps, broker: broker, uploadDir: uploadDir}
 }
 
 // GetAll returns all contact messages — protected, dashboard only.
@@ -76,6 +81,20 @@ func (h *MessageHandler) Create(c *gin.Context) {
 		utils.InternalError(c, "Failed to save your message — please try again")
 		return
 	}
+	// Push a real-time notification to every connected dashboard so the
+	// unread badge updates without waiting for the next poll.
+	if h.broker != nil {
+		h.broker.Publish(services.Event{
+			Type: "message.created",
+			Data: map[string]interface{}{
+				"id":         msg.ID,
+				"name":       msg.Name,
+				"email":      msg.Email,
+				"type":       msg.Type,
+				"created_at": msg.CreatedAt,
+			},
+		})
+	}
 	utils.Created(c, "Message sent successfully! I'll get back to you soon.", msg)
 }
 
@@ -115,9 +134,59 @@ func (h *MessageHandler) Reply(c *gin.Context) {
 		return
 	}
 
-	// Collect attachments if any were uploaded
+	attUrlsJSON := c.Request.FormValue("attachment_urls")
+
+	// Collect attachments. The dashboard pre-uploads files via /upload BEFORE
+	// hitting this endpoint and passes their URLs in `attachment_urls`. Reading
+	// those files from disk here avoids resending the binary over the wire (which
+	// previously made every reply with attachments take ~2× as long and caused
+	// "NetworkError" timeouts on slow connections). The multipart binary loop
+	// below is kept as a fallback for clients that don't pre-upload.
 	var attachments []services.Attachment
-	if c.Request.MultipartForm != nil {
+	if attUrlsJSON != "" {
+		var meta []struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal([]byte(attUrlsJSON), &meta); err == nil {
+			for _, m := range meta {
+				if m.Type == "link" || m.URL == "" {
+					continue // links live in the body text, not as MIME attachments
+				}
+				if !strings.HasPrefix(m.URL, "/uploads/") {
+					continue // only serve our own files
+				}
+				rel := strings.TrimPrefix(m.URL, "/uploads/")
+				full, err := filepath.Abs(filepath.Join(h.uploadDir, rel))
+				if err != nil {
+					continue
+				}
+				// Make sure the resolved path is still inside uploadDir (no traversal)
+				absUploadDir, _ := filepath.Abs(h.uploadDir)
+				if !strings.HasPrefix(full, absUploadDir) {
+					continue
+				}
+				data, err := os.ReadFile(full)
+				if err != nil {
+					continue
+				}
+				ct := mime.TypeByExtension(filepath.Ext(m.Name))
+				if ct == "" {
+					ct = "application/octet-stream"
+				}
+				attachments = append(attachments, services.Attachment{
+					Filename:    m.Name,
+					ContentType: ct,
+					Data:        data,
+				})
+			}
+		}
+	}
+
+	// Fallback: if no pre-uploaded URLs were provided, accept binary files from
+	// the multipart form directly (legacy clients).
+	if len(attachments) == 0 && c.Request.MultipartForm != nil {
 		for _, fileHeaders := range c.Request.MultipartForm.File {
 			for _, fh := range fileHeaders {
 				f, err := fh.Open()
@@ -177,8 +246,9 @@ func (h *MessageHandler) Reply(c *gin.Context) {
 		return
 	}
 
-	// Use pre-uploaded file URLs if provided, otherwise fall back to filenames
-	attachmentNames := c.Request.FormValue("attachment_urls")
+	// Use pre-uploaded file URLs (parsed at the top) for chat-history rendering,
+	// otherwise fall back to bare filenames so legacy clients still work.
+	attachmentNames := attUrlsJSON
 	if attachmentNames == "" {
 		var filenames []string
 		for _, att := range attachments {

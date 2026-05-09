@@ -219,8 +219,8 @@
               </defs>
               <text font-size="11.5" font-family="Inter, sans-serif"
                     fill="#54c5f8" font-weight="500"
-                    textLength="432" lengthAdjust="spacing">
-                <textPath href="#badge-circle">Flutter Dev • Open to Work •&#160;</textPath>
+                    textLength="432" lengthAdjust="spacingAndGlyphs">
+                <textPath href="#badge-circle" id="rotating-badge-text">Flutter Dev • Open to Work •&#160;</textPath>
               </text>
             </svg>
             <span class="rotating-badge-icon">
@@ -245,16 +245,16 @@
         <!-- Facts / stats: 72px numbers, 100px gap, margin-top 55px -->
         <div class="hero-stats scroll-animation" data-animation="fade_from_bottom">
           <div>
-            <span class="hero-stat-value" data-count="2" data-suffix="+" data-decimal="true">2.5+</span>
-            <span class="hero-stat-label">Years of<br>Experience</span>
+            <span class="hero-stat-value" id="stat-years-value" data-count="2" data-suffix="+" data-decimal="true">2.5+</span>
+            <span class="hero-stat-label" id="stat-years-label">Years of<br>Experience</span>
           </div>
           <div>
-            <span class="hero-stat-value" data-count="5" data-suffix="+">0+</span>
-            <span class="hero-stat-label">Apps on App Store<br>&amp; Play Store</span>
+            <span class="hero-stat-value" id="stat-apps-value" data-count="5" data-suffix="+">0+</span>
+            <span class="hero-stat-label" id="stat-apps-label">Apps on App Store<br>&amp; Play Store</span>
           </div>
           <div>
-            <span class="hero-stat-value" data-count="10" data-suffix="+">0+</span>
-            <span class="hero-stat-label">Technologies<br>Mastered</span>
+            <span class="hero-stat-value" id="stat-tech-value" data-count="10" data-suffix="+">0+</span>
+            <span class="hero-stat-label" id="stat-tech-label">Technologies<br>Mastered</span>
           </div>
         </div>
 
@@ -267,7 +267,7 @@
     ════════════════════════════════════════════════════════ -->
     <section id="about">
       <div class="section-label scroll-animation" data-animation="fade_from_bottom">About Me</div>
-      <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">Shipping real apps<br>to real stores.</h2>
+      <h2 class="section-title scroll-animation" data-animation="fade_from_bottom" id="about-title">Shipping real apps<br>to real stores.</h2>
 
       <div class="about-layout">
         <!-- Left column: profile photo -->
@@ -291,7 +291,7 @@
             cross-platform mobile apps for iOS and Android. I've delivered 5+ live apps on the
             App Store and Google Play Store.
           </p>
-          <p style="color:var(--color-text-muted);line-height:1.8;margin-bottom:2rem">
+          <p id="about-paragraph2" style="color:var(--color-text-muted);line-height:1.8;margin-bottom:2rem">
             I'm skilled in Clean Architecture, Riverpod/GetX/BLoC, REST APIs, Firebase,
             Socket.IO, WebRTC, and payment gateways (Stripe, RevenueCat, Amar Pay).
             Available immediately for remote or onsite roles from Dhaka, Bangladesh.
@@ -305,7 +305,7 @@
           <div class="about-info-cards scroll-animation" data-animation="fade_from_bottom">
             <div class="about-info-card">
               <div class="about-info-label">Location</div>
-              <div class="about-info-value">📍 Dhaka, Bangladesh</div>
+              <div class="about-info-value" id="about-location">📍 Dhaka, Bangladesh</div>
             </div>
             <div class="about-info-card">
               <div class="about-info-label">Availability</div>
@@ -313,11 +313,11 @@
             </div>
             <div class="about-info-card">
               <div class="about-info-label">Experience</div>
-              <div class="about-info-value">💼 2.5+ Years</div>
+              <div class="about-info-value" id="about-experience">💼 2.5+ Years</div>
             </div>
             <div class="about-info-card">
               <div class="about-info-label">Focus</div>
-              <div class="about-info-value">📱 Mobile Development</div>
+              <div class="about-info-value" id="about-focus">📱 Mobile Development</div>
             </div>
           </div>
         </div>
@@ -512,7 +512,7 @@
 <!-- ─── Core utilities (must load before page scripts) ─── -->
 <script src="/assets/js/core/api.js"></script>
 <script src="/assets/js/core/store.js"></script>
-<script src="/assets/js/core/utils.js"></script>
+<script src="/assets/js/core/utils.js?v=5"></script>
 <script src="/assets/js/core/auth.js"></script>
 <script src="/assets/js/core/validator.js"></script>
 
@@ -526,8 +526,8 @@
 <script src="/assets/js/components/AppShowcase.js"></script>
 
 <!-- ─── Portfolio section scripts ────────────────────────── -->
-<script src="/assets/js/pages/portfolio/hero.js"></script>
-<script src="/assets/js/pages/portfolio/about.js?v=4"></script>
+<script src="/assets/js/pages/portfolio/hero.js?v=5"></script>
+<script src="/assets/js/pages/portfolio/about.js?v=5"></script>
 <script src="/assets/js/pages/portfolio/techstack.js"></script>
 <script src="/assets/js/pages/portfolio/architecture.js"></script>
 <script src="/assets/js/pages/portfolio/apps.js"></script>

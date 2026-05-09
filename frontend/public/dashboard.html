@@ -1124,6 +1124,40 @@
     @media (max-width: 700px) { .profile-field-grid { grid-template-columns: 1fr; } }
     .profile-field-grid .form-group { margin-bottom: 0; }
 
+    /* Stat value field with inline + suffix toggle */
+    .stat-value-row {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .stat-value-row .form-control { flex: 1; min-width: 0; }
+    .stat-plus-toggle {
+      flex: 0 0 auto;
+      width: 44px;
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+      background: rgba(255,255,255,0.02);
+      color: var(--color-text-muted);
+      font-size: 18px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stat-plus-toggle:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .stat-plus-toggle.is-on {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+    }
+
     /* Visual availability selector */
     .profile-status-grid {
       display: grid;
@@ -1170,6 +1204,92 @@
       align-items: center; gap: 12px;
       padding: 1rem 0;
     }
+
+    /* ─── Profile sub-tab system ──────────────────────────────────
+       The profile-form right column is split into a tab nav, a
+       scroll-area of panes, and a sticky save bar. The whole right
+       column lays out as a flex column so the save bar can pin to
+       the bottom while the panes scroll independently.            */
+    .profile-right-column {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .profile-tab-nav {
+      display: flex;
+      gap: 4px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      padding: 6px;
+      margin-bottom: 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(12px);
+    }
+    .profile-tab-nav button {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 0;
+      background: transparent;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+    }
+    .profile-tab-nav button i { font-size: 16px; }
+    .profile-tab-nav button:hover {
+      color: var(--color-heading);
+      background: rgba(255,255,255,0.03);
+    }
+    .profile-tab-nav button.is-active {
+      background: var(--color-primary);
+      color: #fff;
+      box-shadow: 0 6px 18px -8px rgba(59,130,246,0.6);
+    }
+    @media (max-width: 700px) {
+      .profile-tab-nav { flex-wrap: wrap; }
+      .profile-tab-nav button { flex: 1 1 calc(50% - 4px); padding: 8px 10px; font-size: 12px; }
+    }
+
+    .profile-tab-pane { display: none; animation: profile-pane-fade 0.22s ease; }
+    .profile-tab-pane.is-active { display: block; }
+    @keyframes profile-pane-fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Save block inside the sticky identity card. Sits flush below the
+       status badge and uses the card's existing border/background, so the
+       Save action moves with the user instead of needing a bottom bar.
+       The Save button is hidden until the form goes "dirty" — only the
+       status text is visible while the form matches its saved state. */
+    .profile-identity-save {
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .profile-identity-save .btn { display: none; }
+    .profile-identity-save.is-dirty .btn {
+      display: inline-flex;
+      animation: profile-save-appear 0.22s ease;
+    }
+    @keyframes profile-save-appear {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    /* Dirty/clean state colours for the inline save status */
+    #profile-save-status[data-state="clean"] { color: #22c55e; }
+    #profile-save-status[data-state="dirty"] { color: #f59e0b; }
 
     /* Hero heading preview's highlights need the same blue color the
        portfolio uses — the public CSS rule is scoped to .hero-title which
@@ -1387,6 +1507,16 @@
       font-size: 10px; font-weight: 700; padding: 2px 6px;
       border-radius: 9999px; margin-left: 4px;
     }
+    /* Brief pulse when the unread count goes UP between polls so a new
+       arrival catches the admin's eye without being annoying. */
+    .unread-badge.is-pulsing {
+      animation: unread-pulse 1.6s ease-out 2;
+    }
+    @keyframes unread-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(244,67,54,0.55); transform: scale(1); }
+      40%  { box-shadow: 0 0 0 8px rgba(244,67,54,0);   transform: scale(1.15); }
+      100% { box-shadow: 0 0 0 0 rgba(244,67,54,0);     transform: scale(1); }
+    }
 
     /* ══════════════════════════════════════════════════════════
        WhatsApp Dark Inbox
@@ -1476,6 +1606,14 @@
       border-radius: 50%; display: flex;
       align-items: center; justify-content: center;
       padding: 0 4px; flex-shrink: 0;
+    }
+    /* Small chip next to a sender's name showing total messages in the thread */
+    .wa-thread-count {
+      display: inline-flex; align-items: center;
+      background: rgba(255,255,255,0.08); color: #cfd8dc;
+      font-size: 10px; font-weight: 600;
+      padding: 1px 6px; border-radius: 10px;
+      margin-left: 6px; vertical-align: middle;
     }
 
     /* ── Right: chat area ───────────────────────────────────── */
@@ -1814,6 +1952,80 @@
     }
     .wa-att-preview-row::-webkit-scrollbar { width: 4px; }
     .wa-att-preview-row::-webkit-scrollbar-thumb { background: #2a3942; border-radius: 4px; }
+
+    /* Compose attachment toolbar — Attach + Link buttons + size hint */
+    .wa-att-trigger {
+      display: inline-flex; align-items: center; gap: 6px;
+      cursor: pointer; font-size: 13px; color: #8696a0;
+      background: none; border: 1px dashed #2a3942;
+      border-radius: 8px; padding: 7px 14px;
+      transition: all 0.18s ease; flex-shrink: 0;
+    }
+    .wa-att-trigger:hover { border-color: #00a884; color: #00a884; }
+    .wa-att-limit-hint {
+      font-size: 11px; color: #6b7a82;
+      padding: 4px 10px;
+      background: rgba(0,168,132,0.07);
+      border: 1px solid rgba(0,168,132,0.18);
+      border-radius: 999px;
+      cursor: help;
+    }
+
+    /* Inline Link form (URL + label + Add) */
+    .wa-link-form {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      background: #11181c; border: 1px solid #2a3942;
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+    }
+    .wa-link-form input {
+      background: #0b141a; color: #e9edef;
+      border: 1px solid #2a3942; border-radius: 8px;
+      padding: 7px 10px; font-size: 13px;
+      outline: none;
+    }
+    .wa-link-form input:focus { border-color: #00a884; }
+    .wa-link-form input[type="url"]   { flex: 2; min-width: 180px; }
+    .wa-link-form input[type="text"]  { flex: 1; min-width: 140px; }
+    .wa-link-form .wa-link-add {
+      background: #00a884; color: #fff; border: 0;
+      border-radius: 8px; padding: 8px 16px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .wa-link-form .wa-link-add:hover { background: #00977a; }
+    .wa-link-form .wa-link-cancel {
+      background: none; color: #8696a0; border: 0;
+      font-size: 16px; cursor: pointer; padding: 4px 8px;
+    }
+
+    /* Link chip in preview row */
+    .wa-link-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #11181c; border: 1px solid #2a3942;
+      border-radius: 10px; padding: 8px 12px; margin: 0 6px 6px 0;
+      max-width: 100%;
+    }
+    .wa-link-chip .wa-link-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: rgba(84,197,248,0.15); color: #54c5f8;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .wa-link-chip .wa-link-meta { min-width: 0; flex: 1; }
+    .wa-link-chip .wa-link-label-text {
+      color: #e9edef; font-size: 13px; font-weight: 500;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 220px;
+    }
+    .wa-link-chip .wa-link-url-text {
+      color: #8696a0; font-size: 11px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 220px;
+    }
+    .wa-link-chip .wa-link-remove {
+      background: none; border: 0; color: #8696a0;
+      font-size: 14px; cursor: pointer; padding: 0 4px;
+    }
+    .wa-link-chip .wa-link-remove:hover { color: #f44336; }
     .wa-att-item {
       position: relative; border-radius: 10px;
       overflow: hidden; flex-shrink: 0;
@@ -2083,12 +2295,45 @@
               </div>
               <div id="identity-status-badge" class="profile-status-badge is-open">Open to Work</div>
             </div>
+
+            <!-- Save action — lives inside the sticky identity card so it
+                 stays visible without needing a bottom bar. The button is
+                 type="submit" and inherits the parent #profile-form. -->
+            <div class="profile-identity-save">
+              <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
+                <i class="ph ph-check" style="font-size:14px;vertical-align:middle"></i> Save Profile
+              </button>
+              <span id="profile-save-status" style="display:block;font-size:12px;color:var(--color-text-muted);margin-top:8px;text-align:center;min-height:14px"></span>
+            </div>
           </div>
 
           <!-- RIGHT: form sections -->
-          <div>
+          <div class="profile-right-column">
             <!-- Hidden field bound to the visual availability selector -->
             <input type="hidden" name="availability" id="availability-hidden" value="Open to Work">
+
+            <!-- ─── Sub-tab navigation ───────────────────────────── -->
+            <div class="profile-tab-nav" role="tablist">
+              <button type="button" class="is-active" data-profile-tab="identity"
+                onclick="switchProfileTab(this, 'identity')" role="tab" aria-selected="true">
+                <i class="ph ph-user-circle"></i> Identity
+              </button>
+              <button type="button" data-profile-tab="hero"
+                onclick="switchProfileTab(this, 'hero')" role="tab" aria-selected="false">
+                <i class="ph ph-text-h-one"></i> Hero
+              </button>
+              <button type="button" data-profile-tab="stats"
+                onclick="switchProfileTab(this, 'stats')" role="tab" aria-selected="false">
+                <i class="ph ph-chart-bar"></i> Stats
+              </button>
+              <button type="button" data-profile-tab="about"
+                onclick="switchProfileTab(this, 'about')" role="tab" aria-selected="false">
+                <i class="ph ph-text-align-left"></i> About
+              </button>
+            </div>
+
+            <!-- ─── Tab pane: IDENTITY (Basic Info + Status) ──────── -->
+            <div class="profile-tab-pane is-active" data-profile-pane="identity">
 
             <!-- BASIC INFO -->
             <div class="profile-form-section">
@@ -2150,6 +2395,11 @@
                 </button>
               </div>
             </div>
+
+            </div><!-- /.profile-tab-pane[identity] -->
+
+            <!-- ─── Tab pane: HERO (Heading + Pill) ───────────────── -->
+            <div class="profile-tab-pane" data-profile-pane="hero">
 
             <!-- HERO HEADING -->
             <div class="profile-form-section">
@@ -2283,33 +2533,204 @@
               </div>
             </div>
 
-            <!-- BIO -->
+            </div><!-- /.profile-tab-pane[hero] -->
+
+            <!-- ─── Tab pane: STATS (Hero Stats) ──────────────────── -->
+            <div class="profile-tab-pane" data-profile-pane="stats">
+
+            <!-- HERO STATS -->
+            <div class="profile-form-section">
+              <div class="profile-form-section-header">
+                <div class="profile-form-section-icon"><i class="ph ph-chart-bar"></i></div>
+                <div style="flex:1">
+                  <div class="profile-form-section-title">Hero Stats</div>
+                  <div class="profile-form-section-desc">The three big counters under the hero CTA buttons</div>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="restoreHeroStatsDefault()"
+                  style="font-size:11px;padding:5px 10px">
+                  <i class="ph ph-arrow-counter-clockwise" style="font-size:12px"></i> Restore default
+                </button>
+              </div>
+
+              <!-- LIVE PREVIEW -->
+              <div class="footer-preview" style="margin-bottom:1rem">
+                <div class="footer-preview-row" style="display:block">
+                  <span class="footer-preview-label" style="display:block;margin-bottom:10px">Preview (live)</span>
+                  <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start">
+                    <div style="text-align:center">
+                      <div id="hero-stats-preview-v1" style="font-size:32px;font-weight:300;color:var(--color-primary);line-height:1">—</div>
+                      <div id="hero-stats-preview-l1" style="font-size:11px;color:var(--color-text-muted);margin-top:6px;line-height:1.3">—</div>
+                    </div>
+                    <div style="text-align:center">
+                      <div id="hero-stats-preview-v2" style="font-size:32px;font-weight:300;color:var(--color-primary);line-height:1">—</div>
+                      <div id="hero-stats-preview-l2" style="font-size:11px;color:var(--color-text-muted);margin-top:6px;line-height:1.3">—</div>
+                    </div>
+                    <div style="text-align:center">
+                      <div id="hero-stats-preview-v3" style="font-size:32px;font-weight:300;color:var(--color-primary);line-height:1">—</div>
+                      <div id="hero-stats-preview-l3" style="font-size:11px;color:var(--color-text-muted);margin-top:6px;line-height:1.3">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DEFAULT REFERENCE -->
+              <div style="background:rgba(255,255,255,0.02);border:1px dashed var(--color-border);
+                border-radius:10px;padding:12px 14px;margin-bottom:1.25rem">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;
+                  color:var(--color-text-muted);margin-bottom:6px">Default stats (used if a field is empty)</div>
+                <div style="font-size:13px;color:var(--color-heading);line-height:1.6">
+                  <strong style="color:var(--color-primary)">2.5+</strong> Years of Experience &nbsp;·&nbsp;
+                  <strong style="color:var(--color-primary)">5+</strong> Apps on App Store &amp; Play Store &nbsp;·&nbsp;
+                  <strong style="color:var(--color-primary)">10+</strong> Technologies Mastered
+                </div>
+              </div>
+
+              <!-- STAT 1 -->
+              <div class="profile-field-grid" style="margin-bottom:1rem">
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label social-label">
+                    <i class="ph ph-clock-clockwise" style="color:var(--color-primary)"></i> Stat 1 — Value
+                  </label>
+                  <div class="stat-value-row">
+                    <input class="form-control" name="years_experience" id="profile-stat-v1" placeholder="2.5">
+                    <button type="button" class="stat-plus-toggle" data-target="profile-stat-v1"
+                      onclick="toggleStatPlus(this)" title="Show or hide the + suffix">+</button>
+                  </div>
+                  <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                    Type just the number — click the <code style="color:var(--color-primary)">+</code> chip to show or hide the plus sign.
+                  </p>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label social-label">
+                    <i class="ph ph-text-align-center" style="color:var(--color-primary)"></i> Stat 1 — Label
+                  </label>
+                  <input class="form-control" name="years_experience_label" id="profile-stat-l1" placeholder="Years of\nExperience">
+                  <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                    Use <code style="color:var(--color-primary)">\n</code> to break into two lines.
+                  </p>
+                </div>
+              </div>
+
+              <!-- STAT 2 -->
+              <div class="profile-field-grid" style="margin-bottom:1rem">
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label social-label">
+                    <i class="ph ph-app-store-logo" style="color:var(--color-primary)"></i> Stat 2 — Value
+                  </label>
+                  <div class="stat-value-row">
+                    <input class="form-control" name="apps_shipped" id="profile-stat-v2" placeholder="5">
+                    <button type="button" class="stat-plus-toggle" data-target="profile-stat-v2"
+                      onclick="toggleStatPlus(this)" title="Show or hide the + suffix">+</button>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label social-label">
+                    <i class="ph ph-text-align-center" style="color:var(--color-primary)"></i> Stat 2 — Label
+                  </label>
+                  <input class="form-control" name="apps_shipped_label" id="profile-stat-l2" placeholder="Apps on App Store\n& Play Store">
+                  <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                    Use <code style="color:var(--color-primary)">\n</code> to break into two lines.
+                  </p>
+                </div>
+              </div>
+
+              <!-- STAT 3 -->
+              <div class="profile-field-grid" style="margin-bottom:0">
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label social-label">
+                    <i class="ph ph-stack" style="color:var(--color-primary)"></i> Stat 3 — Value
+                  </label>
+                  <div class="stat-value-row">
+                    <input class="form-control" name="tech_mastered" id="profile-stat-v3" placeholder="10">
+                    <button type="button" class="stat-plus-toggle" data-target="profile-stat-v3"
+                      onclick="toggleStatPlus(this)" title="Show or hide the + suffix">+</button>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label social-label">
+                    <i class="ph ph-text-align-center" style="color:var(--color-primary)"></i> Stat 3 — Label
+                  </label>
+                  <input class="form-control" name="tech_mastered_label" id="profile-stat-l3" placeholder="Technologies\nMastered">
+                  <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                    Use <code style="color:var(--color-primary)">\n</code> to break into two lines.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            </div><!-- /.profile-tab-pane[stats] -->
+
+            <!-- ─── Tab pane: ABOUT (Bio + About Section) ─────────── -->
+            <div class="profile-tab-pane" data-profile-pane="about">
+
+            <!-- BIO + ABOUT SECTION -->
             <div class="profile-form-section">
               <div class="profile-form-section-header">
                 <div class="profile-form-section-icon"><i class="ph ph-text-align-left"></i></div>
                 <div>
                   <div class="profile-form-section-title">About You</div>
-                  <div class="profile-form-section-desc">Bio for the About section, plus a one-liner for the hero</div>
+                  <div class="profile-form-section-desc">Bio + the entire About section on your portfolio</div>
                 </div>
               </div>
+
+              <!-- PLACEHOLDER REFERENCE -->
+              <div style="background:rgba(84,197,248,0.05);border:1px solid rgba(84,197,248,0.2);
+                border-radius:10px;padding:10px 14px;margin-bottom:1.25rem">
+                <div style="font-size:11px;color:var(--color-text-muted);line-height:1.7">
+                  <strong style="color:var(--color-heading)">💡 Placeholders</strong> — type these in any bio/paragraph and they auto-fill from your profile so the same number never gets out of sync:<br>
+                  <code style="color:var(--color-primary)">{name}</code>
+                  <code style="color:var(--color-primary)">{first_name}</code>
+                  <code style="color:var(--color-primary)">{nickname}</code>
+                  <code style="color:var(--color-primary)">{title}</code>
+                  <code style="color:var(--color-primary)">{location}</code>
+                  <code style="color:var(--color-primary)">{years_experience}</code>
+                  <code style="color:var(--color-primary)">{apps_shipped}</code>
+                  <code style="color:var(--color-primary)">{tech_mastered}</code>
+                  <code style="color:var(--color-primary)">{availability}</code>
+                  <code style="color:var(--color-primary)">{email}</code>
+                </div>
+              </div>
+
               <div class="form-group">
                 <label class="form-label social-label"><i class="ph ph-quotes" style="color:var(--color-primary)"></i> Short Bio (hero one-liner)</label>
-                <input class="form-control" name="short_bio" placeholder="Crafting beautiful Flutter apps with care.">
+                <input class="form-control" name="short_bio" placeholder="Crafting beautiful {title} apps with care.">
               </div>
-              <div class="form-group" style="margin-bottom:0">
-                <label class="form-label social-label"><i class="ph ph-article" style="color:var(--color-primary)"></i> Long Bio (about section)</label>
-                <textarea class="form-control" name="bio" rows="5" id="profile-bio-textarea"
-                  placeholder="Tell visitors about your background, what drives you, what you're working on…"></textarea>
+
+              <div class="form-group">
+                <label class="form-label social-label"><i class="ph ph-text-h-two" style="color:var(--color-primary)"></i> About Section Title</label>
+                <input class="form-control" name="about_title" placeholder="Shipping real apps\nto real stores.">
+                <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                  The big heading above the About layout. Use <code style="color:var(--color-primary)">\n</code> for a line break.
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label social-label"><i class="ph ph-article" style="color:var(--color-primary)"></i> Long Bio (about section, paragraph 1)</label>
+                <textarea class="form-control" name="bio" rows="4" id="profile-bio-textarea"
+                  placeholder="{title} with {years_experience} years of experience building cross-platform apps for iOS and Android. I've delivered {apps_shipped} live apps."></textarea>
                 <div class="profile-bio-meta"><span id="profile-bio-count">0</span> characters</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label social-label"><i class="ph ph-article-medium" style="color:var(--color-primary)"></i> About Section — Paragraph 2</label>
+                <textarea class="form-control" name="about_paragraph2" rows="3"
+                  placeholder="I'm skilled in Clean Architecture, REST APIs, Firebase, payment gateways. Available for remote or onsite roles from {location}."></textarea>
+                <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                  Optional second paragraph below the long bio. Leave empty to hide.
+                </p>
+              </div>
+
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label social-label"><i class="ph ph-target" style="color:var(--color-primary)"></i> Focus (info card)</label>
+                <input class="form-control" name="focus" placeholder="Mobile Development">
+                <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                  Shown in the About section's "Focus" info card. Add a leading emoji to override the default <code style="color:var(--color-primary)">📱</code>.
+                </p>
               </div>
             </div>
 
-            <div class="profile-save-bar">
-              <span id="profile-save-status" style="font-size:13px;color:var(--color-text-muted)"></span>
-              <button type="submit" class="btn btn-primary">
-                <i class="ph ph-check" style="font-size:14px;vertical-align:middle"></i> Save Profile
-              </button>
-            </div>
+            </div><!-- /.profile-tab-pane[about] -->
+
           </div>
 
         </div>
@@ -2839,8 +3260,10 @@
   const ok = await Auth.requireAuth();
   if (!ok) return;
 
-  // Load initial stats
+  // Load initial stats + start the visibility-aware poll so the unread
+  // badge updates within ~30s when a visitor sends a new message.
   loadStats();
+  startStatsPolling();
 
   // Wire up sidebar navigation
   document.querySelectorAll('.dash-nav a[data-section]').forEach(link => {
@@ -2888,6 +3311,27 @@
     const el = document.querySelector(`#profile-form [name="${n}"]`);
     if (el) el.addEventListener('input', updateHeroHeadingPreview);
   });
+  // Hero stats — live preview reacts to all 6 fields
+  ['years_experience','apps_shipped','tech_mastered',
+   'years_experience_label','apps_shipped_label','tech_mastered_label'].forEach(n => {
+    const el = document.querySelector(`#profile-form [name="${n}"]`);
+    if (el) el.addEventListener('input', updateHeroStatsPreview);
+  });
+  // Keep the inline + chip in sync when the user edits the value directly
+  ['years_experience','apps_shipped','tech_mastered'].forEach(n => {
+    const el = document.querySelector(`#profile-form [name="${n}"]`);
+    if (el) el.addEventListener('input', syncStatPlusToggles);
+  });
+
+  // Profile dirty-state — any input/change on the form re-evaluates whether
+  // the Save button should be visible. Delegated so dynamically-added inputs
+  // are covered automatically.
+  const profileForm = document.getElementById('profile-form');
+  if (profileForm) {
+    profileForm.addEventListener('input',  refreshProfileSaveState);
+    profileForm.addEventListener('change', refreshProfileSaveState);
+  }
+
   document.getElementById('social-form').addEventListener('submit', saveSocial);
   document.getElementById('mail-form').addEventListener('submit', saveMail);
   document.getElementById('github-form').addEventListener('submit', saveGitHub);
@@ -2943,6 +3387,26 @@ function showSection(name) {
   else if (name === 'cv') loadCVTab();
 }
 
+// Switches between the four sub-tabs inside the Profile section
+// (Identity / Hero / Stats / About). All panes belong to the same form,
+// so saving works regardless of which tab is currently visible.
+function switchProfileTab(btn, name) {
+  document.querySelectorAll('.profile-tab-nav button').forEach(b => {
+    const active = b === btn;
+    b.classList.toggle('is-active', active);
+    b.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.querySelectorAll('.profile-tab-pane').forEach(p => {
+    p.classList.toggle('is-active', p.dataset.profilePane === name);
+  });
+  // Scroll the right column back to top so the user lands at the start
+  // of the freshly-revealed pane instead of mid-scroll from the prior tab.
+  const col = document.querySelector('.profile-right-column');
+  if (col && col.scrollIntoView) {
+    col.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }
+}
+
 // Tests the values currently in the Mail Settings form (typically prefilled
 // from the saved profile). Updates the inline status next to the Test button.
 async function autoTestMailForm() {
@@ -2967,6 +3431,10 @@ async function autoTestMailForm() {
   }
 }
 
+// Tracks the last seen unread count so we can pulse the badge when a NEW
+// message arrives between polls.
+let _lastUnreadSeen = -1;
+
 async function loadStats() {
   try {
     const res = await API.get('/stats');
@@ -2975,12 +3443,93 @@ async function loadStats() {
     document.getElementById('stat-skills').textContent = s.total_skills;
     document.getElementById('stat-messages').textContent = s.total_messages;
     document.getElementById('stat-unread').textContent = s.unread_messages;
-    if (s.unread_messages > 0) {
-      const badge = document.getElementById('unread-count');
-      badge.textContent = s.unread_messages;
-      badge.style.display = 'inline';
+
+    const badge = document.getElementById('unread-count');
+    if (badge) {
+      const count = Number(s.unread_messages) || 0;
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'inline';
+        // Pulse if the count went up since the last poll (new arrival)
+        if (_lastUnreadSeen !== -1 && count > _lastUnreadSeen) {
+          badge.classList.remove('is-pulsing');
+          // Re-trigger the animation by reading layout, then re-adding the class
+          void badge.offsetWidth;
+          badge.classList.add('is-pulsing');
+          // If the user is currently on the Messages tab, refresh the inbox too
+          if (document.getElementById('section-messages')?.classList.contains('active')) {
+            loadMessages();
+          }
+        }
+      } else {
+        // All messages read — hide the badge instead of leaving a stale "1"
+        badge.style.display = 'none';
+        badge.classList.remove('is-pulsing');
+      }
+      _lastUnreadSeen = count;
     }
   } catch { /* silently fail */ }
+}
+
+// Real-time updates via Server-Sent Events. The dashboard opens a single
+// long-lived connection to /api/v1/events and reacts to push notifications
+// (currently: message.created). The browser auto-reconnects EventSource on
+// disconnect; we layer a slow polling fallback for cases where SSE just
+// can't establish at all (corporate proxy, ad-blocker, etc.).
+let _eventSource = null;
+let _statsFallbackTimer = null;
+
+function startStatsPolling() {
+  startEventStream();
+  // Fallback: 60s poll only runs when the SSE connection is NOT open.
+  // (We still poll on tab focus regardless so a returning user sees fresh data.)
+  if (!_statsFallbackTimer) {
+    _statsFallbackTimer = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      const sseOpen = _eventSource && _eventSource.readyState === EventSource.OPEN;
+      if (!sseOpen) loadStats();
+    }, 60000);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') loadStats();
+  });
+}
+
+function startEventStream() {
+  if (_eventSource) return;
+  const token = localStorage.getItem('portfolio_token');
+  if (!token) return;
+  try {
+    _eventSource = new EventSource(`/api/v1/events?token=${encodeURIComponent(token)}`);
+  } catch {
+    return; // browser doesn't support EventSource — fallback poll handles it
+  }
+
+  // The server fires `event: message.created` on every new contact-form
+  // submission. Refresh stats (badge) AND, if the inbox is currently open,
+  // refresh the conversation list so the new message appears at the top.
+  _eventSource.addEventListener('message.created', () => {
+    loadStats();
+    if (document.getElementById('section-messages')?.classList.contains('active')) {
+      loadMessages();
+    }
+  });
+
+  _eventSource.addEventListener('ready', () => {
+    // First successful handshake — useful for diagnostics
+    // eslint-disable-next-line no-console
+    console.debug('[events] SSE connected');
+  });
+
+  // EventSource auto-reconnects on transient errors; nothing to do here
+  // beyond logging. If it goes into a permanent failed state, the 60s
+  // polling fallback above keeps the badge fresh.
+  _eventSource.onerror = () => {
+    // eslint-disable-next-line no-console
+    if (_eventSource && _eventSource.readyState === EventSource.CLOSED) {
+      console.debug('[events] SSE closed — polling fallback active');
+    }
+  };
 }
 
 async function loadProjects() {
@@ -3066,6 +3615,7 @@ async function deleteExp(id) {
 }
 
 let _messages = [];
+let _threads  = [];
 
 let _lbSet   = [];   // current image set for carousel
 let _lbIndex = 0;    // current index
@@ -3153,86 +3703,111 @@ function timeAgo(dateStr) {
   return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 }
 
-async function openMessage(id) {
-  const m = _messages.find(x => x.id === id);
-  if (!m) return;
+// Opens a single sender's thread in the chat panel. All messages from the
+// same email go into one conversation, interleaved chronologically with all
+// replies the admin has sent. Replies are addressed to the LATEST submission
+// from the sender (so the reply API keeps working as a per-message endpoint).
+async function openThread(emailEnc) {
+  const email = decodeURIComponent(emailEnc);
+  const t = _threads.find(x => x.email === email);
+  if (!t) return;
 
-  // Highlight active item in list
+  // Highlight active list item
   document.querySelectorAll('.wa-item').forEach(el => el.classList.remove('active'));
-  document.querySelector(`.wa-item[data-id="${id}"]`)?.classList.add('active');
+  document.querySelector(`.wa-item[data-thread-email="${email}"]`)?.classList.add('active');
 
-  // Remove unread dot from list item when opened
-  document.querySelector(`.wa-item[data-id="${id}"] .wa-unread-dot`)?.remove();
+  const latest = t.latest;
+  const senderName = latest.name || t.name || '';
 
-  // Render chat panel
-  const chat = document.getElementById('wa-chat');
-  const replyLink = `mailto:${m.email}?subject=${encodeURIComponent('Re: ' + m.type)}&body=${encodeURIComponent('Hi ' + m.name + ',\n\n\n\n---\nYour original message:\n' + m.content)}`;
+  // Fetch reply history for every message in the thread in parallel. Older
+  // messages may have replies attached too, and we want them to appear at
+  // their actual send time, not lumped under the latest message.
+  const replyResponses = await Promise.all(t.messages.map(m =>
+    API.get(`/messages/${m.id}/replies`).catch(() => ({ data: [] }))
+  ));
 
-  const receivedTime = new Date(m.created_at).toLocaleString('en-US',{hour:'2-digit',minute:'2-digit'});
-  const receivedDate = new Date(m.created_at).toLocaleDateString('en-US',{day:'numeric',month:'long',year:'numeric'});
-  const sentTime = m.updated_at ? new Date(m.updated_at).toLocaleString('en-US',{hour:'2-digit',minute:'2-digit'}) : '';
+  // Collect every received bubble + every sent bubble into one timeline,
+  // then sort once. Each entry knows its kind so renderBubble can branch.
+  const timeline = [];
+  t.messages.forEach((m, i) => {
+    timeline.push({ kind: 'received', when: m.created_at, msg: m });
+    const replies = (replyResponses[i] && replyResponses[i].data) || [];
+    if (replies.length) {
+      replies.forEach(r => timeline.push({ kind: 'sent', when: r.created_at || m.updated_at, reply: r }));
+    } else if (m.reply_text) {
+      // Legacy fallback: pre-MessageReply schema stored a single reply on the message itself
+      timeline.push({ kind: 'sent', when: m.updated_at, reply: { reply_text: m.reply_text, attachments: m.reply_attachments, created_at: m.updated_at } });
+    }
+  });
+  timeline.sort((a, b) => new Date(a.when) - new Date(b.when));
 
-  // Load all replies for this message from the server
-  let replies = [];
-  try {
-    const rRes = await API.get(`/messages/${m.id}/replies`);
-    replies = rRes.data || [];
-  } catch { /* fall back to legacy reply_text if API fails */ }
-
-  // If no reply records yet, fall back to the legacy single reply stored on the message
-  if (replies.length === 0 && m.reply_text) {
-    replies = [{ reply_text: m.reply_text, attachments: m.reply_attachments, created_at: m.updated_at }];
-  }
-
-  function renderReplies(replies) {
-    return replies.map(r => {
-      const atts = parseAttachments(r.attachments);
-      const attHtml = attachmentHtml(atts);
-      const t = r.created_at ? new Date(r.created_at).toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}) : '';
-      return `<div class="wa-bubble-row sent">
-        <div class="wa-bubble sent">
-          ${attHtml}
-          ${r.reply_text}
+  function renderBubble(item) {
+    const time = item.when ? new Date(item.when).toLocaleString('en-US', { hour:'2-digit', minute:'2-digit' }) : '';
+    if (item.kind === 'received') {
+      const m = item.msg;
+      return `<div class="wa-bubble-row received">
+        <div class="wa-bubble received">
+          ${m.type ? `<div style="font-size:11px;font-weight:700;color:#00a884;margin-bottom:4px">${m.type}</div>` : ''}
+          ${escapeMessageHtml(m.content)}
           <div class="wa-bubble-meta">
-            <span class="wa-bubble-time">${t}</span>
-            <span class="wa-bubble-tick">✓✓</span>
+            <span class="wa-bubble-time">${time}</span>
           </div>
         </div>
       </div>`;
-    }).join('');
+    }
+    const r = item.reply;
+    const atts = parseAttachments(r.attachments);
+    return `<div class="wa-bubble-row sent">
+      <div class="wa-bubble sent">
+        ${attachmentHtml(atts)}
+        ${r.reply_text || ''}
+        <div class="wa-bubble-meta">
+          <span class="wa-bubble-time">${time}</span>
+          <span class="wa-bubble-tick">✓✓</span>
+        </div>
+      </div>
+    </div>`;
   }
 
+  // Group bubbles under per-day separators so long threads stay readable
+  let lastDay = '';
+  const bubbleHtml = timeline.map(item => {
+    const day = new Date(item.when).toLocaleDateString('en-US', { day:'numeric', month:'long', year:'numeric' });
+    let sep = '';
+    if (day !== lastDay) {
+      sep = `<div class="wa-date-sep"><span>${day}</span></div>`;
+      lastDay = day;
+    }
+    return sep + renderBubble(item);
+  }).join('');
+
+  // Type chip in the header — show distinct types if there are multiple
+  const distinctTypes = Array.from(new Set(t.messages.map(m => m.type).filter(Boolean)));
+  const typeChip = distinctTypes.length === 1
+    ? `<span class="wa-chat-header-badge">${distinctTypes[0]}</span>`
+    : distinctTypes.length > 1
+      ? `<span class="wa-chat-header-badge" title="${distinctTypes.join(', ')}">${distinctTypes.length} topics</span>`
+      : '';
+
+  const chat = document.getElementById('wa-chat');
   chat.innerHTML = `
     <!-- Header -->
     <div class="wa-chat-header">
-      <div class="wa-avatar">${getInitials(m.name)}</div>
+      <div class="wa-avatar">${getInitials(senderName)}</div>
       <div class="wa-chat-header-info">
-        <div class="wa-chat-header-name">${m.name}</div>
-        <div class="wa-chat-header-sub">${m.email}</div>
+        <div class="wa-chat-header-name">${senderName} ${t.messages.length > 1 ? `<span class="wa-thread-count" style="vertical-align:middle">${t.messages.length} messages</span>` : ''}</div>
+        <div class="wa-chat-header-sub">${latest.email}</div>
       </div>
-      <span class="wa-chat-header-badge">${m.type}</span>
+      ${typeChip}
       <div class="wa-chat-header-actions">
-        ${!m.is_read ? `<button class="wa-chat-header-btn" onclick="markRead(${m.id})" title="Mark as read">✓</button>` : ''}
-        <button class="wa-chat-header-btn" style="color:#f44336" onclick="deleteMsg(${m.id})" title="Delete">🗑</button>
+        ${t.unreadCount ? `<button class="wa-chat-header-btn" onclick="markThreadRead('${encodeURIComponent(email)}')" title="Mark all as read">✓</button>` : ''}
+        <button class="wa-chat-header-btn" style="color:#f44336" onclick="deleteThread('${encodeURIComponent(email)}')" title="Delete entire conversation">🗑</button>
       </div>
     </div>
 
     <!-- Chat body -->
     <div class="wa-chat-body" id="wa-chat-body">
-      <div class="wa-date-sep"><span>${receivedDate}</span></div>
-
-      <!-- Received bubble -->
-      <div class="wa-bubble-row received">
-        <div class="wa-bubble received">
-          ${m.content}
-          <div class="wa-bubble-meta">
-            <span class="wa-bubble-time">${receivedTime}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- All sent replies in chronological order -->
-      ${renderReplies(replies)}
+      ${bubbleHtml}
     </div>
 
     <!-- Action bar -->
@@ -3240,7 +3815,8 @@ async function openMessage(id) {
       <button class="wa-reply-btn" onclick="toggleCompose()">✉&nbsp; Reply</button>
     </div>
 
-    <!-- Compose panel (hidden by default, toggles on Reply click) -->
+    <!-- Compose panel — replies attach to the latest submission so the
+         reply endpoint stays per-message on the backend. -->
     <div class="wa-compose" id="wa-compose" style="display:none">
       <div class="wa-compose-title">✉ New Reply</div>
 
@@ -3254,40 +3830,51 @@ async function openMessage(id) {
 
       <div class="wa-compose-field">
         <span class="wa-compose-label">To</span>
-        <span class="wa-compose-value">${m.name} &lt;${m.email}&gt;</span>
+        <span class="wa-compose-value">${senderName} &lt;${latest.email}&gt;</span>
       </div>
 
       <div class="wa-compose-field">
         <span class="wa-compose-label">Subject</span>
-        <span class="wa-compose-value">Re: ${m.type}</span>
+        <span class="wa-compose-value">Re: ${latest.type}</span>
       </div>
 
       <textarea class="wa-compose-body" id="reply-textarea"
         placeholder="Write your reply here..."></textarea>
 
-      <!-- WhatsApp-style attachment previews -->
       <div id="wa-att-preview-row" class="wa-att-preview-row"></div>
 
-      <!-- Attach button + file count -->
-      <div style="display:flex;align-items:center;gap:10px">
+      <!-- Inline Link composer — collapsed by default, expands when "Link" is clicked -->
+      <div id="wa-link-form" class="wa-link-form" style="display:none">
+        <input id="wa-link-url" type="url" placeholder="https://example.com/file.pdf"
+          autocomplete="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();commitLinkAttachment();}">
+        <input id="wa-link-label" type="text" placeholder="Optional label (e.g. Portfolio)"
+          autocomplete="off" maxlength="60"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();commitLinkAttachment();}">
+        <button type="button" class="wa-link-add" onclick="commitLinkAttachment()">Add</button>
+        <button type="button" class="wa-link-cancel" onclick="toggleLinkForm(false)">✕</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <input type="file" id="reply-attachments" multiple style="display:none"
+          accept=".jpg,.jpeg,.png,.gif,.webp,.svg,.heic,.heif,.pdf"
           onchange="handleAttachmentSelect(this)">
-        <button type="button"
-          onclick="document.getElementById('reply-attachments').click()"
-          style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;
-                 font-size:13px;color:#8696a0;background:none;
-                 border:1px dashed #2a3942;border-radius:8px;
-                 padding:7px 14px;transition:0.2s;flex-shrink:0"
-          onmouseover="this.style.borderColor='#00a884';this.style.color='#00a884'"
-          onmouseout="this.style.borderColor='#2a3942';this.style.color='#8696a0'">
+        <button type="button" class="wa-att-trigger"
+          onclick="document.getElementById('reply-attachments').click()">
           📎 Attach
         </button>
+        <button type="button" class="wa-att-trigger" onclick="toggleLinkForm()">
+          🔗 Link
+        </button>
+        <span class="wa-att-limit-hint" title="Per-file cap on the upload endpoint. Total reply payload is capped at 50 MB.">
+          ⚡ Max 10 MB per file · Images &amp; PDF
+        </span>
         <div id="att-count-badge" style="display:none;align-items:center;gap:6px">
           <span id="att-count-text"
             style="background:#00a884;color:#fff;font-size:11px;font-weight:700;
                    padding:3px 10px;border-radius:20px">
           </span>
-          <span style="font-size:12px;color:#8696a0">selected</span>
+          <span style="font-size:12px;color:#8696a0">added</span>
           <button type="button" onclick="clearAllAttachments()"
             style="font-size:11px;color:#f44336;background:none;border:none;cursor:pointer;padding:0">
             Clear all
@@ -3296,7 +3883,7 @@ async function openMessage(id) {
       </div>
 
       <div class="wa-compose-actions">
-        <button class="wa-reply-btn" style="padding:0.6rem 1.5rem;font-size:13px" onclick="sendReply(${m.id})">
+        <button class="wa-reply-btn" style="padding:0.6rem 1.5rem;font-size:13px" onclick="sendReply(${latest.id})">
           Send
         </button>
         <button class="wa-action-btn" onclick="toggleCompose()">Cancel</button>
@@ -3305,8 +3892,90 @@ async function openMessage(id) {
     </div>
   `;
 
-  // Auto mark as read
-  if (!m.is_read) markRead(m.id);
+  // Auto-scroll to the bottom so the newest content is visible
+  const body = document.getElementById('wa-chat-body');
+  if (body) body.scrollTop = body.scrollHeight;
+
+  // Auto mark every unread submission in this thread as read
+  if (t.unreadCount) markThreadRead(encodeURIComponent(email));
+}
+
+// Backwards-compat shim: anything still calling openMessage(id) gets routed
+// to the appropriate thread.
+async function openMessage(id) {
+  const m = _messages.find(x => x.id === id);
+  if (!m) return;
+  return openThread(encodeURIComponent((m.email || '').toLowerCase()));
+}
+
+// Marks every unread message in the thread as read (background, non-blocking).
+async function markThreadRead(emailEnc) {
+  const email = decodeURIComponent(emailEnc);
+  const t = _threads.find(x => x.email === email);
+  if (!t) return;
+  const unread = t.messages.filter(m => !m.is_read);
+  if (!unread.length) return;
+  await Promise.all(unread.map(m => API.put(`/messages/${m.id}`, {}).catch(() => {})));
+  loadMessages();
+  loadStats();
+}
+
+// Deletes every message in the thread after one confirmation.
+async function deleteThread(emailEnc) {
+  const email = decodeURIComponent(emailEnc);
+  const t = _threads.find(x => x.email === email);
+  if (!t) return;
+  if (!confirm(`Delete the entire conversation with ${t.name || email}? This will remove ${t.messages.length} message(s) and cannot be undone.`)) return;
+  await Promise.all(t.messages.map(m => API.delete(`/messages/${m.id}`).catch(() => {})));
+  Toast.show('Conversation deleted', 'success');
+  // Clear the chat panel
+  const chat = document.getElementById('wa-chat');
+  if (chat) chat.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8696a0;font-size:14px">Select a conversation</div>';
+  loadMessages();
+  loadStats();
+}
+
+// Minimal HTML-escape for visitor-supplied content so weird characters can't
+// break the bubble layout. Replies are admin-authored so we trust them.
+function escapeMessageHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+}
+
+// Groups all submitted messages by lowercased email so each sender appears
+// as a single thread in the inbox (WhatsApp-style), no matter how many
+// times they've submitted the contact form. Returns threads sorted by most
+// recent activity. The shape mirrors what the chat panel needs:
+//   { email, name, type, messages:[…sorted asc], unreadCount, anyReplied,
+//     latest:Message, latestActivity:isoString }
+function groupThreadsByEmail(messages) {
+  const map = new Map();
+  for (const m of messages) {
+    const key = (m.email || '').trim().toLowerCase() || `no-email-${m.id}`;
+    if (!map.has(key)) {
+      map.set(key, { email: key, name: m.name, type: m.type, messages: [],
+                     unreadCount: 0, anyReplied: false,
+                     latest: m, latestActivity: m.created_at });
+    }
+    const t = map.get(key);
+    t.messages.push(m);
+    if (!m.is_read)   t.unreadCount += 1;
+    if (m.is_replied) t.anyReplied = true;
+    if (new Date(m.created_at) > new Date(t.latest.created_at)) {
+      t.latest = m;
+      t.name   = m.name;
+      t.type   = m.type;
+      t.latestActivity = m.created_at;
+    }
+  }
+  // Sort each thread's own messages oldest-first for the chat view, and
+  // sort the thread list newest-first by latest activity.
+  for (const t of map.values()) {
+    t.messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  }
+  return Array.from(map.values())
+    .sort((a, b) => new Date(b.latestActivity) - new Date(a.latestActivity));
 }
 
 async function loadMessages() {
@@ -3314,25 +3983,30 @@ async function loadMessages() {
   try {
     const res = await API.get('/messages');
     _messages = res.data || [];
-    if (!_messages.length) {
+    _threads  = groupThreadsByEmail(_messages);
+    if (!_threads.length) {
       w.innerHTML = '<div style="padding:1.5rem;color:var(--color-text-muted);font-size:13px;text-align:center">No messages yet</div>';
       return;
     }
-    w.innerHTML = _messages.map(m => `
-      <div class="wa-item" data-id="${m.id}" data-name="${m.name.toLowerCase()}" data-preview="${m.content.toLowerCase()}" onclick="openMessage(${m.id})">
-        <div class="wa-avatar">${getInitials(m.name)}</div>
+    w.innerHTML = _threads.map(t => {
+      const previewSrc = t.latest.content || '';
+      const safeEmail  = encodeURIComponent(t.email);
+      const moreCount  = t.messages.length > 1 ? `<span class="wa-thread-count" title="${t.messages.length} messages from this sender">${t.messages.length}</span>` : '';
+      return `
+      <div class="wa-item" data-thread-email="${t.email}" data-name="${(t.name || '').toLowerCase()}" data-preview="${previewSrc.toLowerCase()}" onclick="openThread('${safeEmail}')">
+        <div class="wa-avatar">${getInitials(t.name)}</div>
         <div class="wa-item-body">
           <div class="wa-item-top">
-            <span class="wa-item-name">${m.name}</span>
-            <span class="wa-item-time" style="${!m.is_read ? 'color:#00a884;font-weight:600' : ''}">${timeAgo(m.created_at)}</span>
+            <span class="wa-item-name">${t.name} ${moreCount}</span>
+            <span class="wa-item-time" style="${t.unreadCount ? 'color:#00a884;font-weight:600' : ''}">${timeAgo(t.latestActivity)}</span>
           </div>
           <div class="wa-item-bottom">
-            <span class="wa-item-preview">${m.is_replied ? '✓ ' : ''}${m.content}</span>
-            ${!m.is_read ? '<span class="wa-unread-badge">1</span>' : ''}
+            <span class="wa-item-preview">${t.anyReplied ? '✓ ' : ''}${previewSrc}</span>
+            ${t.unreadCount ? `<span class="wa-unread-badge">${t.unreadCount}</span>` : ''}
           </div>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   } catch (e) {
     w.innerHTML = `<div style="padding:1rem;color:var(--color-error);font-size:13px">${e.message}</div>`;
   }
@@ -3367,6 +4041,17 @@ async function toggleCompose() {
 }
 
 let _attachedFiles = [];
+let _attachedLinks = []; // [{ url, label }]
+
+// Reply attachment limits — must match upload_service.go (10 MB per file,
+// allowed extensions) and message_handler.go (50 MB total reply payload).
+const REPLY_FILE_MAX_BYTES = 10 * 1024 * 1024;
+const REPLY_ALLOWED_EXTS = ['jpg','jpeg','png','gif','webp','svg','heic','heif','pdf'];
+
+function _fileExtAllowed(name) {
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  return REPLY_ALLOWED_EXTS.includes(ext);
+}
 
 function formatBytes(bytes) {
   if (bytes < 1024) return bytes + ' B';
@@ -3417,8 +4102,12 @@ function parseAttachments(raw) {
 }
 
 function attachmentHtml(atts) {
-  const images = atts.filter(a => a.url && (a.type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(a.name)));
-  const docs   = atts.filter(a => !images.includes(a));
+  // Links carry type === 'link' (set when the admin pastes a URL into the
+  // compose form). They open in a new tab instead of the lightbox.
+  const links  = atts.filter(a => a.type === 'link' && a.url);
+  const rest   = atts.filter(a => a.type !== 'link');
+  const images = rest.filter(a => a.url && (a.type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(a.name)));
+  const docs   = rest.filter(a => !images.includes(a));
 
   const gridHtml = images.length
     ? buildImageGrid(images.map(a => ({ src: a.url, name: a.name })), false)
@@ -3439,7 +4128,22 @@ function attachmentHtml(atts) {
     </div>`;
   }).join('');
 
-  return gridHtml + docsHtml;
+  const linksHtml = links.map(a => {
+    const safeUrl   = String(a.url).replace(/"/g, '&quot;');
+    const safeLabel = (a.name || a.url).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer"
+      class="wa-bubble-doc" style="text-decoration:none;display:flex;align-items:center;gap:10px">
+      <div class="wa-bubble-doc-icon" style="background:rgba(84,197,248,0.18);color:#54c5f8">🔗</div>
+      <div style="min-width:0">
+        <div class="wa-bubble-doc-name" style="color:#54c5f8">${safeLabel}</div>
+        <div class="wa-bubble-doc-size" style="color:#8696a0;font-size:11px;
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px">${safeUrl}</div>
+      </div>
+      <span style="margin-left:auto;font-size:12px;color:#8696a0">↗</span>
+    </a>`;
+  }).join('');
+
+  return gridHtml + docsHtml + linksHtml;
 }
 
 // Delegated listener — catches all .att-trigger clicks no matter when they're added to DOM
@@ -3479,8 +4183,57 @@ function fileIcon(name) {
 }
 
 function handleAttachmentSelect(input) {
-  _attachedFiles = [..._attachedFiles, ...Array.from(input.files)];
+  const incoming = Array.from(input.files);
+  const accepted = [];
+  const rejectedSize = [];
+  const rejectedType = [];
+  for (const f of incoming) {
+    if (!_fileExtAllowed(f.name)) { rejectedType.push(f.name); continue; }
+    if (f.size > REPLY_FILE_MAX_BYTES) { rejectedSize.push(f.name); continue; }
+    accepted.push(f);
+  }
+  _attachedFiles = [..._attachedFiles, ...accepted];
   input.value = '';
+  if (rejectedSize.length) {
+    Toast.show(`Too large (max 10 MB): ${rejectedSize.join(', ')}`, 'error', 6000);
+  }
+  if (rejectedType.length) {
+    Toast.show(`Unsupported type: ${rejectedType.join(', ')}. Allowed: images & PDF.`, 'error', 6000);
+  }
+  renderAttachmentPreviews();
+}
+
+// ─── Link attachment helpers ────────────────────────────────
+function toggleLinkForm(forceShow) {
+  const f = document.getElementById('wa-link-form');
+  if (!f) return;
+  const show = forceShow !== undefined ? forceShow : f.style.display === 'none';
+  f.style.display = show ? 'flex' : 'none';
+  if (show) {
+    const url = document.getElementById('wa-link-url');
+    if (url) { url.value = ''; setTimeout(() => url.focus(), 50); }
+    const lbl = document.getElementById('wa-link-label');
+    if (lbl) lbl.value = '';
+  }
+}
+
+function commitLinkAttachment() {
+  const urlEl = document.getElementById('wa-link-url');
+  const lblEl = document.getElementById('wa-link-label');
+  if (!urlEl) return;
+  let url = (urlEl.value || '').trim();
+  if (!url) { Toast.show('Paste a URL first', 'error'); urlEl.focus(); return; }
+  // Auto-prefix https:// if the user typed a bare host
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  try { new URL(url); } catch { Toast.show('That doesn\'t look like a valid URL', 'error'); return; }
+  const label = (lblEl?.value || '').trim();
+  _attachedLinks.push({ url, label });
+  toggleLinkForm(false);
+  renderAttachmentPreviews();
+}
+
+function removeLinkAttachment(idx) {
+  _attachedLinks.splice(idx, 1);
   renderAttachmentPreviews();
 }
 
@@ -3496,6 +4249,7 @@ function removeAttachmentByName(name) {
 
 function clearAllAttachments() {
   _attachedFiles = [];
+  _attachedLinks = [];
   renderAttachmentPreviews();
 }
 
@@ -3505,7 +4259,8 @@ function renderAttachmentPreviews() {
   const count = document.getElementById('att-count-text');
   if (!row) return;
 
-  if (_attachedFiles.length === 0) {
+  const totalAttached = _attachedFiles.length + _attachedLinks.length;
+  if (totalAttached === 0) {
     row.style.display = 'none';
     row.innerHTML = '';
     if (badge) badge.style.display = 'none';
@@ -3515,11 +4270,13 @@ function renderAttachmentPreviews() {
   // Update count badge
   if (badge && count) {
     badge.style.display = 'flex';
-    const imgs = _attachedFiles.filter(f => f.type.startsWith('image/')).length;
-    const docs = _attachedFiles.length - imgs;
+    const imgs  = _attachedFiles.filter(f => f.type.startsWith('image/')).length;
+    const docs  = _attachedFiles.length - imgs;
+    const links = _attachedLinks.length;
     const parts = [];
-    if (imgs) parts.push(`${imgs} image${imgs > 1 ? 's' : ''}`);
-    if (docs) parts.push(`${docs} file${docs > 1 ? 's' : ''}`);
+    if (imgs)  parts.push(`${imgs} image${imgs > 1 ? 's' : ''}`);
+    if (docs)  parts.push(`${docs} file${docs > 1 ? 's' : ''}`);
+    if (links) parts.push(`${links} link${links > 1 ? 's' : ''}`);
     count.textContent = parts.join(' + ');
   }
 
@@ -3529,7 +4286,6 @@ function renderAttachmentPreviews() {
   const imgFiles = _attachedFiles.filter(f => f.type.startsWith('image/'));
   const docFiles = _attachedFiles.filter(f => !f.type.startsWith('image/'));
 
-  // Build WhatsApp grid with object URLs (local preview, no upload yet)
   const gridHtml = imgFiles.length
     ? buildImageGrid(imgFiles.map(f => ({
         src: URL.createObjectURL(f),
@@ -3537,8 +4293,7 @@ function renderAttachmentPreviews() {
       })), true)
     : '';
 
-  // Build doc cards with remove buttons
-  const docHtml = docFiles.map((f, i) => {
+  const docHtml = docFiles.map(f => {
     const realIdx = _attachedFiles.indexOf(f);
     return `<div class="wa-att-doc-card" style="margin-bottom:4px">
       <div class="wa-att-doc-icon">${fileIcon(f.name)}</div>
@@ -3551,13 +4306,29 @@ function renderAttachmentPreviews() {
     </div>`;
   }).join('');
 
-  // Remove-all for images shown as a small link below the grid
+  // Link chips — one per pasted URL
+  const linkHtml = _attachedLinks.map((l, i) => {
+    const safeUrl   = String(l.url).replace(/"/g, '&quot;');
+    const safeLabel = (l.label || l.url).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<div class="wa-link-chip">
+      <div class="wa-link-icon">🔗</div>
+      <div class="wa-link-meta">
+        <div class="wa-link-label-text">${safeLabel}</div>
+        <div class="wa-link-url-text" title="${safeUrl}">${safeUrl}</div>
+      </div>
+      <button class="wa-link-remove" onclick="removeLinkAttachment(${i})" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+
   const imgRemoveHint = imgFiles.length
     ? `<div style="font-size:11px;color:#8696a0;margin-top:4px;cursor:pointer"
          onclick="clearImageAttachments()">✕ Remove all images</div>`
     : '';
 
-  row.innerHTML = gridHtml + imgRemoveHint + (docFiles.length ? `<div style="margin-top:6px">${docHtml}</div>` : '');
+  row.innerHTML = gridHtml
+    + imgRemoveHint
+    + (docFiles.length ? `<div style="margin-top:6px">${docHtml}</div>` : '')
+    + (linkHtml ? `<div style="margin-top:6px">${linkHtml}</div>` : '');
 }
 
 function clearImageAttachments() {
@@ -3565,18 +4336,38 @@ function clearImageAttachments() {
   renderAttachmentPreviews();
 }
 
+// Reentrancy guard — prevents the user from triggering a second send while
+// the first is still in flight (which previously caused duplicate replies on
+// flaky networks where the request succeeded server-side but the response
+// never reached the browser).
+let _isSendingReply = false;
+
 async function sendReply(id) {
+  if (_isSendingReply) return; // ignore double-click / double-Enter
   const textarea  = document.getElementById('reply-textarea');
   const status    = document.getElementById('reply-status');
   const fromEmail = document.getElementById('reply-from')?.value || '';
   const replyText = textarea?.value?.trim();
   if (!replyText) { status.textContent = 'Please write a reply first.'; status.style.color = 'var(--color-error)'; return; }
 
-  status.textContent = 'Sending...';
+  // Lock UI while the request is in flight
+  _isSendingReply = true;
+  const sendBtn = document.querySelector('#wa-compose .wa-reply-btn');
+  if (sendBtn) {
+    sendBtn.disabled = true;
+    sendBtn.style.opacity = '0.55';
+    sendBtn.style.cursor = 'not-allowed';
+    sendBtn._origText = sendBtn.textContent;
+    sendBtn.textContent = 'Sending…';
+  }
+  status.textContent = _attachedFiles.length
+    ? `Sending… uploading ${_attachedFiles.length} file(s) then emailing — please don't close this tab`
+    : 'Sending… please wait';
   status.style.color = 'var(--color-text-muted)';
+
   try {
-    // Use FormData so files can be included
-    // Upload each attachment to the server first so they can be viewed later
+    // Upload each attachment to /upload first. The reply endpoint then reads
+    // them from disk via the URLs we pass in — no double-transfer of bytes.
     const uploadedFiles = [];
     for (const f of _attachedFiles) {
       try {
@@ -3596,19 +4387,57 @@ async function sendReply(id) {
       } catch { /* skip failed uploads */ }
     }
 
+    // Pasted link attachments — recorded in attachment_urls so they appear
+    // in the chat history, AND appended to the reply body so the visitor
+    // sees them in the email (the email service only attaches binary files).
+    const linkAttachments = _attachedLinks.map(l => ({
+      name: l.label || l.url,
+      url:  l.url,
+      type: 'link',
+      size: 0,
+    }));
+
+    let bodyToSend = replyText;
+    if (linkAttachments.length) {
+      const linkLines = linkAttachments
+        .map(l => l.name && l.name !== l.url ? `• ${l.name}: ${l.url}` : `• ${l.url}`)
+        .join('\n');
+      bodyToSend = `${replyText}\n\n— Links —\n${linkLines}`;
+    }
+
+    const allAttachmentMeta = [...uploadedFiles, ...linkAttachments];
+
+    if (sendBtn) sendBtn.textContent = 'Emailing…';
+    status.textContent = 'Emailing the visitor — this can take a few seconds';
+
+    // We pass attachment metadata as JSON only. The backend reads the file
+    // bytes from disk (using the /uploads/* paths) so we don't have to send
+    // multi-megabyte binaries a second time.
     const formData = new FormData();
-    formData.append('reply_text', replyText);
+    formData.append('reply_text', bodyToSend);
     formData.append('from_email', fromEmail);
-    formData.append('attachment_urls', JSON.stringify(uploadedFiles));
-    _attachedFiles.forEach(f => formData.append('attachments', f));
+    formData.append('attachment_urls', JSON.stringify(allAttachmentMeta));
 
     const token = localStorage.getItem('portfolio_token');
-    const res = await fetch(`/api/v1/messages/${id}/reply`, {
-      method: 'POST',
-      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-      body: formData,
-    });
-    const data = await res.json();
+
+    // Hard deadline: bail out after 60s so the spinner can't run forever
+    // when SMTP hangs. The backend already enforces a 30s SMTP timeout, so
+    // 60s here is generous headroom for body upload + Gmail handshake.
+    const ac = new AbortController();
+    const deadline = setTimeout(() => ac.abort(), 60000);
+
+    let res, data;
+    try {
+      res = await fetch(`/api/v1/messages/${id}/reply`, {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData,
+        signal: ac.signal,
+      });
+      data = await res.json();
+    } finally {
+      clearTimeout(deadline);
+    }
     if (!res.ok || !data.success) throw new Error(data.message || 'Failed to send');
 
     status.textContent = '✓ Reply sent successfully!';
@@ -3620,9 +4449,10 @@ async function sendReply(id) {
       const now = new Date().toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short',year:'numeric'});
       const bubble = document.createElement('div');
       bubble.className = 'wa-bubble-row sent';
-      // Build WhatsApp grid from uploaded URLs
+      // Build attachment HTML from both files and links so the bubble shows
+      // exactly what gets persisted on the server.
       const liveAttachHtml = attachmentHtml(
-        uploadedFiles.map(f => ({ ...f, type: f.type || '' }))
+        allAttachmentMeta.map(a => ({ ...a, type: a.type || '' }))
       );
 
       bubble.innerHTML = `<div class="wa-bubble sent">
@@ -3639,6 +4469,7 @@ async function sendReply(id) {
 
     textarea.value = '';
     _attachedFiles = [];
+    _attachedLinks = [];
     renderAttachmentPreviews();
     const badge = document.getElementById('att-count-badge');
     if (badge) badge.style.display = 'none';
@@ -3650,8 +4481,31 @@ async function sendReply(id) {
       loadStats();
     }, 900);
   } catch (e) {
-    status.textContent = e.message;
+    // Three classes of failure to message clearly:
+    //   1. Aborted (we hit the 60s frontend deadline)
+    //   2. Network/fetch error (connection dropped before response)
+    //   3. Server-side error with a real message
+    // For (1) and (2) the email *might* already have been sent, so we tell
+    // the admin to reload before retrying instead of risking a duplicate.
+    const isAbort        = e && e.name === 'AbortError';
+    const isNetworkError = !isAbort && ((e instanceof TypeError) || /network|fetch/i.test(e.message || ''));
+    if (isAbort) {
+      status.textContent = '⏱ The send took longer than 60 seconds and was cancelled. Check the conversation — the email may still have gone through. Try again only if it didn\'t.';
+    } else if (isNetworkError) {
+      status.textContent = '⚠ Network error — the email may have already been sent. Reload the dashboard and check the conversation before retrying.';
+    } else {
+      status.textContent = e.message || 'Failed to send';
+    }
     status.style.color = 'var(--color-error)';
+    status.style.lineHeight = '1.45';
+  } finally {
+    _isSendingReply = false;
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = '';
+      sendBtn.style.cursor = '';
+      if (sendBtn._origText) sendBtn.textContent = sendBtn._origText;
+    }
   }
 }
 
@@ -3829,6 +4683,9 @@ async function applyCrop() {
       const img  = document.getElementById('photo-preview');
       if (wrap && img) { wrap.style.display = 'block'; img.src = url; }
     }
+    // Photo is already persisted server-side — re-baseline its src in the
+    // snapshot so the dirty-state check doesn't keep flagging it.
+    snapshotProfilePhotos();
 
     const uploadStatus = document.getElementById(
       _cropTarget === 'about' ? 'about-photo-upload-status' : 'photo-upload-status'
@@ -4775,10 +5632,96 @@ async function loadProfile() {
       if (toggle && panel) { toggle.classList.add('is-open'); panel.classList.add('is-open'); }
     }
 
+    // Hero stats — fill the live preview + sync the inline + chips from the just-loaded values
+    syncStatPlusToggles();
+    updateHeroStatsPreview();
+
+    // Take a clean baseline of every form value AFTER all pickers, photos
+    // and previews have been populated, so the Save button stays hidden
+    // until the user actually edits something.
+    snapshotProfileForm();
+
     // CV display is handled entirely by loadCVTab() — the CV tab has its
     // own hero card, preview, and history list. The Profile form no longer
     // shows CV info.
   } catch { /* ignore */ }
+}
+
+// ─── Profile form dirty-state tracking ──────────────────────
+// The Save button hides itself when the form matches its saved snapshot
+// and re-appears the moment any field, status, or photo differs. This
+// avoids the always-visible CTA when there's nothing to save.
+
+let _profileFormSnapshot = null;
+
+function _collectProfileSnapshot() {
+  const form = document.getElementById('profile-form');
+  if (!form) return null;
+  const snap = {};
+  form.querySelectorAll('[name]').forEach(el => { snap[el.name] = el.value || ''; });
+  // Photos live outside named inputs — diff their src so swapping a photo
+  // also flips the form to "dirty".
+  const sidebar = document.getElementById('photo-preview');
+  const about   = document.getElementById('about-photo-preview');
+  snap.__photo_sidebar = sidebar ? (sidebar.src || '') : '';
+  snap.__photo_about   = about   ? (about.src   || '') : '';
+  return snap;
+}
+
+function snapshotProfileForm() {
+  _profileFormSnapshot = _collectProfileSnapshot();
+  refreshProfileSaveState();
+}
+
+// Refreshes only the photo entries in the snapshot. Photos are saved to
+// their own endpoints the moment they're uploaded, so a fresh photo
+// shouldn't keep the form flagged as "dirty" after the upload completes.
+// We can't just call snapshotProfileForm() here — that would also baseline
+// whatever the user has typed into other fields (still unsaved).
+function snapshotProfilePhotos() {
+  if (!_profileFormSnapshot) return;
+  const sidebar = document.getElementById('photo-preview');
+  const about   = document.getElementById('about-photo-preview');
+  _profileFormSnapshot.__photo_sidebar = sidebar ? (sidebar.src || '') : '';
+  _profileFormSnapshot.__photo_about   = about   ? (about.src   || '') : '';
+  refreshProfileSaveState();
+}
+
+function isProfileDirty() {
+  if (!_profileFormSnapshot) return false;
+  const cur = _collectProfileSnapshot();
+  if (!cur) return false;
+  for (const key of Object.keys(cur)) {
+    if (cur[key] !== _profileFormSnapshot[key]) return true;
+  }
+  return false;
+}
+
+function refreshProfileSaveState() {
+  const block  = document.querySelector('.profile-identity-save');
+  const status = document.getElementById('profile-save-status');
+  if (!block) return;
+  const dirty = isProfileDirty();
+  block.classList.toggle('is-dirty', dirty);
+  if (status) {
+    if (dirty) {
+      status.textContent = '● Unsaved changes';
+      status.dataset.state = 'dirty';
+    } else if (_profileFormSnapshot) {
+      status.textContent = '✓ All changes saved';
+      status.dataset.state = 'clean';
+    } else {
+      status.textContent = '';
+      status.dataset.state = '';
+    }
+  }
+}
+
+// Single hook other helpers can call when they mutate form-bound state
+// (availability buttons, photo uploads, + chip toggles, etc.). Plain
+// input/change events on the form are wired in the form-init block below.
+function profileMaybeDirtyChanged() {
+  refreshProfileSaveState();
 }
 
 function setProfilePhoto(imgId, emptyId, src) {
@@ -4799,6 +5742,9 @@ function selectAvailability(elOrValue) {
   const value = typeof elOrValue === 'string' ? elOrValue : elOrValue.dataset.value;
   setAvailability(value);
   updateIdentityCard();
+  // Availability flips a hidden input which doesn't fire native input/change,
+  // so prompt the dirty-state check manually.
+  refreshProfileSaveState();
 }
 function setAvailability(value) {
   document.querySelectorAll('.profile-status-option').forEach(b => {
@@ -4953,6 +5899,7 @@ function restoreHeroHeadingDefault() {
   set('hero_heading_highlights', 'App Store, Play Store');
   set('hero_heading_override',   '');
   updateHeroHeadingPreview();
+  refreshProfileSaveState();
   Toast.show('Defaults filled — click Save Profile to keep them', 'info');
 }
 
@@ -5006,6 +5953,73 @@ function updateHeroHeadingPreview() {
   preview.innerHTML = html || '—';
 }
 
+// ─── Hero stats: live preview + restore-default ──────────────
+// Stat values may carry a numeric portion + an optional suffix ("2.5+", "100", "5k+").
+// The preview just shows the raw text — the portfolio handles the count-up animation.
+function updateHeroStatsPreview() {
+  const form = document.getElementById('profile-form');
+  if (!form) return;
+  const get = (n) => (form.querySelector(`[name="${n}"]`)?.value || '').trim();
+  const labelHTML = (raw, fallback) => {
+    const text = raw || fallback;
+    return text.replace(/\\n/g, '\n')
+      .split('\n')
+      .map(s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'))
+      .join('<br>');
+  };
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const setHTML = (id, v) => { const el = document.getElementById(id); if (el) el.innerHTML  = v; };
+
+  setText('hero-stats-preview-v1', get('years_experience') || '2.5+');
+  setText('hero-stats-preview-v2', get('apps_shipped')     || '5+');
+  setText('hero-stats-preview-v3', get('tech_mastered')    || '10+');
+  setHTML('hero-stats-preview-l1', labelHTML(get('years_experience_label'), 'Years of\nExperience'));
+  setHTML('hero-stats-preview-l2', labelHTML(get('apps_shipped_label'),     'Apps on App Store\n& Play Store'));
+  setHTML('hero-stats-preview-l3', labelHTML(get('tech_mastered_label'),    'Technologies\nMastered'));
+}
+
+function restoreHeroStatsDefault() {
+  const form = document.getElementById('profile-form');
+  if (!form) return;
+  const set = (n, v) => { const el = form.querySelector(`[name="${n}"]`); if (el) el.value = v; };
+  set('years_experience',       '2.5+');
+  set('apps_shipped',           '5+');
+  set('tech_mastered',          '10+');
+  set('years_experience_label', 'Years of\\nExperience');
+  set('apps_shipped_label',     'Apps on App Store\\n& Play Store');
+  set('tech_mastered_label',    'Technologies\\nMastered');
+  syncStatPlusToggles();
+  updateHeroStatsPreview();
+  refreshProfileSaveState();
+  Toast.show('Defaults filled — click Save Profile to keep them', 'info');
+}
+
+// Click handler for the inline + chip beside each stat value input.
+// Adds the suffix when off, strips it when on. Live preview updates after.
+function toggleStatPlus(btn) {
+  const input = document.getElementById(btn.dataset.target);
+  if (!input) return;
+  const cur = (input.value || '').trim();
+  if (cur.endsWith('+')) {
+    input.value = cur.slice(0, -1).trimEnd();
+  } else {
+    input.value = cur + '+';
+  }
+  btn.classList.toggle('is-on', input.value.trim().endsWith('+'));
+  updateHeroStatsPreview();
+  refreshProfileSaveState();
+}
+
+// Refreshes every + chip's visual state from its target input. Called after
+// loadProfile and after restoreHeroStatsDefault so the chip matches the value.
+function syncStatPlusToggles() {
+  document.querySelectorAll('.stat-plus-toggle').forEach(btn => {
+    const input = document.getElementById(btn.dataset.target);
+    const on = !!(input && (input.value || '').trim().endsWith('+'));
+    btn.classList.toggle('is-on', on);
+  });
+}
+
 async function saveProfile(e) {
   e.preventDefault();
   const form = e.target;
@@ -5025,6 +6039,9 @@ async function saveProfile(e) {
   try {
     await API.put('/profile', data);
     Toast.show('Profile saved!', 'success');
+    // Re-baseline so the form returns to "clean" and the Save button hides
+    // until the user makes the next change.
+    snapshotProfileForm();
   } catch (err) {
     Toast.show(err.message, 'error');
   } finally {

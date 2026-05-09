@@ -61,6 +61,12 @@ func (s *EmailService) Verify(user, pass string) error {
 }
 
 // Send sends a plain-text email, optionally with file attachments.
+//
+// Uses a hand-rolled SMTP session (instead of net/smtp.SendMail) so every
+// step has an explicit deadline. Without these timeouts a hung Gmail server
+// or a network blip causes the call to block indefinitely — which in turn
+// makes the dashboard's reply request hang forever and the admin sees a
+// permanent "Emailing…" spinner.
 func (s *EmailService) Send(toName, toEmail, fromEmail, subject, body string, attachments []Attachment) error {
 	if s.user == "" || s.pass == "" {
 		return fmt.Errorf("SMTP not configured — set Sending Gmail Address and App Password in Profile settings")
@@ -69,17 +75,13 @@ func (s *EmailService) Send(toName, toEmail, fromEmail, subject, body string, at
 		fromEmail = s.user
 	}
 
-	auth := smtp.PlainAuth("", s.user, s.pass, s.host)
-
 	var raw []byte
 	if len(attachments) == 0 {
-		// Plain text email — no multipart needed
 		raw = []byte(fmt.Sprintf(
 			"From: Imtiaz <%s>\r\nTo: %s <%s>\r\nReply-To: %s\r\nSubject: %s\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n%s",
 			fromEmail, toName, toEmail, fromEmail, subject, body,
 		))
 	} else {
-		// Multipart/mixed email with attachments
 		var buf bytes.Buffer
 		writer := multipart.NewWriter(&buf)
 
@@ -88,13 +90,11 @@ func (s *EmailService) Send(toName, toEmail, fromEmail, subject, body string, at
 			fromEmail, toName, toEmail, fromEmail, subject, writer.Boundary(),
 		)
 
-		// Text body part
 		textHeader := make(textproto.MIMEHeader)
 		textHeader.Set("Content-Type", "text/plain; charset=UTF-8")
 		textPart, _ := writer.CreatePart(textHeader)
 		textPart.Write([]byte(body))
 
-		// Attachment parts
 		for _, att := range attachments {
 			attHeader := make(textproto.MIMEHeader)
 			attHeader.Set("Content-Type", att.ContentType)
@@ -102,7 +102,6 @@ func (s *EmailService) Send(toName, toEmail, fromEmail, subject, body string, at
 			attHeader.Set("Content-Transfer-Encoding", "base64")
 			attPart, _ := writer.CreatePart(attHeader)
 			encoded := base64.StdEncoding.EncodeToString(att.Data)
-			// Write in 76-char lines as per MIME spec
 			for i := 0; i < len(encoded); i += 76 {
 				end := i + 76
 				if end > len(encoded) {
@@ -116,5 +115,62 @@ func (s *EmailService) Send(toName, toEmail, fromEmail, subject, body string, at
 		raw = []byte(headers + buf.String())
 	}
 
-	return smtp.SendMail(s.host+":"+s.port, auth, s.user, []string{toEmail}, raw)
+	return s.sendWithTimeout(toEmail, raw, 30*time.Second)
+}
+
+// sendWithTimeout dials, hand-shakes, authenticates and writes the message
+// with a hard deadline on every blocking syscall. Returns a wrapped error
+// that names which step timed out so logs are useful.
+func (s *EmailService) sendWithTimeout(toEmail string, raw []byte, total time.Duration) error {
+	addr := s.host + ":" + s.port
+	deadline := time.Now().Add(total)
+
+	conn, err := net.DialTimeout("tcp", addr, 10*time.Second)
+	if err != nil {
+		return fmt.Errorf("smtp dial %s: %w", addr, err)
+	}
+	// Apply the overall deadline to every read/write that follows. The SMTP
+	// client's STARTTLS / Auth / Mail / Rcpt / Data calls all bottom out
+	// here, so a hung Gmail server returns an error instead of blocking.
+	if err := conn.SetDeadline(deadline); err != nil {
+		conn.Close()
+		return fmt.Errorf("smtp set deadline: %w", err)
+	}
+
+	client, err := smtp.NewClient(conn, s.host)
+	if err != nil {
+		conn.Close()
+		return fmt.Errorf("smtp handshake: %w", err)
+	}
+	defer client.Close()
+
+	if ok, _ := client.Extension("STARTTLS"); ok {
+		if err := client.StartTLS(&tls.Config{ServerName: s.host}); err != nil {
+			return fmt.Errorf("smtp STARTTLS: %w", err)
+		}
+		// New deadline after the TLS upgrade replaced the underlying conn
+		_ = conn.SetDeadline(deadline)
+	}
+
+	auth := smtp.PlainAuth("", s.user, s.pass, s.host)
+	if err := client.Auth(auth); err != nil {
+		return fmt.Errorf("smtp auth: %w", err)
+	}
+	if err := client.Mail(s.user); err != nil {
+		return fmt.Errorf("smtp MAIL FROM: %w", err)
+	}
+	if err := client.Rcpt(toEmail); err != nil {
+		return fmt.Errorf("smtp RCPT TO %s: %w", toEmail, err)
+	}
+	w, err := client.Data()
+	if err != nil {
+		return fmt.Errorf("smtp DATA: %w", err)
+	}
+	if _, err := w.Write(raw); err != nil {
+		return fmt.Errorf("smtp body write: %w", err)
+	}
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("smtp body close: %w", err)
+	}
+	return client.Quit()
 }
