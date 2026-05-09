@@ -13,6 +13,7 @@
 package services
 
 import (
+	"path"
 	"strings"
 	"time"
 
@@ -120,6 +121,113 @@ func (s *ProfileService) GetHiddenMailEmails() ([]string, error) {
 	return emails, err
 }
 
+// ─── CV History ──────────────────────────────────────────────
+
+// AddCVHistory appends a new CV row to the cv_files table. When `activate`
+// is true the new row also becomes the active CV (mirrored onto
+// profile.cv_file). Uploads pass true (the admin clearly wants the file they
+// just uploaded to be live); generation passes false so the admin can preview
+// before deciding.
+func (s *ProfileService) AddCVHistory(filePath, fileName string, fileSize int64, source string, activate bool) (*models.CVFile, error) {
+	if source == "" {
+		source = "uploaded"
+	}
+	row := models.CVFile{
+		FilePath: filePath,
+		FileName: fileName,
+		FileSize: fileSize,
+		Source:   source,
+	}
+	if err := s.db.Create(&row).Error; err != nil {
+		return nil, err
+	}
+	if activate {
+		if err := s.UpdateField("cv_file", filePath); err != nil {
+			return nil, err
+		}
+	}
+	return &row, nil
+}
+
+// GetCVHistory returns every saved CV (newest first) with the IsActive flag
+// set on the row whose file_path matches profile.cv_file.
+//
+// Backfill: if profile.cv_file is non-empty but no row in cv_files matches
+// (typically because the upload happened before the cv_files table existed),
+// insert a synthetic history row for it so the active CV shows up in the
+// dashboard's history list and is selectable in the Compare modal.
+func (s *ProfileService) GetCVHistory() ([]models.CVFile, error) {
+	var history []models.CVFile
+	if err := s.db.Order("created_at DESC").Find(&history).Error; err != nil {
+		return nil, err
+	}
+	profile, _ := s.Get()
+	if profile != nil && profile.CVFile != "" {
+		found := false
+		for _, h := range history {
+			if h.FilePath == profile.CVFile {
+				found = true
+				break
+			}
+		}
+		if !found {
+			row := models.CVFile{
+				FilePath: profile.CVFile,
+				FileName: path.Base(profile.CVFile),
+				Source:   "uploaded",
+			}
+			if err := s.db.Create(&row).Error; err == nil {
+				// Newest-first ordering — the backfilled row is the most recently
+				// created (we just inserted it), so prepend it.
+				history = append([]models.CVFile{row}, history...)
+			}
+		}
+		for i := range history {
+			if history[i].FilePath == profile.CVFile {
+				history[i].IsActive = true
+			}
+		}
+	}
+	return history, nil
+}
+
+// GetCVHistoryByID fetches a single CV history row by primary key.
+func (s *ProfileService) GetCVHistoryByID(id uint) (*models.CVFile, error) {
+	var row models.CVFile
+	if err := s.db.First(&row, id).Error; err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+// DeleteCVHistory removes one CV history row from the table. The caller is
+// responsible for refusing to delete the active CV and for removing the
+// physical file from disk.
+func (s *ProfileService) DeleteCVHistory(id uint) error {
+	return s.db.Delete(&models.CVFile{}, id).Error
+}
+
+// ActivateCV sets profile.cv_file to point at the CV identified by `id`.
+// Returns the activated row so the handler can echo it back.
+func (s *ProfileService) ActivateCV(id uint) (*models.CVFile, error) {
+	row, err := s.GetCVHistoryByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.UpdateField("cv_file", row.FilePath); err != nil {
+		return nil, err
+	}
+	return row, nil
+}
+
+// IncrementCVDownloadCount bumps profile.cv_download_count by one in a single
+// SQL update so concurrent downloads don't race.
+func (s *ProfileService) IncrementCVDownloadCount() error {
+	return s.db.Model(&models.Profile{}).
+		Where("id = 1").
+		UpdateColumn("cv_download_count", gorm.Expr("cv_download_count + 1")).Error
+}
+
 // Update saves changes to the existing profile record.
 // Uses Save() which updates ALL fields, not just changed ones,
 // so passing the full profile struct is required.
@@ -175,6 +283,13 @@ func (s *ProfileService) Update(updates *models.Profile) (*models.Profile, error
 	updates.GitHubYearsActive = preserve(updates.GitHubYearsActive, profile.GitHubYearsActive)
 	updates.MetaTitle       = preserve(updates.MetaTitle, profile.MetaTitle)
 	updates.MetaDescription = preserve(updates.MetaDescription, profile.MetaDescription)
+	// Footer fields are managed by their own dedicated endpoint
+	// (PUT /profile/footer); the regular /profile update should never wipe
+	// them just because they weren't included in the request body.
+	updates.CopyrightText        = preserve(updates.CopyrightText,        profile.CopyrightText)
+	updates.SidebarCopyrightText = preserve(updates.SidebarCopyrightText, profile.SidebarCopyrightText)
+	updates.FooterCopyrightText  = preserve(updates.FooterCopyrightText,  profile.FooterCopyrightText)
+	updates.FooterBuiltWith      = preserve(updates.FooterBuiltWith,      profile.FooterBuiltWith)
 
 	if err := s.db.Save(updates).Error; err != nil {
 		return nil, err

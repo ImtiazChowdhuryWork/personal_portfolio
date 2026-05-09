@@ -84,6 +84,7 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	emailSvc := services.NewEmailService(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPass)
 	profileSvc := services.NewProfileService(db)
 	uploadSvc := services.NewUploadService(cfg)
+	cvGenSvc := services.NewCVGeneratorService(db, profileSvc, cfg.UploadDir)
 
 	// ─── Step 4: Initialize all handlers with their services ──
 	// Handlers handle HTTP — they read requests and call services
@@ -92,7 +93,7 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	skillHandler := handlers.NewSkillHandler(skillSvc)
 	expHandler := handlers.NewExperienceHandler(expSvc)
 	msgHandler := handlers.NewMessageHandler(msgSvc, emailSvc, profileSvc)
-	profileHandler := handlers.NewProfileHandler(profileSvc, emailSvc)
+	profileHandler := handlers.NewProfileHandler(profileSvc, emailSvc, cvGenSvc, cfg.UploadDir)
 	uploadHandler := handlers.NewUploadHandler(uploadSvc)
 	statsHandler := handlers.NewStatsHandler(db)
 
@@ -116,6 +117,10 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 	// Contact form — public so visitors can submit without logging in
 	v1.POST("/messages", msgHandler.Create)
+
+	// Public CV download counter — fired by the portfolio when a visitor
+	// clicks "Download CV", just before navigating to the PDF
+	v1.POST("/profile/cv/download", profileHandler.RecordCVDownload)
 
 	// ─── Step 7: Protected routes (JWT required) ──────────────
 	// The AuthMiddleware checks the Authorization: Bearer <token> header.
@@ -151,10 +156,16 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// Profile editing (dashboard settings)
 	protected.PUT("/profile", profileHandler.Update)
 	protected.PUT("/profile/cv", profileHandler.UpdateCV)
+	protected.PUT("/profile/cv/visibility", profileHandler.UpdateCVVisibility)
+	protected.POST("/profile/cv/generate", profileHandler.GenerateCV)
+	protected.GET("/profile/cv/history", profileHandler.GetCVHistory)
+	protected.POST("/profile/cv/history/:id/activate", profileHandler.ActivateCV)
+	protected.DELETE("/profile/cv/history/:id", profileHandler.DeleteCVHistory)
 	protected.PUT("/profile/photo", profileHandler.UpdatePhoto)
 	protected.PUT("/profile/about-photo", profileHandler.UpdateAboutPhoto)
 	protected.PUT("/profile/social", profileHandler.UpdateSocial)
 	protected.PUT("/profile/mail", profileHandler.UpdateMail)
+	protected.PUT("/profile/footer", profileHandler.UpdateFooter)
 	protected.PUT("/profile/github", profileHandler.UpdateGitHub)
 	protected.GET("/profile/mail/history", profileHandler.GetMailHistory)
 	protected.DELETE("/profile/mail/history/:id", profileHandler.DeleteMailHistory)
