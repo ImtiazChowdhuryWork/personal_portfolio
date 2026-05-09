@@ -43,9 +43,23 @@ const ContactSection = (() => {
       try {
         await API.post('/messages', data);
         form.reset();
-        Toast.show('Message sent! I\'ll get back to you soon.', 'success', 6000);
+        // Tailor the confirmation to the admin's current availability so
+        // visitors aren't told "reply within 24 hours" while you're on vacation.
+        const profile = (Store && Store.get('profile')) || {};
+        const status = (profile.availability || 'Open to Work').trim();
+        const msgs = {
+          'Open to Work':            { toast: 'Message sent! I\'ll get back to you soon.',
+                                       inline: '✅ Your message was sent! I\'ll reply within 24 hours.' },
+          'Available for Freelance': { toast: 'Message sent! I\'ll review your project shortly.',
+                                       inline: '✅ Your message was sent! I\'ll review your project and reply soon.' },
+          'On Vacation':             { toast: 'Message received — I\'ll reply when I\'m back.',
+                                       inline: '🌴 Message received! I\'m currently on vacation, but I\'ll reply when I\'m back.' },
+        };
+        const m = msgs[status] || msgs['Open to Work'];
+        Toast.show(m.toast, 'success', 6000);
         const successEl = document.getElementById('contact-success');
         if (successEl) {
+          successEl.textContent = m.inline;
           successEl.classList.add('visible');
           setTimeout(() => successEl.classList.remove('visible'), 6000);
         }

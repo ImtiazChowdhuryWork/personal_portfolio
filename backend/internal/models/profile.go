@@ -33,6 +33,26 @@ type Profile struct {
 	Bio       string `gorm:"type:text" json:"bio"`
 	ShortBio  string `gorm:"type:varchar(500)" json:"short_bio"`
 
+	// Nickname is the short greeting name shown in the hero subtitle pill
+	// ("Say Hi from {nickname}, {title}"). Empty = first word of FullName.
+	Nickname string `gorm:"type:varchar(100)" json:"nickname"`
+
+	// HeroSubtitle is a full override of the hero pill text. When set, it
+	// replaces the default "Say Hi from {nickname}, {title}" template.
+	// Supports placeholders {name}, {title}, {nickname}.
+	HeroSubtitle string `gorm:"type:varchar(300)" json:"hero_subtitle"`
+
+	// ─── Hero Heading ────────────────────────────────────────
+	// Three plain lines, plus a comma-separated list of words to highlight in
+	// the brand colour wherever they appear. HeroHeadingOverride takes
+	// precedence when set: each newline is rendered as a line break and any
+	// text wrapped in *asterisks* becomes a highlight span.
+	HeroHeadingLine1      string `gorm:"type:varchar(200)" json:"hero_heading_line1"`
+	HeroHeadingLine2      string `gorm:"type:varchar(200)" json:"hero_heading_line2"`
+	HeroHeadingLine3      string `gorm:"type:varchar(200)" json:"hero_heading_line3"`
+	HeroHeadingHighlights string `gorm:"type:varchar(500)" json:"hero_heading_highlights"`
+	HeroHeadingOverride   string `gorm:"type:text"         json:"hero_heading_override"`
+
 	// ─── Contact Details ─────────────────────────────────────
 	Email     string `gorm:"type:varchar(255)" json:"email"`
 	Phone     string `gorm:"type:varchar(50)" json:"phone"`
@@ -52,8 +72,17 @@ type Profile struct {
 	// AboutPhoto is shown in the About section (can be a different image)
 	AboutPhoto string `gorm:"type:varchar(500)" json:"about_photo"`
 
-	// CVFile is the path to the downloadable CV PDF
+	// CVFile is the path to the currently active CV PDF (mirrored from cv_files).
 	CVFile string `gorm:"type:varchar(500)" json:"cv_file"`
+
+	// CVVisible controls whether the "Download CV" button is shown on the
+	// public portfolio. Lets the admin temporarily hide the button without
+	// deleting the active CV.
+	CVVisible bool `gorm:"default:true" json:"cv_visible"`
+
+	// CVDownloadCount is incremented every time a visitor clicks the
+	// "Download CV" button on the public portfolio.
+	CVDownloadCount int64 `gorm:"default:0" json:"cv_download_count"`
 
 	// ─── Status ──────────────────────────────────────────────
 	// Availability is shown in the About section info card
@@ -88,6 +117,23 @@ type Profile struct {
 	GitHubCommits     string `gorm:"type:varchar(20)"  json:"github_commits"`
 	GitHubTopLanguage string `gorm:"type:varchar(50)"  json:"github_top_language"`
 	GitHubYearsActive string `gorm:"type:varchar(20)"  json:"github_years_active"`
+
+	// ─── Footer ──────────────────────────────────────────────
+	// CopyrightText is the default copyright shown in BOTH the sidebar and the
+	// footer, unless one of the per-place overrides below is set. Empty means
+	// auto-fallback ("© {year} {full_name}. All Rights Reserved.").
+	// Supports placeholders {year} and {name} which the frontend replaces.
+	CopyrightText string `gorm:"type:varchar(200)" json:"copyright_text"`
+
+	// SidebarCopyrightText overrides CopyrightText for the sidebar only.
+	SidebarCopyrightText string `gorm:"type:varchar(200)" json:"sidebar_copyright_text"`
+
+	// FooterCopyrightText overrides CopyrightText for the footer only.
+	FooterCopyrightText string `gorm:"type:varchar(200)" json:"footer_copyright_text"`
+
+	// FooterBuiltWith is a small second line shown in the footer below the
+	// copyright, e.g. "Built with Flutter spirit 💙". Empty hides the line.
+	FooterBuiltWith string `gorm:"type:varchar(200)" json:"footer_built_with"`
 
 	// ─── SEO ─────────────────────────────────────────────────
 	MetaTitle       string `gorm:"type:varchar(200)" json:"meta_title"`

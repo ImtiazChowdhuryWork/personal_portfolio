@@ -12,6 +12,9 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"imtiaz-portfolio/internal/models"
 	"imtiaz-portfolio/internal/services"
@@ -21,14 +24,18 @@ import (
 )
 
 // ProfileHandler holds the profile and email service dependencies.
+// uploadDir is needed so DeleteCVHistory can remove the physical PDF file
+// from disk when an old CV is purged from the version-history list.
 type ProfileHandler struct {
 	profileService *services.ProfileService
 	emailService   *services.EmailService
+	cvGenerator    *services.CVGeneratorService
+	uploadDir      string
 }
 
 // NewProfileHandler creates a new ProfileHandler.
-func NewProfileHandler(ps *services.ProfileService, es *services.EmailService) *ProfileHandler {
-	return &ProfileHandler{profileService: ps, emailService: es}
+func NewProfileHandler(ps *services.ProfileService, es *services.EmailService, gen *services.CVGeneratorService, uploadDir string) *ProfileHandler {
+	return &ProfileHandler{profileService: ps, emailService: es, cvGenerator: gen, uploadDir: uploadDir}
 }
 
 // Get returns the portfolio profile — public, called when the portfolio loads.
@@ -155,6 +162,37 @@ func (h *ProfileHandler) UpdateGitHub(c *gin.Context) {
 	}
 	profile, _ := h.profileService.Get()
 	utils.Success(c, "GitHub stats updated successfully", profile)
+}
+
+// UpdateFooter updates only the four footer/copyright fields — protected,
+// used by the dashboard's Footer tab. Empty strings are written through (so
+// the admin can clear a value and re-enable the auto-fallback).
+func (h *ProfileHandler) UpdateFooter(c *gin.Context) {
+	var body struct {
+		CopyrightText        *string `json:"copyright_text"`
+		SidebarCopyrightText *string `json:"sidebar_copyright_text"`
+		FooterCopyrightText  *string `json:"footer_copyright_text"`
+		FooterBuiltWith      *string `json:"footer_built_with"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		utils.BadRequest(c, "Invalid footer data", err.Error())
+		return
+	}
+	fields := map[string]interface{}{}
+	if body.CopyrightText        != nil { fields["copyright_text"]         = *body.CopyrightText }
+	if body.SidebarCopyrightText != nil { fields["sidebar_copyright_text"] = *body.SidebarCopyrightText }
+	if body.FooterCopyrightText  != nil { fields["footer_copyright_text"]  = *body.FooterCopyrightText }
+	if body.FooterBuiltWith      != nil { fields["footer_built_with"]      = *body.FooterBuiltWith }
+	if len(fields) == 0 {
+		utils.BadRequest(c, "No footer fields provided", nil)
+		return
+	}
+	if err := h.profileService.UpdateFields(fields); err != nil {
+		utils.InternalError(c, "Failed to update footer")
+		return
+	}
+	profile, _ := h.profileService.Get()
+	utils.Success(c, "Footer updated successfully", profile)
 }
 
 // UpdateMail updates only the SMTP credentials — protected, used by the
@@ -348,18 +386,139 @@ func (h *ProfileHandler) DeleteMailHistory(c *gin.Context) {
 	utils.Success(c, "History entry deleted", nil)
 }
 
-// UpdateCV updates only the cv_file field — protected, used by CV upload.
+// UpdateCV updates only the cv_file field AND appends a history row to the
+// cv_files table — protected, used by CV upload. Accepts optional file_name
+// and file_size so the history list can show metadata.
 func (h *ProfileHandler) UpdateCV(c *gin.Context) {
 	var body struct {
-		CVFile string `json:"cv_file"`
+		CVFile   string `json:"cv_file"`
+		FileName string `json:"file_name"`
+		FileSize int64  `json:"file_size"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil || body.CVFile == "" {
 		utils.BadRequest(c, "cv_file is required", nil)
 		return
 	}
-	if err := h.profileService.UpdateField("cv_file", body.CVFile); err != nil {
+	name := body.FileName
+	if name == "" {
+		// Fall back to the basename so older clients still produce a usable history row
+		name = filepath.Base(body.CVFile)
+	}
+	row, err := h.profileService.AddCVHistory(body.CVFile, name, body.FileSize, "uploaded", true)
+	if err != nil {
 		utils.InternalError(c, "Failed to update CV")
 		return
 	}
-	utils.Success(c, "CV updated successfully", gin.H{"cv_file": body.CVFile})
+	utils.Success(c, "CV updated successfully", gin.H{"cv_file": body.CVFile, "history": row})
+}
+
+// GetCVHistory returns every saved CV (newest first) — protected.
+func (h *ProfileHandler) GetCVHistory(c *gin.Context) {
+	history, err := h.profileService.GetCVHistory()
+	if err != nil {
+		utils.InternalError(c, "Failed to load CV history")
+		return
+	}
+	utils.Success(c, "CV history fetched", history)
+}
+
+// ActivateCV makes a past CV the currently downloadable one — protected.
+func (h *ProfileHandler) ActivateCV(c *gin.Context) {
+	idParam := c.Param("id")
+	var id uint
+	if _, err := fmt.Sscanf(idParam, "%d", &id); err != nil || id == 0 {
+		utils.BadRequest(c, "Invalid CV id", nil)
+		return
+	}
+	row, err := h.profileService.ActivateCV(id)
+	if err != nil {
+		utils.InternalError(c, "Failed to activate CV")
+		return
+	}
+	utils.Success(c, "CV activated", row)
+}
+
+// DeleteCVHistory removes one CV from the version history (and the physical
+// file on disk) — protected. Refuses to delete the currently active CV so the
+// public Download CV button never points at a missing file.
+func (h *ProfileHandler) DeleteCVHistory(c *gin.Context) {
+	idParam := c.Param("id")
+	var id uint
+	if _, err := fmt.Sscanf(idParam, "%d", &id); err != nil || id == 0 {
+		utils.BadRequest(c, "Invalid CV id", nil)
+		return
+	}
+	row, err := h.profileService.GetCVHistoryByID(id)
+	if err != nil || row == nil {
+		utils.BadRequest(c, "CV not found", nil)
+		return
+	}
+	if profile, err := h.profileService.Get(); err == nil && profile.CVFile == row.FilePath {
+		utils.BadRequest(c,
+			"This is the active CV. Activate a different CV first, then delete this one.",
+			nil)
+		return
+	}
+	if err := h.profileService.DeleteCVHistory(id); err != nil {
+		utils.InternalError(c, "Failed to delete CV")
+		return
+	}
+	// Best-effort delete of the physical file. We strip the leading "/uploads/"
+	// from the URL path and join it with the configured uploads directory.
+	if strings.HasPrefix(row.FilePath, "/uploads/") {
+		rel := strings.TrimPrefix(row.FilePath, "/uploads/")
+		full, _ := filepath.Abs(filepath.Join(h.uploadDir, rel))
+		_ = os.Remove(full)
+	}
+	utils.Success(c, "CV deleted", gin.H{"id": id})
+}
+
+// UpdateCVVisibility toggles whether the public Download CV button is shown
+// — protected. Body: { "cv_visible": true | false }.
+func (h *ProfileHandler) UpdateCVVisibility(c *gin.Context) {
+	var body struct {
+		CVVisible *bool `json:"cv_visible"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil || body.CVVisible == nil {
+		utils.BadRequest(c, "cv_visible (boolean) is required", nil)
+		return
+	}
+	if err := h.profileService.UpdateField("cv_visible", *body.CVVisible); err != nil {
+		utils.InternalError(c, "Failed to update CV visibility")
+		return
+	}
+	utils.Success(c, "CV visibility updated", gin.H{"cv_visible": *body.CVVisible})
+}
+
+// GenerateCV builds a fresh PDF from the current profile + skills + experience
+// and saves it as a new history row (active by default) — protected. Body is
+// empty; returns the new history row.
+func (h *ProfileHandler) GenerateCV(c *gin.Context) {
+	if h.cvGenerator == nil {
+		utils.InternalError(c, "CV generator not configured")
+		return
+	}
+	row, err := h.cvGenerator.Generate()
+	if err != nil {
+		log.Printf("[GenerateCV] %v", err)
+		utils.InternalError(c, "Failed to generate CV: "+err.Error())
+		return
+	}
+	utils.Success(c, "CV generated", row)
+}
+
+// RecordCVDownload bumps the visitor download counter — PUBLIC. The public
+// portfolio fires this just before navigating to the PDF. Returns the new
+// count so the dashboard can poll without a separate read.
+func (h *ProfileHandler) RecordCVDownload(c *gin.Context) {
+	if err := h.profileService.IncrementCVDownloadCount(); err != nil {
+		utils.InternalError(c, "Failed to record download")
+		return
+	}
+	profile, _ := h.profileService.Get()
+	count := int64(0)
+	if profile != nil {
+		count = profile.CVDownloadCount
+	}
+	utils.Success(c, "Download recorded", gin.H{"cv_download_count": count})
 }

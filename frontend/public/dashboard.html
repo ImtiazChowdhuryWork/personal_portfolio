@@ -6,10 +6,18 @@
   <title>Dashboard — Imtiaz Portfolio</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/css/intlTelInput.css">
   <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/intlTelInput.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
   <style>
     /* ─── Dashboard layout ───────────────────────────────────── */
     .dash-layout { display: flex; min-height: 100vh; }
@@ -63,6 +71,1315 @@
       margin-bottom: 1.5rem;
     }
     .dash-panel-title { font-size: 1.125rem; font-weight: 700; color: var(--color-heading); }
+
+    /* Social Links labels — icon + text */
+    .social-label { display: inline-flex; align-items: center; gap: 8px; }
+    .social-label i { font-size: 18px; line-height: 1; }
+
+    /* ─── CV / Resume tab ──────────────────────────────────── */
+
+    /* Hero card — the active CV gets a featured spot */
+    .cv-hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+      padding: 1.75rem;
+      background: linear-gradient(135deg, rgba(84,197,248,0.10) 0%, rgba(84,197,248,0.02) 50%, transparent 100%);
+      border: 1px solid rgba(84,197,248,0.35);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px -12px rgba(84,197,248,0.25);
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+    .cv-hero::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--color-primary);
+      box-shadow: 0 0 16px var(--color-primary);
+    }
+    .cv-hero-empty {
+      background: var(--color-bg);
+      border: 1px dashed var(--color-border);
+      box-shadow: none;
+      padding: 2.5rem;
+      text-align: center;
+      grid-template-columns: 1fr;
+      color: var(--color-text-muted);
+    }
+    .cv-hero-empty::before { display: none; }
+    .cv-hero-icon {
+      width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(84,197,248,0.15);
+      border-radius: 14px;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .cv-hero-info { min-width: 0; }
+    .cv-hero-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--color-heading);
+      display: flex; align-items: center; gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+      overflow: hidden;
+    }
+    .cv-hero-name span.filename {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 360px;
+    }
+    .cv-hero-meta {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      display: flex; align-items: center; gap: 10px;
+      flex-wrap: wrap;
+    }
+    .cv-hero-actions {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* Status pills */
+    .cv-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .cv-pill-active {
+      background: rgba(46,204,113,0.15);
+      color: #2ecc71;
+      border: 1px solid rgba(46,204,113,0.3);
+    }
+    .cv-pill-active::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #2ecc71;
+      box-shadow: 0 0 8px #2ecc71;
+      animation: cvPulse 2s infinite;
+    }
+    @keyframes cvPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .cv-pill-generated {
+      background: rgba(84,197,248,0.15);
+      color: var(--color-primary);
+      border: 1px solid rgba(84,197,248,0.3);
+    }
+    .cv-pill-uploaded {
+      background: rgba(255,255,255,0.05);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+    }
+
+    /* Action cards — Upload / Generate */
+    .cv-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 720px) { .cv-actions-grid { grid-template-columns: 1fr; } }
+    .cv-action-card {
+      position: relative;
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 20px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-align: left;
+      color: inherit;
+      font-family: inherit;
+    }
+    .cv-action-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--color-primary);
+      box-shadow: 0 8px 24px -8px rgba(84,197,248,0.3);
+    }
+    .cv-action-card.primary {
+      background: linear-gradient(135deg, rgba(84,197,248,0.12), rgba(84,197,248,0.04));
+      border-color: rgba(84,197,248,0.4);
+    }
+    .cv-action-icon {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(84,197,248,0.12);
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+    .cv-action-icon i { font-size: 22px; color: var(--color-primary); }
+    .cv-action-text { flex: 1; min-width: 0; }
+    .cv-action-title {
+      font-size: 14px; font-weight: 600;
+      color: var(--color-heading);
+      margin-bottom: 2px;
+    }
+    .cv-action-desc {
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    /* Stats row */
+    .cv-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 720px) { .cv-stats { grid-template-columns: 1fr; } }
+    .cv-stat {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+    }
+    .cv-stat-icon {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .cv-stat-icon i { font-size: 18px; color: var(--color-primary); }
+    .cv-stat-num {
+      font-size: 20px; font-weight: 700;
+      color: var(--color-heading);
+      line-height: 1.1;
+    }
+    .cv-stat-label {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Visibility row */
+    .cv-visibility-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+    }
+    .cv-visibility-text { display: flex; flex-direction: column; gap: 2px; }
+    .cv-visibility-title {
+      font-size: 14px; font-weight: 600;
+      color: var(--color-heading);
+    }
+    .cv-visibility-desc {
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    /* iOS-style toggle switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 46px; height: 26px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer; inset: 0;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--color-border);
+      border-radius: 26px;
+      transition: all 0.3s ease;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      left: 2px; top: 2px;
+      background: #fff;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 12px rgba(84,197,248,0.5);
+    }
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+
+    /* Preview toolbar */
+    .cv-preview-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      flex-wrap: wrap;
+    }
+    .cv-preview-toolbar-info {
+      display: flex; align-items: center; gap: 10px;
+      min-width: 0; flex: 1;
+    }
+    .cv-preview-toolbar-icon {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(232,72,72,0.12);
+      color: #e84848;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .cv-preview-toolbar-icon i { font-size: 18px; }
+    .cv-preview-filename {
+      font-size: 13px; font-weight: 600;
+      color: var(--color-heading);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 280px;
+    }
+    .cv-preview-toolbar-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* Square icon buttons (used in preview toolbar) */
+    .icon-btn {
+      width: 34px; height: 34px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .icon-btn:hover {
+      background: rgba(84,197,248,0.1);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .icon-btn i { font-size: 16px; line-height: 1; }
+    .icon-btn.is-active {
+      background: rgba(84,197,248,0.15);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    /* Preview frame */
+    .cv-preview-wrap {
+      position: relative;
+      border-radius: 0 0 12px 12px;
+      overflow: hidden;
+      border: 1px solid rgba(84,197,248,0.3);
+      background: #fff;
+      box-shadow: 0 12px 32px -16px rgba(0,0,0,0.6);
+      transition: all 0.3s ease;
+    }
+    .cv-preview-wrap iframe {
+      display: block;
+      width: 100%;
+      /* Default placeholder height — JS overrides to fit the actual PDF size */
+      height: 1100px;
+      border: 0;
+    }
+    /* Canvas-based preview — exact height per page, zero whitespace */
+    .cv-preview-canvas-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: #fff;
+    }
+    .cv-preview-canvas-container canvas {
+      display: block;
+      width: 100% !important;
+      height: auto !important;
+    }
+    .cv-preview-loading {
+      padding: 3rem;
+      text-align: center;
+      color: var(--color-text-muted);
+      font-size: 13px;
+    }
+    @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+    /* ─── Version History grid ────────────────────────────── */
+    .cv-history-featured-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #2ecc71;
+      margin: 0 0 8px 4px;
+    }
+    .cv-history-featured-label::before { content: '★'; font-size: 14px; }
+
+    .cv-history-section-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-text-muted);
+      margin: 1.25rem 0 8px 4px;
+    }
+
+    .cv-version-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    /* Featured (active) card — full width, hero-ish */
+    .cv-version-featured {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 18px 22px;
+      background: linear-gradient(135deg, rgba(46,204,113,0.10), rgba(46,204,113,0.02) 60%, transparent);
+      border: 1px solid rgba(46,204,113,0.4);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px -10px rgba(46,204,113,0.5);
+      overflow: hidden;
+    }
+    .cv-version-featured::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: #2ecc71;
+      box-shadow: 0 0 16px #2ecc71;
+    }
+    .cv-version-featured .cv-doc-cover { width: 56px; height: 72px; }
+    .cv-version-featured .cv-doc-cover-label { font-size: 11px; }
+    .cv-version-featured-info { min-width: 0; }
+    .cv-version-featured-name {
+      font-size: 15px; font-weight: 700;
+      color: var(--color-heading);
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .cv-version-featured-name .filename {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 320px;
+    }
+    .cv-version-featured-meta {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      display: flex; align-items: center; gap: 10px;
+      flex-wrap: wrap;
+    }
+    .cv-version-featured-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* Stylized "PDF document" cover used as the card visual */
+    .cv-doc-cover {
+      position: relative;
+      width: 100%; aspect-ratio: 5 / 6.4;
+      background: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%);
+      border-radius: 8px;
+      box-shadow: 0 8px 20px -10px rgba(0,0,0,0.5),
+                  inset 0 0 0 1px rgba(0,0,0,0.06);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    /* Faux page lines */
+    .cv-doc-cover::before {
+      content: '';
+      position: absolute; left: 14%; right: 14%;
+      top: 18%; bottom: 28%;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.06) 0px, rgba(0,0,0,0.06) 1px,
+        transparent 1px, transparent 6px);
+      opacity: 0.7;
+    }
+    /* Corner fold */
+    .cv-doc-cover::after {
+      content: '';
+      position: absolute; top: 0; right: 0;
+      width: 22px; height: 22px;
+      background: linear-gradient(225deg, #d8d8d8 0%, #d8d8d8 50%, transparent 50%);
+      border-bottom-left-radius: 4px;
+      box-shadow: -1px 1px 2px rgba(0,0,0,0.1);
+    }
+    .cv-doc-cover-label {
+      position: relative;
+      z-index: 1;
+      font-size: 14px; font-weight: 800;
+      color: #e84848;
+      letter-spacing: 1px;
+      background: rgba(255,255,255,0.85);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .cv-doc-cover.is-generated .cv-doc-cover-label { color: var(--color-primary); }
+
+    /* Compact version card (used in the grid) */
+    .cv-version-tile {
+      position: relative;
+      display: flex; flex-direction: column;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+    .cv-version-tile:hover {
+      transform: translateY(-3px);
+      border-color: rgba(84,197,248,0.4);
+      box-shadow: 0 12px 28px -12px rgba(0,0,0,0.6);
+    }
+    .cv-version-tile-cover {
+      padding: 18px 18px 14px;
+      display: flex; justify-content: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    }
+    .cv-version-tile-cover .cv-doc-cover { width: 70px; }
+    .cv-version-tile-body {
+      padding: 0 16px 14px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .cv-version-tile-name {
+      font-size: 13px; font-weight: 600;
+      color: var(--color-heading);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .cv-version-tile-pills {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .cv-version-tile-meta {
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+    .cv-version-tile-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px 12px 16px;
+      border-top: 1px solid var(--color-border);
+      background: rgba(0,0,0,0.15);
+    }
+    .cv-version-tile-footer a { font-size: 12px; }
+
+    /* Three-dot menu */
+    .cv-menu-wrap { position: relative; }
+    .cv-menu-trigger {
+      width: 32px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .cv-menu-trigger:hover, .cv-menu-trigger.is-open {
+      background: rgba(84,197,248,0.1);
+      border-color: var(--color-border);
+      color: var(--color-primary);
+    }
+    .cv-menu-trigger i { font-size: 18px; }
+    .cv-menu-popup {
+      position: absolute;
+      top: 100%; right: 0;
+      margin-top: 6px;
+      min-width: 170px;
+      background: var(--color-bg-2);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      box-shadow: 0 12px 32px -8px rgba(0,0,0,0.6);
+      padding: 4px;
+      z-index: 20;
+      display: none;
+      animation: cvMenuIn 0.15s ease;
+    }
+    .cv-menu-popup.is-open { display: block; }
+    @keyframes cvMenuIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .cv-menu-item {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%;
+      padding: 8px 12px;
+      background: transparent;
+      border: 0;
+      border-radius: 6px;
+      color: var(--color-text);
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+    .cv-menu-item:hover { background: rgba(84,197,248,0.08); color: var(--color-primary); }
+    .cv-menu-item.is-danger:hover { background: rgba(232,72,72,0.1); color: #e84848; }
+    .cv-menu-item.is-danger.is-confirming {
+      background: rgba(232,72,72,0.15); color: #e84848;
+    }
+    .cv-menu-item:disabled {
+      opacity: 0.4; cursor: not-allowed;
+    }
+    .cv-menu-item i { font-size: 16px; }
+    .cv-menu-divider {
+      height: 1px;
+      background: var(--color-border);
+      margin: 4px 0;
+    }
+
+    /* Side-by-side: Preview (80%) | History (20%) */
+    .cv-split {
+      display: grid;
+      grid-template-columns: 4fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 1100px) {
+      .cv-split { grid-template-columns: 1fr; }
+    }
+    .cv-split > .dash-panel { margin-bottom: 0; }
+
+    /* History side panel — scrollable, compact */
+    .cv-history-side .dash-panel-header { margin-bottom: 0.75rem; }
+    .cv-history-side #cv-history-list {
+      max-height: 760px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .cv-history-side #cv-history-list::-webkit-scrollbar { width: 6px; }
+    .cv-history-side #cv-history-list::-webkit-scrollbar-track { background: transparent; }
+    .cv-history-side #cv-history-list::-webkit-scrollbar-thumb {
+      background: var(--color-border); border-radius: 3px;
+    }
+    .cv-history-side .cv-history-featured-label,
+    .cv-history-side .cv-history-section-label {
+      font-size: 10px;
+    }
+    /* Featured card: stack vertically when in narrow column */
+    .cv-history-side .cv-version-featured {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 14px;
+      text-align: left;
+    }
+    .cv-history-side .cv-version-featured .cv-doc-cover {
+      width: 52px; height: auto;
+      align-self: center;
+    }
+    .cv-history-side .cv-version-featured-name {
+      font-size: 13px;
+      gap: 6px;
+    }
+    .cv-history-side .cv-version-featured-name .filename { max-width: 100%; }
+    .cv-history-side .cv-version-featured-actions {
+      width: 100%; justify-content: stretch;
+    }
+    .cv-history-side .cv-version-featured-actions a {
+      flex: 1; text-align: center;
+    }
+    /* Past-version grid: single column with horizontal cover layout */
+    .cv-history-side .cv-version-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .cv-history-side .cv-version-tile {
+      flex-direction: row;
+      align-items: stretch;
+    }
+    .cv-history-side .cv-version-tile-cover {
+      padding: 12px 10px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .cv-history-side .cv-version-tile-cover .cv-doc-cover { width: 44px; }
+    .cv-history-side .cv-version-tile-body {
+      flex: 1; min-width: 0;
+      padding: 10px 8px 6px 0;
+      gap: 4px;
+    }
+    .cv-history-side .cv-version-tile-name { font-size: 12px; }
+    .cv-history-side .cv-version-tile-meta { font-size: 10px; }
+    .cv-history-side .cv-version-tile-footer {
+      flex-direction: column;
+      gap: 2px;
+      padding: 6px 6px 8px;
+      border-top: none;
+      border-left: 1px solid var(--color-border);
+      background: transparent;
+      align-items: stretch;
+    }
+    .cv-history-side .cv-version-tile-footer a {
+      display: none; /* save space — three-dot menu has Download */
+    }
+    .cv-history-side .cv-menu-popup { right: 0; left: auto; min-width: 150px; }
+
+    /* Tile / featured card showing in the preview gets a subtle ring */
+    .cv-version-tile.is-previewing,
+    .cv-version-featured.is-previewing {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* ─── Compare modal ─────────────────────────────────────── */
+    .cv-compare-modal {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      padding: 20px;
+    }
+    .cv-compare-modal.is-open { display: block; animation: cvCompareIn 0.2s ease; }
+    @keyframes cvCompareIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .cv-compare-modal-content {
+      width: 100%; height: 100%;
+      background: var(--color-bg-2);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .cv-compare-modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    .cv-compare-modal-title {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 15px; font-weight: 700;
+      color: var(--color-heading);
+    }
+    .cv-compare-modal-title i { color: var(--color-primary); font-size: 20px; }
+    .cv-compare-modal-body {
+      flex: 1; min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      padding: 14px;
+      overflow: hidden;
+    }
+    @media (max-width: 800px) {
+      .cv-compare-modal-body { grid-template-columns: 1fr; }
+    }
+    .cv-compare-pane {
+      display: flex; flex-direction: column;
+      min-height: 0;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .cv-compare-pane-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    .cv-compare-pane-select {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      color: var(--color-text);
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .cv-compare-pane-select:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(84,197,248,0.15);
+    }
+    .cv-compare-pane-activate {
+      margin-top: 8px;
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 12px; font-weight: 700;
+      line-height: 1;
+      background: rgba(46,204,113,0.10);
+      color: #2ecc71;
+      border: 1px solid rgba(46,204,113,0.35);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .cv-compare-pane-activate:hover:not(:disabled) {
+      background: rgba(46,204,113,0.20);
+      border-color: #2ecc71;
+      box-shadow: 0 0 12px rgba(46,204,113,0.3);
+    }
+    .cv-compare-pane-activate:disabled {
+      background: rgba(46,204,113,0.05);
+      color: rgba(46,204,113,0.55);
+      border-color: rgba(46,204,113,0.2);
+      cursor: default;
+    }
+    .cv-compare-pane-activate i { font-size: 14px; }
+    .cv-compare-pane-canvases {
+      flex: 1; min-height: 0;
+      overflow-y: auto;
+      background: #fff;
+    }
+    .cv-compare-pane-canvases::-webkit-scrollbar { width: 8px; }
+    .cv-compare-pane-canvases::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); }
+    .cv-compare-pane-canvases::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.2); border-radius: 4px;
+    }
+
+    /* Bottom strip of all CVs — pick one and send to either pane */
+    .cv-compare-strip {
+      border-top: 1px solid var(--color-border);
+      padding: 12px 16px;
+      background: var(--color-bg-3);
+      flex-shrink: 0;
+      display: flex; flex-direction: column;
+      gap: 8px;
+    }
+    .cv-compare-strip-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-text-muted);
+    }
+    .cv-compare-strip-list {
+      display: flex; gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .cv-compare-strip-list::-webkit-scrollbar { height: 6px; }
+    .cv-compare-strip-list::-webkit-scrollbar-track { background: transparent; }
+    .cv-compare-strip-list::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+
+    .cv-compare-chip {
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+      padding: 10px 12px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      min-width: 260px;
+      transition: all 0.2s ease;
+    }
+    .cv-compare-chip.is-on-left,
+    .cv-compare-chip.is-on-right {
+      border-color: rgba(84,197,248,0.5);
+      box-shadow: 0 0 12px -4px rgba(84,197,248,0.4);
+    }
+    .cv-compare-chip .cv-doc-cover {
+      width: 30px; flex-shrink: 0;
+    }
+    .cv-compare-chip .cv-doc-cover-label { font-size: 8px; padding: 1px 4px; }
+    .cv-compare-chip-info {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .cv-compare-chip-name {
+      font-size: 12px; font-weight: 600;
+      color: var(--color-heading);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 150px;
+    }
+    .cv-compare-chip-meta {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .cv-compare-chip-actions {
+      display: flex; flex-direction: column; gap: 4px;
+      flex-shrink: 0;
+    }
+    .cv-compare-chip-btn {
+      padding: 4px 9px;
+      font-size: 10px; font-weight: 700;
+      background: rgba(84,197,248,0.08);
+      color: var(--color-primary);
+      border: 1px solid rgba(84,197,248,0.3);
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      letter-spacing: 0.3px;
+    }
+    .cv-compare-chip-btn:hover:not(:disabled) {
+      background: rgba(84,197,248,0.2);
+      border-color: var(--color-primary);
+    }
+    .cv-compare-chip-btn:disabled {
+      background: var(--color-primary);
+      color: #000;
+      border-color: var(--color-primary);
+      cursor: default;
+    }
+
+    /* ─── Profile section ──────────────────────────────────── */
+    .profile-split {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .profile-split { grid-template-columns: 1fr; }
+    }
+
+    /* Left identity card */
+    .profile-identity-card {
+      position: sticky;
+      top: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.75rem 1.25rem 1.5rem;
+      background: linear-gradient(180deg, var(--color-bg-3) 0%, var(--color-bg-2) 100%);
+      border: 1px solid var(--color-border);
+      border-radius: 18px;
+      box-shadow: 0 12px 32px -16px rgba(0,0,0,0.5);
+    }
+    @media (max-width: 980px) { .profile-identity-card { position: static; } }
+
+    .profile-photos-stack {
+      display: flex; align-items: flex-end; gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .profile-photo-upload {
+      position: relative;
+      cursor: pointer;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.25s ease;
+      flex-shrink: 0;
+      background: rgba(84,197,248,0.04);
+    }
+    .profile-photo-upload:hover { transform: translateY(-2px); }
+    .profile-photo-upload.size-sidebar { width: 130px; height: 130px; }
+    .profile-photo-upload.size-about   { width: 90px;  height: 120px; }
+
+    .profile-photo-img {
+      display: block;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 2px solid var(--color-border);
+    }
+    .profile-photo-empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+      gap: 4px;
+      background: rgba(84,197,248,0.04);
+      border: 2px dashed rgba(84,197,248,0.3);
+      border-radius: 16px;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      text-align: center;
+      padding: 8px;
+    }
+    .profile-photo-empty i { font-size: 22px; color: var(--color-primary); }
+    .profile-photo-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      border-radius: 16px;
+    }
+    .profile-photo-upload:hover .profile-photo-overlay { opacity: 1; }
+    .profile-photo-overlay i { font-size: 22px; }
+
+    .profile-photo-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--color-text-muted);
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .profile-info {
+      width: 100%;
+      display: flex; flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .profile-info-name {
+      font-size: 18px; font-weight: 700;
+      color: var(--color-heading);
+      text-align: center;
+      line-height: 1.2;
+    }
+    .profile-info-title {
+      font-size: 13px; font-weight: 500;
+      color: var(--color-primary);
+      text-align: center;
+    }
+    .profile-info-meta {
+      display: flex; flex-direction: column; gap: 4px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+    .profile-info-meta-row {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .profile-info-meta-row i { color: var(--color-primary); font-size: 14px; }
+
+    .profile-status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+      margin-top: 8px;
+    }
+    .profile-status-badge::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .profile-status-badge.is-open {
+      background: rgba(46,204,113,0.15);
+      color: #2ecc71;
+      border: 1px solid rgba(46,204,113,0.3);
+    }
+    .profile-status-badge.is-away {
+      background: rgba(245,158,11,0.15);
+      color: #f59e0b;
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+    .profile-status-badge.is-freelance {
+      background: rgba(84,197,248,0.15);
+      color: var(--color-primary);
+      border: 1px solid rgba(84,197,248,0.3);
+    }
+
+    /* Right form sections */
+    .profile-form-section {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      padding: 1.25rem 1.25rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .profile-form-section-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .profile-form-section-icon {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(84,197,248,0.12);
+      border-radius: 8px;
+      color: var(--color-primary);
+      flex-shrink: 0;
+    }
+    .profile-form-section-icon i { font-size: 18px; }
+    .profile-form-section-title {
+      font-size: 14px; font-weight: 700;
+      color: var(--color-heading);
+    }
+    .profile-form-section-desc {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    .profile-field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 700px) { .profile-field-grid { grid-template-columns: 1fr; } }
+    .profile-field-grid .form-group { margin-bottom: 0; }
+
+    /* Visual availability selector */
+    .profile-status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 600px) { .profile-status-grid { grid-template-columns: 1fr; } }
+    .profile-status-option {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 14px 10px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 12px; font-weight: 600;
+      color: var(--color-text);
+      text-align: center;
+      font-family: inherit;
+    }
+    .profile-status-option:hover {
+      border-color: rgba(84,197,248,0.4);
+      transform: translateY(-1px);
+    }
+    .profile-status-option.is-selected {
+      background: rgba(84,197,248,0.08);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 16px -4px rgba(84,197,248,0.4);
+      color: var(--color-primary);
+    }
+    .profile-status-option i { font-size: 22px; }
+
+    /* Bio character counter */
+    .profile-bio-meta {
+      display: flex; justify-content: flex-end;
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+
+    .profile-save-bar {
+      display: flex; justify-content: flex-end;
+      align-items: center; gap: 12px;
+      padding: 1rem 0;
+    }
+
+    /* Hero heading preview's highlights need the same blue color the
+       portfolio uses — the public CSS rule is scoped to .hero-title which
+       doesn't apply inside the dashboard preview wrapper. */
+    .dash-section .highlight {
+      color: var(--color-primary);
+      font-weight: 300;
+    }
+
+    /* Footer panel — live preview, presets, insert chips */
+    .footer-preview {
+      background: var(--color-bg-3);
+      border: 1px solid rgba(84,197,248,0.25);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 1.25rem;
+    }
+    .footer-preview-row {
+      display: flex; gap: 12px;
+      font-size: 12px;
+      padding: 5px 0;
+      align-items: baseline;
+    }
+    .footer-preview-row + .footer-preview-row { border-top: 1px dashed var(--color-border); }
+    .footer-preview-label {
+      font-weight: 700;
+      color: var(--color-primary);
+      min-width: 60px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .footer-preview-text {
+      color: var(--color-heading);
+      font-weight: 400;
+      flex: 1;
+    }
+    .footer-preview-built {
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    .footer-chip-section { margin-top: 10px; }
+    .footer-chip-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 6px;
+    }
+    .footer-chip-row {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .footer-chip {
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--color-bg-3);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .footer-chip:hover {
+      background: rgba(84,197,248,0.12);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .footer-chip.is-preset {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .footer-overrides-toggle {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 0 6px;
+      margin-top: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      width: 100%;
+      text-align: left;
+    }
+    .footer-overrides-toggle:hover { color: var(--color-primary); }
+    .footer-overrides-toggle i { transition: transform 0.2s; font-size: 14px; }
+    .footer-overrides-toggle.is-open i { transform: rotate(90deg); }
+    .footer-overrides {
+      display: none;
+      padding-top: 8px;
+      border-top: 1px dashed var(--color-border);
+    }
+    .footer-overrides.is-open { display: block; }
+
+    /* "Back to active" button in the preview toolbar */
+    .cv-back-to-active-btn {
+      display: none;        /* JS toggles to inline-flex when previewing past version */
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+      background: rgba(46,204,113,0.12);
+      color: #2ecc71;
+      border: 1px solid rgba(46,204,113,0.4);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .cv-back-to-active-btn:hover {
+      background: rgba(46,204,113,0.22);
+      border-color: #2ecc71;
+      box-shadow: 0 0 12px rgba(46,204,113,0.3);
+    }
+    .cv-back-to-active-btn i { font-size: 13px; }
+
+    /* Version history cards */
+    .cv-history-list {
+      display: flex; flex-direction: column;
+      gap: 10px;
+    }
+    .cv-version-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 18px 14px 22px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      overflow: hidden;
+    }
+    .cv-version-card::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--color-border);
+      transition: all 0.2s ease;
+    }
+    .cv-version-card.is-generated::before { background: var(--color-primary); }
+    .cv-version-card:hover {
+      transform: translateX(2px);
+      border-color: rgba(84,197,248,0.3);
+    }
+    .cv-version-card.is-active {
+      background: linear-gradient(90deg, rgba(46,204,113,0.06), transparent 60%);
+      border-color: rgba(46,204,113,0.3);
+      box-shadow: 0 4px 16px -8px rgba(46,204,113,0.4);
+    }
+    .cv-version-card.is-active::before { background: #2ecc71; box-shadow: 0 0 12px #2ecc71; }
+    .cv-version-icon {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .cv-version-info { min-width: 0; }
+    .cv-version-name {
+      font-size: 13px; font-weight: 600;
+      color: var(--color-heading);
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 3px;
+    }
+    .cv-version-name span.filename {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 240px;
+    }
+    .cv-version-meta {
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+    .cv-version-actions {
+      display: flex; gap: 6px; flex-shrink: 0;
+    }
+    .cv-version-actions .btn { padding: 6px 12px; font-size: 12px; }
+
+    /* Generate confirm banner */
+    .cv-generate-confirm {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap;
+      background: linear-gradient(135deg, rgba(84,197,248,0.1), rgba(84,197,248,0.03));
+      border: 1px solid rgba(84,197,248,0.4);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-top: 14px;
+      animation: cvSlideIn 0.4s ease;
+    }
+    @keyframes cvSlideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .cv-status-text { font-size: 13px; }
 
     /* Unread badge */
     .unread-badge {
@@ -584,9 +1901,11 @@
         <span class="unread-badge" id="unread-count" style="display:none">0</span>
       </a>
       <a href="#" data-section="profile">👤 Profile</a>
+      <a href="#" data-section="cv">📄 CV / Resume</a>
       <a href="#" data-section="social">🔗 Social Links</a>
       <a href="#" data-section="mail">📧 Mail Settings</a>
       <a href="#" data-section="github">🐙 GitHub Stats</a>
+      <a href="#" data-section="footer">📜 Footer</a>
     </nav>
     <div style="margin-top:auto;padding-top:2rem;border-top:1px solid var(--color-border)">
       <a href="/" style="color:var(--color-text-muted);font-size:0.875rem;text-decoration:none">← View Portfolio</a><br><br>
@@ -693,97 +2012,621 @@
 
     <!-- PROFILE section -->
     <div class="dash-section" id="section-profile">
+      <!-- Hidden file inputs (kept here so existing handlers find them by id) -->
+      <input type="file" id="photo-file-input"
+        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" style="display:none"
+        onchange="handlePhotoUpload(this)">
+      <input type="file" id="about-photo-file-input"
+        accept=".jpg,.jpeg,.png,.webp,.heic,.heif" style="display:none"
+        onchange="handleAboutPhotoUpload(this)">
+
+      <form id="profile-form" novalidate>
+        <div class="profile-split">
+
+          <!-- LEFT: identity card with live preview -->
+          <div class="profile-identity-card">
+            <div class="profile-photos-stack">
+              <div>
+                <div class="profile-photo-upload size-sidebar"
+                  onclick="document.getElementById('photo-file-input').click()">
+                  <div id="photo-preview-wrap" style="width:100%;height:100%">
+                    <img id="photo-preview" class="profile-photo-img" src="" alt="Sidebar photo" style="display:none">
+                    <div id="photo-empty-state" class="profile-photo-empty">
+                      <i class="ph ph-user"></i>
+                      <span>Sidebar Photo</span>
+                    </div>
+                  </div>
+                  <div class="profile-photo-overlay">
+                    <i class="ph ph-camera"></i>
+                    <span>Change</span>
+                  </div>
+                </div>
+                <div class="profile-photo-label">Sidebar · 1:1</div>
+                <div id="photo-upload-status" style="font-size:11px;text-align:center;color:var(--color-text-muted);margin-top:4px;min-height:14px"></div>
+              </div>
+              <div>
+                <div class="profile-photo-upload size-about"
+                  onclick="document.getElementById('about-photo-file-input').click()">
+                  <div id="about-photo-preview-wrap" style="width:100%;height:100%">
+                    <img id="about-photo-preview" class="profile-photo-img" src="" alt="About photo" style="display:none">
+                    <div id="about-photo-empty-state" class="profile-photo-empty">
+                      <i class="ph ph-image"></i>
+                      <span>About Photo</span>
+                    </div>
+                  </div>
+                  <div class="profile-photo-overlay">
+                    <i class="ph ph-camera"></i>
+                    <span>Change</span>
+                  </div>
+                </div>
+                <div class="profile-photo-label">About · 3:4</div>
+                <div id="about-photo-upload-status" style="font-size:11px;text-align:center;color:var(--color-text-muted);margin-top:4px;min-height:14px"></div>
+              </div>
+            </div>
+
+            <div class="profile-info">
+              <div class="profile-info-name" id="identity-name">Your Name</div>
+              <div class="profile-info-title" id="identity-title">Your Title</div>
+              <div class="profile-info-meta">
+                <div class="profile-info-meta-row" id="identity-email-row" style="display:none">
+                  <i class="ph ph-envelope"></i>
+                  <span id="identity-email"></span>
+                </div>
+                <div class="profile-info-meta-row" id="identity-location-row" style="display:none">
+                  <i class="ph ph-map-pin"></i>
+                  <span id="identity-location"></span>
+                </div>
+                <div class="profile-info-meta-row" id="identity-phone-row" style="display:none">
+                  <i class="ph ph-phone"></i>
+                  <span id="identity-phone"></span>
+                </div>
+              </div>
+              <div id="identity-status-badge" class="profile-status-badge is-open">Open to Work</div>
+            </div>
+          </div>
+
+          <!-- RIGHT: form sections -->
+          <div>
+            <!-- Hidden field bound to the visual availability selector -->
+            <input type="hidden" name="availability" id="availability-hidden" value="Open to Work">
+
+            <!-- BASIC INFO -->
+            <div class="profile-form-section">
+              <div class="profile-form-section-header">
+                <div class="profile-form-section-icon"><i class="ph ph-user-circle"></i></div>
+                <div>
+                  <div class="profile-form-section-title">Basic Information</div>
+                  <div class="profile-form-section-desc">Shown across the portfolio's hero, about, and footer</div>
+                </div>
+              </div>
+              <div class="profile-field-grid">
+                <div class="form-group">
+                  <label class="form-label social-label"><i class="ph ph-user" style="color:var(--color-primary)"></i> Full Name</label>
+                  <input class="form-control" name="full_name" placeholder="Chowdhury Md. Imtiazul Islam">
+                </div>
+                <div class="form-group">
+                  <label class="form-label social-label"><i class="ph ph-briefcase" style="color:var(--color-primary)"></i> Title</label>
+                  <input class="form-control" name="title" placeholder="Flutter Developer">
+                </div>
+                <div class="form-group">
+                  <label class="form-label social-label"><i class="ph ph-envelope" style="color:var(--color-primary)"></i> Email</label>
+                  <input class="form-control" name="email" type="email" placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                  <label class="form-label social-label"><i class="ph ph-phone" style="color:var(--color-primary)"></i> Phone</label>
+                  <input class="form-control" id="phone-input" name="phone" type="tel" placeholder="1712345678">
+                </div>
+                <div class="form-group" style="grid-column:1 / -1">
+                  <label class="form-label social-label"><i class="ph ph-map-pin" style="color:var(--color-primary)"></i> Location</label>
+                  <input class="form-control" name="location" placeholder="Dhaka, Bangladesh">
+                </div>
+              </div>
+            </div>
+
+            <!-- AVAILABILITY -->
+            <div class="profile-form-section">
+              <div class="profile-form-section-header">
+                <div class="profile-form-section-icon"><i class="ph ph-pulse"></i></div>
+                <div>
+                  <div class="profile-form-section-title">Status</div>
+                  <div class="profile-form-section-desc">What visitors see in the About section's status pill</div>
+                </div>
+              </div>
+              <div class="profile-status-grid">
+                <button type="button" class="profile-status-option" data-value="Open to Work"
+                  onclick="selectAvailability(this)">
+                  <i class="ph ph-handshake"></i>
+                  <span>Open to Work</span>
+                </button>
+                <button type="button" class="profile-status-option" data-value="Available for Freelance"
+                  onclick="selectAvailability(this)">
+                  <i class="ph ph-rocket-launch"></i>
+                  <span>Freelance</span>
+                </button>
+                <button type="button" class="profile-status-option" data-value="On Vacation"
+                  onclick="selectAvailability(this)">
+                  <i class="ph ph-tree-palm"></i>
+                  <span>On Vacation</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- HERO HEADING -->
+            <div class="profile-form-section">
+              <div class="profile-form-section-header">
+                <div class="profile-form-section-icon"><i class="ph ph-text-h-one"></i></div>
+                <div style="flex:1">
+                  <div class="profile-form-section-title">Hero Heading</div>
+                  <div class="profile-form-section-desc">The big 3-line title on the portfolio hero</div>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="restoreHeroHeadingDefault()"
+                  style="font-size:11px;padding:5px 10px">
+                  <i class="ph ph-arrow-counter-clockwise" style="font-size:12px"></i> Restore default
+                </button>
+              </div>
+
+              <!-- LIVE PREVIEW -->
+              <div class="footer-preview" style="margin-bottom:1rem">
+                <div class="footer-preview-row" style="display:block">
+                  <span class="footer-preview-label" style="display:block;margin-bottom:6px">Preview (live)</span>
+                  <h2 id="hero-heading-preview"
+                    style="font-size:18px;font-weight:300;line-height:1.5;color:var(--color-heading);margin:0">—</h2>
+                </div>
+              </div>
+
+              <!-- DEFAULT REFERENCE -->
+              <div style="background:rgba(255,255,255,0.02);border:1px dashed var(--color-border);
+                border-radius:10px;padding:12px 14px;margin-bottom:1.25rem">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;
+                  color:var(--color-text-muted);margin-bottom:6px">Default heading (used if all fields are empty)</div>
+                <div style="font-size:14px;font-weight:300;line-height:1.5;color:var(--color-heading)">
+                  I build and ship<br>
+                  beautiful apps to<br>
+                  <span class="highlight">App Store</span> &amp; <span class="highlight">Play Store.</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label social-label">
+                  <i class="ph ph-arrow-elbow-right" style="color:var(--color-primary)"></i> Line 1
+                </label>
+                <input class="form-control" name="hero_heading_line1" placeholder="I build and ship">
+                <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                  First line of the heading. Plain text, no formatting needed.
+                </p>
+              </div>
+              <div class="form-group">
+                <label class="form-label social-label">
+                  <i class="ph ph-arrow-elbow-right" style="color:var(--color-primary)"></i> Line 2
+                </label>
+                <input class="form-control" name="hero_heading_line2" placeholder="beautiful apps to">
+                <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                  Second line. Leave empty to skip this line.
+                </p>
+              </div>
+              <div class="form-group">
+                <label class="form-label social-label">
+                  <i class="ph ph-arrow-elbow-right" style="color:var(--color-primary)"></i> Line 3
+                </label>
+                <input class="form-control" name="hero_heading_line3" placeholder="App Store &amp; Play Store.">
+                <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                  Third line. Leave empty to skip this line.
+                </p>
+              </div>
+              <div class="form-group">
+                <label class="form-label social-label">
+                  <i class="ph ph-paint-brush" style="color:var(--color-primary)"></i> Highlight Words (brand colour)
+                </label>
+                <input class="form-control" name="hero_heading_highlights"
+                  placeholder="App Store, Play Store">
+                <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px;line-height:1.6">
+                  <strong style="color:var(--color-heading)">Comma-separated list of words that already appear in your lines above.</strong>
+                  Each match gets the blue brand colour on the portfolio.<br>
+                  Example: if Line 3 is <code style="color:var(--color-primary)">App Store &amp; Play Store</code> and you type
+                  <code style="color:var(--color-primary)">App Store, Play Store</code>, both phrases turn blue.<br>
+                  ⚠ Typing a word here that isn't in any line above does nothing — it doesn't add new text, it only colours existing text.
+                </p>
+              </div>
+
+              <!-- ADVANCED OVERRIDE -->
+              <button type="button" class="footer-overrides-toggle" id="hero-heading-overrides-toggle"
+                onclick="toggleHeroHeadingOverride(this)">
+                <i class="ph ph-caret-right"></i> Advanced — full custom heading (optional)
+              </button>
+              <div class="footer-overrides" id="hero-heading-overrides">
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label social-label">
+                    <i class="ph ph-code" style="color:var(--color-primary)"></i> Free-form heading
+                  </label>
+                  <textarea class="form-control" name="hero_heading_override" rows="4"
+                    placeholder="I build and ship&#10;beautiful apps to&#10;*App Store* &amp; *Play Store.*"></textarea>
+                  <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px;line-height:1.6">
+                    <strong style="color:var(--color-heading)">Use this when you need full control or want to add new highlighted words that aren't in the lines above.</strong><br>
+                    • Press Enter for a new line break (no `&lt;br&gt;` needed)<br>
+                    • Wrap any word in <code style="color:var(--color-primary)">*asterisks*</code> to colour it brand-blue.
+                      Example: <code style="color:var(--color-primary)">Hello *World*</code> shows "World" in blue<br>
+                    • Filling this field <strong style="color:var(--color-heading)">replaces</strong> the Lines 1/2/3 + Highlight Words above
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- HERO PILL -->
+            <div class="profile-form-section">
+              <div class="profile-form-section-header">
+                <div class="profile-form-section-icon"><i class="ph ph-hand-waving"></i></div>
+                <div>
+                  <div class="profile-form-section-title">Hero Pill</div>
+                  <div class="profile-form-section-desc">The "Say Hi from …" pill above your name on the portfolio hero</div>
+                </div>
+              </div>
+              <div class="profile-field-grid">
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label social-label">
+                    <i class="ph ph-user-rectangle" style="color:var(--color-primary)"></i> Nickname
+                  </label>
+                  <input class="form-control" name="nickname" placeholder="e.g. Imtiaz, Rafi, etc.">
+                  <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                    Used as the greeting name. Empty = first word of your Full Name.
+                  </p>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label social-label">
+                    <i class="ph ph-quotes" style="color:var(--color-primary)"></i> Hero Subtitle Override (optional)
+                  </label>
+                  <input class="form-control" name="hero_subtitle"
+                    placeholder="Default: Say Hi from {nickname}, {title}">
+                  <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+                    Type your own pill text. Use <code style="color:var(--color-primary)">{name}</code>, <code style="color:var(--color-primary)">{title}</code>, <code style="color:var(--color-primary)">{nickname}</code> placeholders.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- BIO -->
+            <div class="profile-form-section">
+              <div class="profile-form-section-header">
+                <div class="profile-form-section-icon"><i class="ph ph-text-align-left"></i></div>
+                <div>
+                  <div class="profile-form-section-title">About You</div>
+                  <div class="profile-form-section-desc">Bio for the About section, plus a one-liner for the hero</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label social-label"><i class="ph ph-quotes" style="color:var(--color-primary)"></i> Short Bio (hero one-liner)</label>
+                <input class="form-control" name="short_bio" placeholder="Crafting beautiful Flutter apps with care.">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label social-label"><i class="ph ph-article" style="color:var(--color-primary)"></i> Long Bio (about section)</label>
+                <textarea class="form-control" name="bio" rows="5" id="profile-bio-textarea"
+                  placeholder="Tell visitors about your background, what drives you, what you're working on…"></textarea>
+                <div class="profile-bio-meta"><span id="profile-bio-count">0</span> characters</div>
+              </div>
+            </div>
+
+            <div class="profile-save-bar">
+              <span id="profile-save-status" style="font-size:13px;color:var(--color-text-muted)"></span>
+              <button type="submit" class="btn btn-primary">
+                <i class="ph ph-check" style="font-size:14px;vertical-align:middle"></i> Save Profile
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </form>
+    </div>
+
+    <!-- FOOTER & COPYRIGHT section -->
+    <div class="dash-section" id="section-footer">
       <div class="dash-panel">
         <div class="dash-panel-header">
-          <h3 class="dash-panel-title">Edit Profile</h3>
+          <h3 class="dash-panel-title">📜 Footer & Copyright</h3>
         </div>
-        <form id="profile-form" novalidate>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
-            <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" name="full_name" placeholder="Chowdhury Md. Imtiazul Islam"></div>
-            <div class="form-group"><label class="form-label">Title</label><input class="form-control" name="title" placeholder="Flutter Developer"></div>
-            <div class="form-group"><label class="form-label">Email</label><input class="form-control" name="email" type="email"></div>
-            <div class="form-group"><label class="form-label">Location</label><input class="form-control" name="location" placeholder="Dhaka, Bangladesh"></div>
-            <div class="form-group"><label class="form-label">Availability</label>
-              <select class="form-control" name="availability">
-                <option>Open to Work</option>
-                <option>Busy</option>
-                <option>Available for Freelance</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group"><label class="form-label">Bio</label><textarea class="form-control" name="bio" rows="4"></textarea></div>
-          <div class="form-group"><label class="form-label">Short Bio (hero)</label><input class="form-control" name="short_bio"></div>
+        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:1.5rem">
+          Sidebar + footer copyright lines. Use <code style="color:var(--color-primary)">{year}</code> and <code style="color:var(--color-primary)">{name}</code> placeholders — they auto-fill on the public site.
+        </p>
 
-          <!-- Sidebar Photo Upload -->
-          <div class="form-group" style="border-top:1px solid var(--color-border);padding-top:1.5rem;margin-top:0.5rem">
-            <label class="form-label" style="font-size:1rem;margin-bottom:0.25rem">🖼 Sidebar Card Photo</label>
-            <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:1rem">
-              Shown in the <strong style="color:var(--color-heading)">left sidebar card</strong> on the portfolio.
-              Recommended: <strong style="color:var(--color-heading)">800×800px square</strong>, JPG or PNG, max 10MB.
-            </p>
-            <div id="photo-preview-wrap" style="display:none;margin-bottom:12px">
-              <img id="photo-preview" src="" alt="Sidebar photo"
-                style="width:120px;height:120px;object-fit:cover;border-radius:16px;
-                       border:2px solid var(--color-border);display:block">
+        <form id="footer-form" novalidate>
+          <!-- LIVE PREVIEW -->
+          <div class="footer-preview">
+            <div class="footer-preview-row">
+              <span class="footer-preview-label">Sidebar</span>
+              <span class="footer-preview-text" id="footer-preview-sidebar">—</span>
             </div>
-            <div style="display:flex;align-items:center;gap:12px">
-              <input type="file" id="photo-file-input" accept=".jpg,.jpeg,.png,.webp,.heic,.heif" style="display:none"
-                onchange="handlePhotoUpload(this)">
-              <button type="button" onclick="document.getElementById('photo-file-input').click()"
-                class="btn btn-ghost btn-sm">🖼 Upload Sidebar Photo</button>
-              <span id="photo-upload-status" style="font-size:13px;color:var(--color-text-muted)"></span>
+            <div class="footer-preview-row">
+              <span class="footer-preview-label">Footer</span>
+              <span style="flex:1">
+                <span class="footer-preview-text" id="footer-preview-footer">—</span>
+                <div class="footer-preview-built" id="footer-preview-built" style="display:none"></div>
+              </span>
             </div>
           </div>
 
-          <!-- About Section Photo Upload -->
-          <div class="form-group" style="border-top:1px solid var(--color-border);padding-top:1.5rem;margin-top:0.5rem">
-            <label class="form-label" style="font-size:1rem;margin-bottom:0.25rem">🖼 About Section Photo</label>
-            <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:1rem">
-              Shown in the <strong style="color:var(--color-heading)">About Me section</strong> of the portfolio.
-              Recommended: <strong style="color:var(--color-heading)">600×800px portrait</strong>, JPG or PNG, max 10MB.
-            </p>
-            <div id="about-photo-preview-wrap" style="display:none;margin-bottom:12px">
-              <img id="about-photo-preview" src="" alt="About section photo"
-                style="width:90px;height:120px;object-fit:cover;border-radius:12px;
-                       border:2px solid var(--color-border);display:block">
-            </div>
-            <div style="display:flex;align-items:center;gap:12px">
-              <input type="file" id="about-photo-file-input" accept=".jpg,.jpeg,.png,.webp,.heic,.heif" style="display:none"
-                onchange="handleAboutPhotoUpload(this)">
-              <button type="button" onclick="document.getElementById('about-photo-file-input').click()"
-                class="btn btn-ghost btn-sm">🖼 Upload About Photo</button>
-              <span id="about-photo-upload-status" style="font-size:13px;color:var(--color-text-muted)"></span>
-            </div>
-          </div>
+          <!-- MAIN COPYRIGHT -->
+          <div class="form-group">
+            <label class="form-label social-label">
+              <i class="ph ph-copyright" style="color:var(--color-primary)"></i> Copyright Text (used for both, unless overridden)
+            </label>
+            <input class="form-control" name="copyright_text" id="footer-input-copyright"
+              placeholder="© {year} {name}. All Rights Reserved.">
 
-          <!-- CV Upload -->
-          <div class="form-group" style="border-top:1px solid var(--color-border);padding-top:1.5rem;margin-top:0.5rem">
-            <label class="form-label" style="font-size:1rem;margin-bottom:0.25rem">📄 CV / Resume</label>
-            <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:1rem">
-              Upload your CV as a PDF. It will be used for the "Download CV" button on your portfolio.
-            </p>
-            <div id="cv-current" style="display:none;align-items:center;gap:10px;
-              background:var(--color-bg);border:1px solid var(--color-border);
-              border-radius:10px;padding:12px 16px;margin-bottom:12px">
-              <span style="font-size:22px">📕</span>
-              <div style="flex:1">
-                <div style="font-size:13px;font-weight:600;color:var(--color-heading)" id="cv-filename">cv.pdf</div>
-                <div style="font-size:11px;color:var(--color-text-muted)">Currently uploaded</div>
+            <!-- QUICK PRESETS -->
+            <div class="footer-chip-section">
+              <div class="footer-chip-label">Quick presets</div>
+              <div class="footer-chip-row">
+                <button type="button" class="footer-chip is-preset"
+                  onclick="applyFooterPreset('© {year} {name}. All Rights Reserved.')">Standard</button>
+                <button type="button" class="footer-chip is-preset"
+                  onclick="applyFooterPreset('© {year} {name}')">Minimal</button>
+                <button type="button" class="footer-chip is-preset"
+                  onclick="applyFooterPreset('Made with ❤️ by {name} · {year}')">Made with ❤️</button>
+                <button type="button" class="footer-chip is-preset"
+                  onclick="applyFooterPreset('© {year} · Crafted by {name}')">Crafted by</button>
+                <button type="button" class="footer-chip is-preset"
+                  onclick="applyFooterPreset('{name} · All Rights Reserved · {year}')">Reverse</button>
               </div>
-              <a id="cv-view-btn" href="#" target="_blank"
-                style="font-size:12px;color:var(--color-primary);text-decoration:none">View</a>
             </div>
-            <div style="display:flex;align-items:center;gap:12px">
-              <input type="file" id="cv-file-input" accept=".pdf" style="display:none"
-                onchange="handleCVUpload(this)">
-              <button type="button" onclick="document.getElementById('cv-file-input').click()"
-                class="btn btn-ghost btn-sm">⬆ Upload PDF</button>
-              <span id="cv-upload-status" style="font-size:13px;color:var(--color-text-muted)"></span>
+
+            <!-- INSERT CHIPS -->
+            <div class="footer-chip-section">
+              <div class="footer-chip-label">Insert at cursor</div>
+              <div class="footer-chip-row">
+                <button type="button" class="footer-chip" onclick="insertIntoFooterField('{year}')">{year}</button>
+                <button type="button" class="footer-chip" onclick="insertIntoFooterField('{name}')">{name}</button>
+                <button type="button" class="footer-chip" onclick="insertIntoFooterField('© ')">©</button>
+                <button type="button" class="footer-chip" onclick="insertIntoFooterField(' · ')">·</button>
+                <button type="button" class="footer-chip" onclick="insertIntoFooterField('❤️')">❤️</button>
+                <button type="button" class="footer-chip" onclick="insertIntoFooterField('✨')">✨</button>
+                <button type="button" class="footer-chip" onclick="insertIntoFooterField('💙')">💙</button>
+                <button type="button" class="footer-chip" onclick="insertIntoFooterField('🚀')">🚀</button>
+              </div>
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary">Save Profile</button>
+          <!-- BUILT WITH (footer second line) -->
+          <div class="form-group">
+            <label class="form-label social-label">
+              <i class="ph ph-sparkle" style="color:var(--color-primary)"></i> Footer "Built with" line (optional)
+            </label>
+            <input class="form-control" name="footer_built_with" id="footer-input-built"
+              placeholder="e.g. Built with Flutter spirit 💙">
+            <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+              Shows below the footer copyright. Leave empty to hide.
+            </p>
+          </div>
+
+          <!-- COLLAPSIBLE PER-PLACE OVERRIDES -->
+          <button type="button" class="footer-overrides-toggle" id="footer-overrides-toggle"
+            onclick="toggleFooterOverrides(this)">
+            <i class="ph ph-caret-right"></i> Per-place overrides (optional)
+          </button>
+          <div class="footer-overrides" id="footer-overrides">
+            <div class="form-group">
+              <label class="form-label social-label">
+                <i class="ph ph-square-half" style="color:var(--color-primary)"></i> Sidebar copyright override
+              </label>
+              <input class="form-control" name="sidebar_copyright_text" id="footer-input-sidebar"
+                placeholder="Leave blank to use the main copyright above">
+            </div>
+            <div class="form-group">
+              <label class="form-label social-label">
+                <i class="ph ph-square-half-bottom" style="color:var(--color-primary)"></i> Footer copyright override
+              </label>
+              <input class="form-control" name="footer_copyright_text" id="footer-input-footer"
+                placeholder="Leave blank to use the main copyright above">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top:1rem">
+            <i class="ph ph-check" style="font-size:14px;vertical-align:middle"></i> Save Footer
+          </button>
         </form>
+      </div>
+    </div>
+
+    <!-- CV / RESUME section -->
+    <div class="dash-section" id="section-cv">
+
+      <!-- Hidden file input -->
+      <input type="file" id="cv-file-input" accept=".pdf" style="display:none"
+        onchange="handleCVUpload(this)">
+
+      <!-- Hero + actions panel -->
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">📄 CV / Resume</h3>
+        </div>
+        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:1.5rem">
+          Upload a PDF, or auto-generate one from your profile, skills, and experience.
+          Every saved CV is kept in the version history — switch the active one anytime.
+        </p>
+
+        <!-- HERO: currently active CV -->
+        <div id="cv-hero" class="cv-hero cv-hero-empty">
+          <div style="font-size:14px">No CV active yet. Upload one or generate from your data below.</div>
+        </div>
+
+        <!-- ACTION CARDS -->
+        <div class="cv-actions-grid">
+          <button type="button" class="cv-action-card"
+            onclick="document.getElementById('cv-file-input').click()">
+            <div class="cv-action-icon"><i class="ph ph-upload-simple"></i></div>
+            <div class="cv-action-text">
+              <div class="cv-action-title">Upload PDF</div>
+              <div class="cv-action-desc">Pick a CV file from your computer (replaces current)</div>
+            </div>
+          </button>
+          <button type="button" id="cv-generate-btn" class="cv-action-card primary"
+            onclick="handleCVGenerate(this)">
+            <div class="cv-action-icon"><i class="ph ph-magic-wand"></i></div>
+            <div class="cv-action-text">
+              <div class="cv-action-title">Generate from Data</div>
+              <div class="cv-action-desc">Build a CV from your profile, skills & experience</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Status / generate-confirm slot -->
+        <div id="cv-status-slot" style="margin-bottom:1.25rem;min-height:0">
+          <div id="cv-upload-status" class="cv-status-text" style="color:var(--color-text-muted)"></div>
+        </div>
+
+        <!-- STATS ROW -->
+        <div class="cv-stats">
+          <div class="cv-stat">
+            <div class="cv-stat-icon"><i class="ph ph-download-simple"></i></div>
+            <div>
+              <div class="cv-stat-num" id="cv-download-count">0</div>
+              <div class="cv-stat-label">Downloads</div>
+            </div>
+          </div>
+          <div class="cv-stat">
+            <div class="cv-stat-icon"><i class="ph ph-stack"></i></div>
+            <div>
+              <div class="cv-stat-num" id="cv-version-count">0</div>
+              <div class="cv-stat-label">Versions Saved</div>
+            </div>
+          </div>
+          <div class="cv-stat">
+            <div class="cv-stat-icon"><i class="ph ph-clock"></i></div>
+            <div>
+              <div class="cv-stat-num" id="cv-last-updated" style="font-size:14px;font-weight:600">—</div>
+              <div class="cv-stat-label">Last Updated</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISIBILITY ROW -->
+        <div class="cv-visibility-row">
+          <div class="cv-visibility-text">
+            <div class="cv-visibility-title">Show on portfolio</div>
+            <div class="cv-visibility-desc">Controls the "Download CV" button visibility for visitors</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="cv-visibility-toggle" onchange="handleCVVisibility(this)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Side-by-side: Preview (80%) | History (20%) -->
+      <div class="cv-split">
+
+      <!-- PREVIEW panel -->
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title" style="font-size:1rem">
+            <i class="ph ph-file-pdf" style="color:var(--color-primary);font-size:1.1rem"></i> Preview
+          </h3>
+        </div>
+
+        <div id="cv-preview-empty" style="padding:3rem;text-align:center;color:var(--color-text-muted);font-size:14px;
+          background:var(--color-bg);border:1px dashed var(--color-border);border-radius:14px">
+          <i class="ph ph-file-x" style="font-size:48px;display:block;margin-bottom:12px;opacity:0.4"></i>
+          No CV active yet. Preview will appear once you upload or generate one.
+        </div>
+
+        <div id="cv-preview-shell" style="display:none">
+          <!-- Toolbar -->
+          <div class="cv-preview-toolbar">
+            <div class="cv-preview-toolbar-info">
+              <div class="cv-preview-toolbar-icon"><i class="ph ph-file-pdf"></i></div>
+              <span class="cv-preview-filename" id="cv-preview-label"></span>
+              <span id="cv-preview-source-pill"></span>
+              <span id="cv-preview-size-pill" class="cv-pill cv-pill-uploaded" style="display:none"></span>
+              <span id="cv-preview-previewing-pill" class="cv-pill" style="display:none;
+                background:rgba(255,193,7,0.15);color:#ffc107;border:1px solid rgba(255,193,7,0.4)">
+                <i class="ph ph-eye" style="font-size:11px"></i> Previewing past version
+              </span>
+              <button id="cv-preview-back-to-active" type="button"
+                onclick="previewActiveCV()" class="cv-back-to-active-btn">
+                <i class="ph ph-arrow-u-up-left"></i> Back to active
+              </button>
+            </div>
+            <div class="cv-preview-toolbar-actions">
+              <a id="cv-preview-open" href="#" target="_blank" class="icon-btn" title="Open in new tab">
+                <i class="ph ph-arrow-square-out"></i>
+              </a>
+              <a id="cv-preview-download" href="#" download class="icon-btn" title="Download">
+                <i class="ph ph-download-simple"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Stacked canvas pages — auto-sizes to exact PDF height -->
+          <div id="cv-preview-wrap" class="cv-preview-wrap">
+            <div id="cv-preview-canvas-container" class="cv-preview-canvas-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VERSION HISTORY panel (narrow side column) -->
+      <div class="dash-panel cv-history-side">
+        <div class="dash-panel-header" style="align-items:center">
+          <h3 class="dash-panel-title" style="font-size:1rem">
+            <i class="ph ph-clock-counter-clockwise" style="color:var(--color-primary);font-size:1.1rem"></i> History
+          </h3>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="cv-history-count" style="font-size:11px;color:var(--color-text-muted)"></span>
+            <button type="button" class="icon-btn" onclick="openCompareModal()"
+              title="Compare two CVs side by side" style="width:28px;height:28px">
+              <i class="ph ph-columns" style="font-size:14px"></i>
+            </button>
+          </div>
+        </div>
+        <div id="cv-history-list">
+          <div style="padding:1.5rem;text-align:center;color:var(--color-text-muted);font-size:12px">
+            Loading…
+          </div>
+        </div>
+      </div>
+
+      </div><!-- /cv-split -->
+
+      <!-- COMPARE MODAL -->
+      <div id="cv-compare-modal" class="cv-compare-modal" onclick="if(event.target===this) closeCompareModal()">
+        <div class="cv-compare-modal-content">
+          <div class="cv-compare-modal-header">
+            <div class="cv-compare-modal-title">
+              <i class="ph ph-columns"></i> Compare CVs
+            </div>
+            <button class="icon-btn" onclick="closeCompareModal()" title="Close (Esc)">
+              <i class="ph ph-x"></i>
+            </button>
+          </div>
+          <div class="cv-compare-modal-body">
+            <div class="cv-compare-pane">
+              <div class="cv-compare-pane-header">
+                <select id="cv-compare-left-select" class="cv-compare-pane-select"
+                  onchange="loadComparePane('left')"></select>
+                <button id="cv-compare-left-activate" type="button"
+                  class="cv-compare-pane-activate"
+                  onclick="makeActiveFromCompare('left')">
+                  <i class="ph ph-check-circle"></i> Make Active
+                </button>
+              </div>
+              <div id="cv-compare-left-canvas" class="cv-compare-pane-canvases"></div>
+            </div>
+            <div class="cv-compare-pane">
+              <div class="cv-compare-pane-header">
+                <select id="cv-compare-right-select" class="cv-compare-pane-select"
+                  onchange="loadComparePane('right')"></select>
+                <button id="cv-compare-right-activate" type="button"
+                  class="cv-compare-pane-activate"
+                  onclick="makeActiveFromCompare('right')">
+                  <i class="ph ph-check-circle"></i> Make Active
+                </button>
+              </div>
+              <div id="cv-compare-right-canvas" class="cv-compare-pane-canvases"></div>
+            </div>
+          </div>
+
+          <!-- All-CVs strip — pick any saved CV and route it to either pane -->
+          <div class="cv-compare-strip">
+            <div class="cv-compare-strip-label">All saved CVs · click ← Left or Right → to swap into a pane</div>
+            <div id="cv-compare-strip-list" class="cv-compare-strip-list"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -799,12 +2642,34 @@
         </p>
         <form id="social-form" novalidate>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
-            <div class="form-group"><label class="form-label">GitHub URL</label><input class="form-control" name="github" type="url" placeholder="https://github.com/yourusername"></div>
-            <div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-control" name="linkedin" type="url" placeholder="https://linkedin.com/in/yourusername"></div>
-            <div class="form-group"><label class="form-label">Twitter / X URL</label><input class="form-control" name="twitter" type="url" placeholder="https://twitter.com/yourusername"></div>
-            <div class="form-group"><label class="form-label">Instagram URL</label><input class="form-control" name="instagram" type="url" placeholder="https://instagram.com/yourusername"></div>
+            <div class="form-group">
+              <label class="form-label social-label">
+                <i class="ph ph-github-logo" style="color:#f0f6fc"></i> GitHub URL
+              </label>
+              <input class="form-control" name="github" type="url" placeholder="https://github.com/yourusername">
+            </div>
+            <div class="form-group">
+              <label class="form-label social-label">
+                <i class="ph ph-linkedin-logo" style="color:#0a66c2"></i> LinkedIn URL
+              </label>
+              <input class="form-control" name="linkedin" type="url" placeholder="https://linkedin.com/in/yourusername">
+            </div>
+            <div class="form-group">
+              <label class="form-label social-label">
+                <i class="ph ph-twitter-logo" style="color:#1da1f2"></i> Twitter / X URL
+              </label>
+              <input class="form-control" name="twitter" type="url" placeholder="https://twitter.com/yourusername">
+            </div>
+            <div class="form-group">
+              <label class="form-label social-label">
+                <i class="ph ph-instagram-logo" style="color:#e4405f"></i> Instagram URL
+              </label>
+              <input class="form-control" name="instagram" type="url" placeholder="https://instagram.com/yourusername">
+            </div>
             <div class="form-group" style="grid-column:1 / -1">
-              <label class="form-label">WhatsApp Number</label>
+              <label class="form-label social-label">
+                <i class="ph ph-whatsapp-logo" style="color:#25d366"></i> WhatsApp Number
+              </label>
               <input class="form-control" id="whatsapp-input" name="whatsapp" type="tel" placeholder="171234567">
               <p style="font-size:12px;color:var(--color-text-muted);margin-top:6px">
                 Pick your country from the flag dropdown, then type the rest of your number.
@@ -987,13 +2852,46 @@
 
   // Initialize WhatsApp country code picker
   initWhatsAppPicker();
+  initPhonePicker();
 
   // Profile form (also populates Social Links + Mail Settings + GitHub Stats forms)
   loadProfile();
   document.getElementById('profile-form').addEventListener('submit', saveProfile);
+
+  // Live identity-card updates as the user edits the form
+  ['full_name', 'title', 'email', 'phone', 'location'].forEach(name => {
+    const input = document.querySelector(`#profile-form [name="${name}"]`);
+    if (input) input.addEventListener('input', () => updateIdentityCard());
+  });
+  // Bio character counter
+  const bio = document.getElementById('profile-bio-textarea');
+  if (bio) bio.addEventListener('input', updateBioCount);
+
+  // Footer panel — live preview reacts to any of the four text fields,
+  // and the 3 footer text inputs each register themselves as the "last
+  // focused" so the insert chips know where to drop the snippet.
+  const footerInputs = ['footer-input-copyright', 'footer-input-built',
+                         'footer-input-sidebar',   'footer-input-footer'];
+  footerInputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', updateFooterPreview);
+    el.addEventListener('focus', () => { _lastFooterFocused = id; });
+  });
+  // The full_name field also affects the preview ({name} placeholder)
+  const nameInput = document.querySelector('#profile-form [name="full_name"]');
+  if (nameInput) nameInput.addEventListener('input', updateFooterPreview);
+
+  // Hero heading — live preview reacts to all 5 fields
+  ['hero_heading_line1','hero_heading_line2','hero_heading_line3',
+   'hero_heading_highlights','hero_heading_override'].forEach(n => {
+    const el = document.querySelector(`#profile-form [name="${n}"]`);
+    if (el) el.addEventListener('input', updateHeroHeadingPreview);
+  });
   document.getElementById('social-form').addEventListener('submit', saveSocial);
   document.getElementById('mail-form').addEventListener('submit', saveMail);
   document.getElementById('github-form').addEventListener('submit', saveGitHub);
+  document.getElementById('footer-form').addEventListener('submit', saveFooter);
 })();
 
 let whatsappITI = null;
@@ -1008,6 +2906,20 @@ function initWhatsAppPicker() {
   });
 }
 
+let phoneITI = null;
+function initPhonePicker() {
+  const input = document.getElementById('phone-input');
+  if (!input || !window.intlTelInput) return;
+  phoneITI = window.intlTelInput(input, {
+    initialCountry: 'bd',
+    preferredCountries: ['bd', 'us', 'gb', 'in', 'ae'],
+    separateDialCode: true,
+    utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/utils.js',
+  });
+  // Keep the identity card preview in sync after country switches too
+  input.addEventListener('countrychange', () => updateIdentityCard());
+}
+
 function showSection(name) {
   document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.dash-nav a').forEach(a => a.classList.remove('active'));
@@ -1016,8 +2928,8 @@ function showSection(name) {
   document.getElementById('dash-title').textContent =
     { overview:'Overview', projects:'Projects', skills:'Skills',
       experience:'Experience', messages:'Messages', profile:'Profile',
-      social:'Social Links', mail:'Mail Settings',
-      github:'GitHub Stats' }[name] || name;
+      cv:'CV / Resume', social:'Social Links', mail:'Mail Settings',
+      github:'GitHub Stats', footer:'Footer & Copyright' }[name] || name;
 
   // Lazy-load section data
   if (name === 'projects') loadProjects();
@@ -1028,6 +2940,7 @@ function showSection(name) {
     loadMailHistory();
     autoTestMailForm();
   }
+  else if (name === 'cv') loadCVTab();
 }
 
 // Tests the values currently in the Mail Settings form (typically prefilled
@@ -1958,22 +3871,19 @@ async function handleCVUpload(input) {
     const uploaded = await API.upload('/upload', formData);
     const url = uploaded.data.url;
 
-    // Step 2 — Save only cv_file using the dedicated endpoint (no other fields touched)
-    await API.put('/profile/cv', { cv_file: url });
-
-    // Step 4 — Update the UI
-    const cvSection  = document.getElementById('cv-current');
-    const cvFilename = document.getElementById('cv-filename');
-    const cvViewBtn  = document.getElementById('cv-view-btn');
-    if (cvSection) {
-      cvSection.style.display = 'flex';
-      cvFilename.textContent  = file.name;
-      cvViewBtn.href          = url;
-    }
+    // Step 2 — Save cv_file + metadata; backend appends a history row and sets it active
+    await API.put('/profile/cv', {
+      cv_file:   url,
+      file_name: file.name,
+      file_size: file.size
+    });
 
     status.textContent = '✓ CV uploaded successfully!';
     status.style.color = 'var(--color-primary)';
     setTimeout(() => { status.textContent = ''; }, 4000);
+
+    // Refresh history list, preview, and active row
+    loadCVTab();
   } catch (err) {
     status.textContent = err.message || 'Upload failed';
     status.style.color = 'var(--color-error)';
@@ -1982,18 +3892,836 @@ async function handleCVUpload(input) {
   input.value = '';
 }
 
+// ─── CV tab — generate, visibility, history, preview ──────────
+
+async function handleCVGenerate(btn) {
+  const status = document.getElementById('cv-upload-status');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+  status.textContent = '';
+  try {
+    const res = await API.post('/profile/cv/generate', {});
+    const newRow = res.data;
+    status.textContent = '';
+    // Refresh the list and preview first so the admin can see the new CV
+    // before deciding. The new row is in history but not yet active.
+    await loadCVTab();
+    showGeneratedConfirm(newRow);
+  } catch (err) {
+    status.textContent = err.message || 'Generate failed';
+    status.style.color = 'var(--color-error)';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+// Inline prompt shown after a CV is generated. Asks the admin whether to
+// set the new CV as active. Avoids native confirm() to stay consistent with
+// the rest of the dashboard's click-twice / inline-prompt pattern.
+function showGeneratedConfirm(row) {
+  if (!row || !row.id) return;
+  const host = document.getElementById('cv-upload-status').parentElement;
+  // Remove any prior banner so re-clicking Generate doesn't stack them
+  document.querySelectorAll('.cv-generate-confirm').forEach(el => el.remove());
+
+  const banner = document.createElement('div');
+  banner.className = 'cv-generate-confirm';
+  banner.style.cssText =
+    'flex-basis:100%;display:flex;align-items:center;gap:12px;flex-wrap:wrap;' +
+    'background:rgba(84,197,248,0.08);border:1px solid rgba(84,197,248,0.3);' +
+    'border-radius:10px;padding:12px 16px;margin-top:10px';
+  banner.innerHTML = `
+    <span style="font-size:18px">✓</span>
+    <div style="flex:1;min-width:200px;font-size:13px;color:var(--color-heading)">
+      CV generated and saved to history. <strong>Preview it below</strong> — set it as active now?
+    </div>
+    <button class="btn btn-primary btn-sm" id="cv-gen-yes">Yes, set as active</button>
+    <button class="btn btn-ghost btn-sm" id="cv-gen-no">Not now</button>
+  `;
+  host.appendChild(banner);
+
+  const dismiss = () => banner.remove();
+  banner.querySelector('#cv-gen-yes').addEventListener('click', async () => {
+    try {
+      await API.post(`/profile/cv/history/${row.id}/activate`, {});
+      Toast.show('Generated CV is now active', 'success');
+      dismiss();
+      loadCVTab();
+    } catch (err) {
+      Toast.show(err.message || 'Failed to activate', 'error');
+    }
+  });
+  banner.querySelector('#cv-gen-no').addEventListener('click', dismiss);
+}
+
+async function handleCVVisibility(checkbox) {
+  try {
+    await API.put('/profile/cv/visibility', { cv_visible: checkbox.checked });
+    Toast.show(
+      checkbox.checked
+        ? 'Download CV button is now visible on the portfolio'
+        : 'Download CV button is now hidden from the portfolio',
+      'success'
+    );
+  } catch (err) {
+    // Roll back the checkbox so UI matches server state
+    checkbox.checked = !checkbox.checked;
+    Toast.show(err.message || 'Failed to update visibility', 'error');
+  }
+}
+
+// loadCVTab pulls the latest profile + history and rebuilds the hero card,
+// stats, preview, visibility toggle, and history list.
+async function loadCVTab() {
+  let profile = null;
+  let history = [];
+  try {
+    const pres = await API.get('/profile');
+    profile = pres.data;
+  } catch { /* ignore */ }
+  try {
+    const hres = await API.get('/profile/cv/history');
+    history = hres.data || [];
+  } catch (err) {
+    document.getElementById('cv-history-list').innerHTML =
+      `<div style="padding:1rem;color:var(--color-error);font-size:13px">
+        Failed to load history: ${escapeHTML(err.message || 'unknown error')}
+      </div>`;
+  }
+
+  // Find the active CV row (matches profile.cv_file)
+  const activeRow = profile && profile.cv_file
+    ? history.find(r => r.file_path === profile.cv_file) || null
+    : null;
+
+  renderCVHero(profile, activeRow);
+  renderCVStats(profile, history);
+  renderCVVisibility(profile);
+  // Render history first so _cvHistoryRowsById is populated AND the DOM has
+  // the data-cv-row-id elements before the preview tries to highlight one.
+  renderCVHistory(history);
+  renderCVPreview(profile, activeRow);
+}
+
+function renderCVHero(profile, activeRow) {
+  const hero = document.getElementById('cv-hero');
+  if (!hero) return;
+  if (!profile || !profile.cv_file) {
+    hero.className = 'cv-hero cv-hero-empty';
+    hero.innerHTML = `<div style="font-size:14px">
+      No CV active yet. Upload one or generate from your data below.
+    </div>`;
+    return;
+  }
+  const filename = activeRow
+    ? activeRow.file_name
+    : profile.cv_file.split('/').pop();
+  const sourcePill = activeRow && activeRow.source === 'generated'
+    ? `<span class="cv-pill cv-pill-generated"><i class="ph ph-magic-wand" style="font-size:11px"></i> Generated</span>`
+    : `<span class="cv-pill cv-pill-uploaded"><i class="ph ph-upload-simple" style="font-size:11px"></i> Uploaded</span>`;
+  const sizeStr = activeRow && activeRow.file_size
+    ? `${Math.max(1, Math.round(activeRow.file_size / 1024))} KB`
+    : '';
+  const dateStr = activeRow && activeRow.created_at
+    ? new Date(activeRow.created_at).toLocaleString(undefined, { dateStyle: 'medium' })
+    : '';
+  const metaLine = [sizeStr, dateStr].filter(Boolean).join(' · ');
+
+  hero.className = 'cv-hero';
+  hero.innerHTML = `
+    <div class="cv-hero-icon">📄</div>
+    <div class="cv-hero-info">
+      <div class="cv-hero-name">
+        <span class="filename" title="${escapeHTML(filename)}">${escapeHTML(filename)}</span>
+        <span class="cv-pill cv-pill-active">Active</span>
+        ${sourcePill}
+      </div>
+      <div class="cv-hero-meta">${escapeHTML(metaLine || 'Currently shown to portfolio visitors')}</div>
+    </div>
+    <div class="cv-hero-actions">
+      <button type="button" class="btn btn-ghost btn-sm"
+        onclick="document.getElementById('cv-file-input').click()">Replace</button>
+    </div>`;
+}
+
+function renderCVPreview(profile, activeRow) {
+  // The default preview shows the active CV. previewCVByRowId() can swap it
+  // to any other history row without re-running loadCVTab.
+  if (!profile || !profile.cv_file) {
+    setCVPreview(null, false);
+    return;
+  }
+  // Build a synthetic row if the active CV isn't in the history (edge case)
+  const row = activeRow || {
+    file_path: profile.cv_file,
+    file_name: profile.cv_file.split('/').pop(),
+    source: 'uploaded',
+    file_size: 0,
+    is_active: true,
+  };
+  setCVPreview(row, true);
+}
+
+// setCVPreview swaps the preview area to show a specific CV row. Used by both
+// the default render (active CV) and the manual Preview buttons in history.
+function setCVPreview(row, isActive) {
+  // Cache the active row whenever it's set so the "Back to active" button
+  // can find it even if the history hasn't re-rendered yet.
+  if (isActive && row) _cvActiveRow = row;
+  const shell = document.getElementById('cv-preview-shell');
+  const empty = document.getElementById('cv-preview-empty');
+  const label = document.getElementById('cv-preview-label');
+  const sourceSlot = document.getElementById('cv-preview-source-pill');
+  const sizePill   = document.getElementById('cv-preview-size-pill');
+  const previewingPill = document.getElementById('cv-preview-previewing-pill');
+  const openLink   = document.getElementById('cv-preview-open');
+  const dlLink     = document.getElementById('cv-preview-download');
+
+  if (!row) {
+    if (shell) shell.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    _cvPreviewedRowId = null;
+    highlightPreviewedTile(null);
+    return;
+  }
+  if (shell) shell.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+
+  if (label) { label.textContent = row.file_name; label.title = row.file_name; }
+
+  if (sourceSlot) {
+    if (row.source === 'generated') {
+      sourceSlot.outerHTML =
+        `<span id="cv-preview-source-pill" class="cv-pill cv-pill-generated">
+           <i class="ph ph-magic-wand" style="font-size:11px"></i> Generated
+         </span>`;
+    } else {
+      sourceSlot.outerHTML =
+        `<span id="cv-preview-source-pill" class="cv-pill cv-pill-uploaded">
+           <i class="ph ph-upload-simple" style="font-size:11px"></i> Uploaded
+         </span>`;
+    }
+  }
+
+  if (sizePill) {
+    if (row.file_size) {
+      sizePill.textContent = `${Math.max(1, Math.round(row.file_size / 1024))} KB`;
+      sizePill.style.display = 'inline-flex';
+    } else {
+      sizePill.style.display = 'none';
+    }
+  }
+
+  // "Previewing" pill + "Back to active" button — shown only when previewing
+  // a non-active CV, so it's obvious you're looking at a past version and
+  // there's a one-click way back.
+  if (previewingPill) {
+    previewingPill.style.display = isActive ? 'none' : 'inline-flex';
+  }
+  const backBtn = document.getElementById('cv-preview-back-to-active');
+  if (backBtn) {
+    backBtn.style.display = isActive ? 'none' : 'inline-flex';
+  }
+
+  if (openLink) openLink.href = row.file_path;
+  if (dlLink)   dlLink.href   = row.file_path;
+  renderPDFAsCanvases(row.file_path);
+
+  _cvPreviewedRowId = row.id || null;
+  highlightPreviewedTile(_cvPreviewedRowId);
+}
+
+// Lookup table populated on each history render so onclick handlers can
+// reference rows by ID without HTML-escaping JSON.
+let _cvHistoryRowsById = {};
+let _cvPreviewedRowId = null;
+let _cvActiveRow = null;
+
+function previewCVByRowId(id) {
+  const row = _cvHistoryRowsById[id];
+  if (!row) return;
+  setCVPreview(row, !!row.is_active);
+}
+
+function previewActiveCV() {
+  // Prefer the cached active row (always populated by setCVPreview)
+  if (_cvActiveRow) {
+    setCVPreview(_cvActiveRow, true);
+    return;
+  }
+  // Fallback: scan the lookup
+  for (const id in _cvHistoryRowsById) {
+    if (_cvHistoryRowsById[id].is_active) {
+      setCVPreview(_cvHistoryRowsById[id], true);
+      return;
+    }
+  }
+}
+
+// ─── Compare modal ───────────────────────────────────────────
+
+let _cvCompareTokens = { left: 0, right: 0 };
+
+function openCompareModal() {
+  const rows = Object.values(_cvHistoryRowsById);
+  if (rows.length < 2) {
+    Toast.show('Need at least 2 saved CVs to compare', 'warning');
+    return;
+  }
+  populateCompareDropdowns(false);
+
+  // Default: left = active CV (or newest), right = next newest different one
+  const sorted = Object.values(_cvHistoryRowsById)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const activeRow = _cvActiveRow || sorted.find(r => r.is_active) || sorted[0];
+  const otherRow  = sorted.find(r => r.id !== activeRow.id) || sorted[1];
+  document.getElementById('cv-compare-left-select').value  = activeRow.id;
+  document.getElementById('cv-compare-right-select').value = otherRow.id;
+
+  document.getElementById('cv-compare-modal').classList.add('is-open');
+  document.body.style.overflow = 'hidden';
+
+  loadComparePane('left');
+  loadComparePane('right');
+  renderCompareStrip();
+  updateComparePaneActivateButtons();
+}
+
+// Builds the <option> markup for both compare dropdowns from the current
+// _cvHistoryRowsById, preserving the current selection if requested.
+function populateCompareDropdowns(preserveValues) {
+  const rows = Object.values(_cvHistoryRowsById);
+  rows.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const optionsHTML = rows.map(r => {
+    const sourceMark = r.source === 'generated' ? '⚙' : '⬆';
+    const date = new Date(r.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const activeMark = r.is_active ? ' · ● Active' : '';
+    return `<option value="${r.id}">${sourceMark} ${escapeHTML(r.file_name)} · ${date}${activeMark}</option>`;
+  }).join('');
+  const leftSelect  = document.getElementById('cv-compare-left-select');
+  const rightSelect = document.getElementById('cv-compare-right-select');
+  if (!leftSelect || !rightSelect) return;
+  const leftValue  = preserveValues ? leftSelect.value  : null;
+  const rightValue = preserveValues ? rightSelect.value : null;
+  leftSelect.innerHTML  = optionsHTML;
+  rightSelect.innerHTML = optionsHTML;
+  if (leftValue)  leftSelect.value  = leftValue;
+  if (rightValue) rightSelect.value = rightValue;
+}
+
+// Sets each pane's "Make Active" button to enabled or disabled depending on
+// whether the CV currently shown in that pane is the active one.
+function updateComparePaneActivateButtons() {
+  ['left', 'right'].forEach(side => {
+    const select = document.getElementById(`cv-compare-${side}-select`);
+    const btn    = document.getElementById(`cv-compare-${side}-activate`);
+    if (!select || !btn) return;
+    const id = parseInt(select.value, 10);
+    const row = _cvHistoryRowsById[id];
+    if (!row) return;
+    if (row.is_active) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph ph-check-circle"></i> Already Active';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ph ph-check-circle"></i> Make Active';
+    }
+  });
+}
+
+// Activates the CV currently shown in the given pane. Updates local state
+// optimistically so the UI reflects the change without re-fetching, then
+// triggers a background loadCVTab so the main dashboard stays in sync.
+async function makeActiveFromCompare(side) {
+  const select = document.getElementById(`cv-compare-${side}-select`);
+  if (!select) return;
+  const id = parseInt(select.value, 10);
+  const row = _cvHistoryRowsById[id];
+  if (!row || row.is_active) return;
+  const btn = document.getElementById(`cv-compare-${side}-activate`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ph ph-circle-notch" style="animation:spin 1s linear infinite"></i> Activating…'; }
+  try {
+    await API.post(`/profile/cv/history/${id}/activate`, {});
+    Toast.show(`"${row.file_name}" is now your active CV`, 'success');
+
+    // Optimistic local update — no fetch needed for the modal to reflect the change
+    Object.values(_cvHistoryRowsById).forEach(r => { r.is_active = false; });
+    row.is_active = true;
+    _cvActiveRow = row;
+
+    populateCompareDropdowns(true);
+    renderCompareStrip();
+    updateComparePaneActivateButtons();
+    // Refresh the main dashboard in the background so when the modal closes
+    // the hero/preview/history are already up-to-date.
+    loadCVTab();
+  } catch (err) {
+    Toast.show(err.message || 'Failed to activate', 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph ph-check-circle"></i> Make Active'; }
+  }
+}
+
+// Renders the bottom strip showing every saved CV with ← Left / Right →
+// buttons. Highlights chips currently shown in either pane and disables
+// the matching button so the same CV can't be re-loaded into the same pane.
+function renderCompareStrip() {
+  const list = document.getElementById('cv-compare-strip-list');
+  if (!list) return;
+  const rows = Object.values(_cvHistoryRowsById);
+  rows.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const leftSelect  = document.getElementById('cv-compare-left-select');
+  const rightSelect = document.getElementById('cv-compare-right-select');
+  const leftId  = leftSelect  ? parseInt(leftSelect.value, 10)  : null;
+  const rightId = rightSelect ? parseInt(rightSelect.value, 10) : null;
+
+  list.innerHTML = rows.map(r => {
+    const date = new Date(r.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const sourcePill = r.source === 'generated'
+      ? `<span class="cv-pill cv-pill-generated" style="font-size:9px;padding:1px 6px"><i class="ph ph-magic-wand" style="font-size:9px"></i> Gen</span>`
+      : `<span class="cv-pill cv-pill-uploaded" style="font-size:9px;padding:1px 6px"><i class="ph ph-upload-simple" style="font-size:9px"></i> Up</span>`;
+    const coverClass = 'cv-doc-cover' + (r.source === 'generated' ? ' is-generated' : '');
+    const isLeft  = r.id === leftId;
+    const isRight = r.id === rightId;
+    const chipClasses = ['cv-compare-chip'];
+    if (isLeft)  chipClasses.push('is-on-left');
+    if (isRight) chipClasses.push('is-on-right');
+    return `
+      <div class="${chipClasses.join(' ')}">
+        <div class="${coverClass}"><span class="cv-doc-cover-label">PDF</span></div>
+        <div class="cv-compare-chip-info">
+          <div class="cv-compare-chip-name" title="${escapeHTML(r.file_name)}">${escapeHTML(r.file_name)}</div>
+          <div class="cv-compare-chip-meta">${sourcePill} · ${escapeHTML(date)}</div>
+        </div>
+        <div class="cv-compare-chip-actions">
+          <button class="cv-compare-chip-btn" onclick="useCompareCV(${r.id}, 'left')"
+            ${isLeft ? 'disabled title="Already on the left"' : ''}>← Left</button>
+          <button class="cv-compare-chip-btn" onclick="useCompareCV(${r.id}, 'right')"
+            ${isRight ? 'disabled title="Already on the right"' : ''}>Right →</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Programmatically swap a CV into the left or right pane. Updates the
+// dropdown so subsequent selects start from the new value, then renders the
+// pane and refreshes the strip's highlighted state.
+function useCompareCV(rowId, side) {
+  const select = document.getElementById(`cv-compare-${side}-select`);
+  if (!select) return;
+  select.value = String(rowId);
+  loadComparePane(side);
+  renderCompareStrip();
+}
+
+function closeCompareModal() {
+  document.getElementById('cv-compare-modal').classList.remove('is-open');
+  document.body.style.overflow = '';
+}
+
+async function loadComparePane(side) {
+  const select = document.getElementById(`cv-compare-${side}-select`);
+  const container = document.getElementById(`cv-compare-${side}-canvas`);
+  if (!select || !container) return;
+  const id = parseInt(select.value, 10);
+  const row = _cvHistoryRowsById[id];
+  if (!row) return;
+  // Re-render the strip + activate button so they match the new selection
+  renderCompareStrip();
+  updateComparePaneActivateButtons();
+  await renderPDFAsCanvasesInto(row.file_path, container, side);
+}
+
+// Generic version of renderPDFAsCanvases that targets any container with its
+// own cancellation token (so the two compare panes don't collide on cancel).
+async function renderPDFAsCanvasesInto(url, container, tokenKey) {
+  if (!container) return;
+  if (!window.pdfjsLib) {
+    container.innerHTML =
+      `<div class="cv-preview-loading" style="color:var(--color-error)">PDF viewer failed to load.</div>`;
+    return;
+  }
+  const myToken = ++_cvCompareTokens[tokenKey];
+  container.innerHTML = `<div class="cv-preview-loading">
+    <i class="ph ph-circle-notch" style="font-size:24px;display:block;margin-bottom:8px;animation:spin 1s linear infinite"></i>
+    Loading…
+  </div>`;
+  try {
+    const pdf = await pdfjsLib.getDocument({ url, disableRange: true }).promise;
+    if (myToken !== _cvCompareTokens[tokenKey]) return;
+    container.innerHTML = '';
+    const containerWidth = container.clientWidth || 400;
+    const renderScale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+    for (let i = 1; i <= pdf.numPages; i++) {
+      if (myToken !== _cvCompareTokens[tokenKey]) return;
+      const page = await pdf.getPage(i);
+      const baseViewport = page.getViewport({ scale: 1 });
+      const fitScale = (containerWidth / baseViewport.width) * renderScale;
+      const viewport = page.getViewport({ scale: fitScale });
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      canvas.style.display = 'block';
+      canvas.style.width = '100%';
+      canvas.style.height = 'auto';
+      const ctx = canvas.getContext('2d');
+      container.appendChild(canvas);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+    }
+  } catch (err) {
+    console.warn('Failed to render compare pane:', err);
+    container.innerHTML =
+      `<div class="cv-preview-loading" style="color:var(--color-error)">Failed to load PDF.</div>`;
+  }
+}
+
+// Esc closes the compare modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('cv-compare-modal');
+    if (modal && modal.classList.contains('is-open')) closeCompareModal();
+  }
+});
+
+function highlightPreviewedTile(id) {
+  document.querySelectorAll('.cv-version-tile.is-previewing, .cv-version-featured.is-previewing')
+    .forEach(el => el.classList.remove('is-previewing'));
+  if (!id) return;
+  document.querySelectorAll(`[data-cv-row-id="${id}"]`)
+    .forEach(el => el.classList.add('is-previewing'));
+}
+
+// Renders every page of the PDF as a stacked canvas in #cv-preview-canvas-container.
+// Container height equals the sum of canvas heights — exact, zero whitespace,
+// no browser PDF viewer chrome to fight with. Canvases are rendered at 2x the
+// container width so they stay crisp on high-DPI screens; CSS scales them down.
+let _cvPreviewToken = 0; // cancels in-flight renders if a new CV is loaded
+async function renderPDFAsCanvases(url) {
+  const container = document.getElementById('cv-preview-canvas-container');
+  if (!container) return;
+  if (!window.pdfjsLib) {
+    container.innerHTML =
+      `<div class="cv-preview-loading" style="color:var(--color-error)">
+        PDF viewer failed to load — try opening the PDF in a new tab.
+      </div>`;
+    return;
+  }
+  const myToken = ++_cvPreviewToken;
+  container.innerHTML = `<div class="cv-preview-loading">
+    <i class="ph ph-circle-notch" style="font-size:24px;display:block;margin-bottom:8px;animation:spin 1s linear infinite"></i>
+    Loading PDF…
+  </div>`;
+  try {
+    const pdf = await pdfjsLib.getDocument({ url, disableRange: true }).promise;
+    if (myToken !== _cvPreviewToken) return; // a newer render started; bail
+    container.innerHTML = '';
+    const containerWidth = container.clientWidth || 800;
+    // Render at 2x for crisp display on retina; CSS scales to container width.
+    const renderScale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+    for (let i = 1; i <= pdf.numPages; i++) {
+      if (myToken !== _cvPreviewToken) return;
+      const page = await pdf.getPage(i);
+      const baseViewport = page.getViewport({ scale: 1 });
+      const fitScale = (containerWidth / baseViewport.width) * renderScale;
+      const viewport = page.getViewport({ scale: fitScale });
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      const ctx = canvas.getContext('2d');
+      container.appendChild(canvas);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+    }
+  } catch (err) {
+    console.warn('Failed to render CV preview:', err);
+    container.innerHTML =
+      `<div class="cv-preview-loading" style="color:var(--color-error)">
+        Failed to render PDF. Use "Open in new tab" to view it directly.
+      </div>`;
+  }
+}
+
+// Re-render canvases on resize (debounced) so they stay crisp after a width
+// change. Only fires when the CV tab is the active section.
+let _cvResizeTimer = null;
+window.addEventListener('resize', () => {
+  if (_cvResizeTimer) clearTimeout(_cvResizeTimer);
+  _cvResizeTimer = setTimeout(() => {
+    const section = document.getElementById('section-cv');
+    if (!section || !section.classList.contains('active')) return;
+    const openLink = document.getElementById('cv-preview-open');
+    if (openLink && openLink.href) renderPDFAsCanvases(openLink.href);
+  }, 350);
+});
+
+function renderCVStats(profile, history) {
+  const downloads = document.getElementById('cv-download-count');
+  const versions  = document.getElementById('cv-version-count');
+  const updated   = document.getElementById('cv-last-updated');
+  if (downloads) downloads.textContent = (profile && profile.cv_download_count) || 0;
+  if (versions)  versions.textContent  = history.length;
+  if (updated) {
+    if (history.length) {
+      updated.textContent = formatRelativeTime(history[0].created_at);
+    } else {
+      updated.textContent = '—';
+    }
+  }
+}
+
+function renderCVVisibility(profile) {
+  const toggle = document.getElementById('cv-visibility-toggle');
+  if (toggle && profile) toggle.checked = profile.cv_visible !== false;
+}
+
+function renderCVHistory(rows) {
+  const list = document.getElementById('cv-history-list');
+  const count = document.getElementById('cv-history-count');
+  if (!list) return;
+  // Refresh the id→row lookup so Preview buttons can resolve their target
+  _cvHistoryRowsById = {};
+  rows.forEach(r => { _cvHistoryRowsById[r.id] = r; });
+  if (count) count.textContent = rows.length
+    ? `${rows.length} version${rows.length === 1 ? '' : 's'}`
+    : '';
+
+  if (!rows.length) {
+    list.innerHTML = `
+      <div style="padding:2.5rem;text-align:center;color:var(--color-text-muted);font-size:13px">
+        <i class="ph ph-stack" style="font-size:42px;display:block;margin-bottom:10px;opacity:0.4"></i>
+        No CVs saved yet. Upload one or generate from your data.
+      </div>`;
+    return;
+  }
+
+  const active   = rows.find(r => r.is_active);
+  const inactive = rows.filter(r => !r.is_active);
+
+  let html = '';
+  if (active) {
+    html += `<div class="cv-history-featured-label">Currently Active</div>`;
+    html += renderFeaturedCard(active);
+  }
+  if (inactive.length) {
+    html += `<div class="cv-history-section-label">Past versions · ${inactive.length}</div>`;
+    html += `<div class="cv-version-grid">`;
+    html += inactive.map(renderTileCard).join('');
+    html += `</div>`;
+  }
+  list.innerHTML = html;
+}
+
+function renderFeaturedCard(r) {
+  const date = new Date(r.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  const sizeKb = r.file_size ? Math.max(1, Math.round(r.file_size / 1024)) : 0;
+  const sizeStr = sizeKb ? `${sizeKb} KB` : '';
+  const sourcePill = r.source === 'generated'
+    ? `<span class="cv-pill cv-pill-generated"><i class="ph ph-magic-wand" style="font-size:11px"></i> Generated</span>`
+    : `<span class="cv-pill cv-pill-uploaded"><i class="ph ph-upload-simple" style="font-size:11px"></i> Uploaded</span>`;
+  const coverClass = 'cv-doc-cover' + (r.source === 'generated' ? ' is-generated' : '');
+  const meta = [date, sizeStr].filter(Boolean).join(' · ');
+  return `
+    <div class="cv-version-featured" data-cv-row-id="${r.id}">
+      <div class="${coverClass}"><span class="cv-doc-cover-label">PDF</span></div>
+      <div class="cv-version-featured-info">
+        <div class="cv-version-featured-name">
+          <span class="filename" title="${escapeHTML(r.file_name)}">${escapeHTML(r.file_name)}</span>
+          <span class="cv-pill cv-pill-active">Active</span>
+          ${sourcePill}
+        </div>
+        <div class="cv-version-featured-meta">${escapeHTML(meta)}</div>
+      </div>
+      <div class="cv-version-featured-actions">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="previewCVByRowId(${r.id})">
+          <i class="ph ph-eye" style="font-size:14px;vertical-align:middle"></i> Preview
+        </button>
+      </div>
+    </div>`;
+}
+
+function renderTileCard(r) {
+  const date = formatRelativeTime(r.created_at);
+  const sizeKb = r.file_size ? Math.max(1, Math.round(r.file_size / 1024)) : 0;
+  const sizeStr = sizeKb ? `${sizeKb} KB` : '';
+  const sourcePill = r.source === 'generated'
+    ? `<span class="cv-pill cv-pill-generated"><i class="ph ph-magic-wand" style="font-size:11px"></i> Generated</span>`
+    : `<span class="cv-pill cv-pill-uploaded"><i class="ph ph-upload-simple" style="font-size:11px"></i> Uploaded</span>`;
+  const coverClass = 'cv-doc-cover' + (r.source === 'generated' ? ' is-generated' : '');
+  const meta = [date, sizeStr].filter(Boolean).join(' · ');
+  return `
+    <div class="cv-version-tile" data-cv-row-id="${r.id}">
+      <div class="cv-version-tile-cover">
+        <div class="${coverClass}"><span class="cv-doc-cover-label">PDF</span></div>
+      </div>
+      <div class="cv-version-tile-body">
+        <div class="cv-version-tile-name" title="${escapeHTML(r.file_name)}">${escapeHTML(r.file_name)}</div>
+        <div class="cv-version-tile-pills">${sourcePill}</div>
+        <div class="cv-version-tile-meta">${escapeHTML(meta)}</div>
+      </div>
+      <div class="cv-version-tile-footer">
+        <button type="button" class="cv-menu-trigger" onclick="previewCVByRowId(${r.id})" title="Preview in viewer">
+          <i class="ph ph-eye"></i>
+        </button>
+        <div class="cv-menu-wrap">
+          <button class="cv-menu-trigger" onclick="toggleCVMenu(event, this)" aria-label="More actions">
+            <i class="ph ph-dots-three-vertical"></i>
+          </button>
+          <div class="cv-menu-popup" data-id="${r.id}">
+            <button class="cv-menu-item" onclick="cvMenuActivate(${r.id})">
+              <i class="ph ph-check-circle"></i> Make active
+            </button>
+            <a class="cv-menu-item" href="${escapeAttr(r.file_path)}" download>
+              <i class="ph ph-download-simple"></i> Download
+            </a>
+            <div class="cv-menu-divider"></div>
+            <button class="cv-menu-item is-danger" data-id="${r.id}"
+              onclick="cvMenuDelete(this, ${r.id})">
+              <i class="ph ph-trash"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ─── Three-dot menu wiring ────────────────────────────────────
+
+function toggleCVMenu(evt, trigger) {
+  evt.stopPropagation();
+  const popup = trigger.nextElementSibling;
+  const open = popup.classList.contains('is-open');
+  closeAllCVMenus();
+  if (!open) {
+    popup.classList.add('is-open');
+    trigger.classList.add('is-open');
+  }
+}
+
+function closeAllCVMenus() {
+  document.querySelectorAll('.cv-menu-popup.is-open').forEach(p => p.classList.remove('is-open'));
+  document.querySelectorAll('.cv-menu-trigger.is-open').forEach(t => t.classList.remove('is-open'));
+  // Reset any pending delete-confirm states
+  document.querySelectorAll('.cv-menu-item.is-confirming').forEach(el => {
+    el.classList.remove('is-confirming');
+    if (el.dataset.original) el.innerHTML = el.dataset.original;
+  });
+}
+
+document.addEventListener('click', () => closeAllCVMenus());
+
+function cvMenuActivate(id) {
+  closeAllCVMenus();
+  activateCV(id);
+}
+
+function cvMenuDelete(btn, id) {
+  if (btn.classList.contains('is-confirming')) {
+    closeAllCVMenus();
+    confirmDeleteCVById(id);
+    return;
+  }
+  btn.dataset.original = btn.innerHTML;
+  btn.classList.add('is-confirming');
+  btn.innerHTML = `<i class="ph ph-warning"></i> Click again to confirm`;
+  // Auto-reset after 4s if not clicked again
+  setTimeout(() => {
+    if (btn.classList.contains('is-confirming')) {
+      btn.classList.remove('is-confirming');
+      btn.innerHTML = btn.dataset.original;
+    }
+  }, 4000);
+}
+
+async function confirmDeleteCVById(id) {
+  try {
+    await API.delete(`/profile/cv/history/${id}`);
+    Toast.show('CV deleted', 'success');
+    loadCVTab();
+  } catch (err) {
+    Toast.show(err.message || 'Failed to delete', 'error');
+  }
+}
+
+// Returns "2h ago", "Yesterday", "Mar 5" etc.
+function formatRelativeTime(iso) {
+  const then = new Date(iso).getTime();
+  const diff = Date.now() - then;
+  const mins  = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days  = Math.floor(diff / 86400000);
+  if (mins  < 1)   return 'Just now';
+  if (mins  < 60)  return `${mins}m ago`;
+  if (hours < 24)  return `${hours}h ago`;
+  if (days  === 1) return 'Yesterday';
+  if (days  < 7)   return `${days}d ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function escapeHTML(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function escapeAttr(s) { return escapeHTML(s); }
+
+async function activateCV(id) {
+  try {
+    await API.post(`/profile/cv/history/${id}/activate`, {});
+    Toast.show('CV activated', 'success');
+    loadCVTab();
+  } catch (err) {
+    Toast.show(err.message || 'Failed to activate', 'error');
+  }
+}
+
+// Click-twice confirmation pattern — matches the rest of the dashboard.
+function deleteCVRow(btn, id) {
+  if (btn.dataset.confirming === '1') {
+    confirmDeleteCV(btn, id);
+    return;
+  }
+  btn.dataset.confirming = '1';
+  const original = btn.textContent;
+  btn.dataset.original = original;
+  btn.textContent = 'Click again to confirm';
+  btn.style.color = 'var(--color-error)';
+  setTimeout(() => {
+    if (btn.dataset.confirming === '1') {
+      btn.dataset.confirming = '';
+      btn.textContent = btn.dataset.original;
+      btn.style.color = '';
+    }
+  }, 4000);
+}
+
+async function confirmDeleteCV(btn, id) {
+  btn.dataset.confirming = '';
+  btn.disabled = true;
+  try {
+    await API.delete(`/profile/cv/history/${id}`);
+    Toast.show('CV deleted', 'success');
+    loadCVTab();
+  } catch (err) {
+    Toast.show(err.message || 'Failed to delete', 'error');
+    btn.disabled = false;
+    btn.textContent = btn.dataset.original;
+    btn.style.color = '';
+  }
+}
+
 async function loadProfile() {
   try {
     const res = await API.get('/profile');
     const p = res.data;
     // Populate inputs across the Profile, Social Links, Mail Settings, and GitHub Stats forms
-    const inputs = document.querySelectorAll('#profile-form [name], #social-form [name], #mail-form [name], #github-form [name]');
+    const inputs = document.querySelectorAll('#profile-form [name], #social-form [name], #mail-form [name], #github-form [name], #footer-form [name]');
     inputs.forEach(input => {
       const key = input.name;
       // Never pre-fill the password field — leave blank for security
       if (key === 'smtp_pass') return;
-      // WhatsApp is handled by the intl-tel-input picker below
+      // WhatsApp + phone are handled by their intl-tel-input pickers below
       if (key === 'whatsapp') return;
+      if (key === 'phone')    return;
       if (p[key] !== undefined) input.value = p[key] || '';
     });
 
@@ -2003,6 +4731,11 @@ async function loadProfile() {
     if (whatsappITI && p.whatsapp) {
       const stored = String(p.whatsapp).trim();
       whatsappITI.setNumber(stored.startsWith('+') ? stored : '+' + stored);
+    }
+    // Same trick for the phone field — stored as E.164 with leading "+"
+    if (phoneITI && p.phone) {
+      const stored = String(p.phone).trim();
+      phoneITI.setNumber(stored.startsWith('+') ? stored : '+' + stored);
     }
     // Populate the 4 boxes with the saved password split into chunks
     if (p.smtp_pass) {
@@ -2016,32 +4749,261 @@ async function loadProfile() {
     }
     initSmtpPassBoxes();
 
-    // Show current sidebar photo if one is uploaded
-    if (p.profile_photo) {
-      const wrap = document.getElementById('photo-preview-wrap');
-      const img  = document.getElementById('photo-preview');
-      if (wrap && img) { wrap.style.display = 'block'; img.src = p.profile_photo; }
+    // Sidebar photo
+    setProfilePhoto('photo-preview', 'photo-empty-state', p.profile_photo);
+    // About section photo
+    setProfilePhoto('about-photo-preview', 'about-photo-empty-state', p.about_photo);
+
+    // Availability — visual selector + hidden input
+    setAvailability(p.availability || 'Open to Work');
+
+    // Live identity card preview
+    updateIdentityCard(p);
+
+    // Bio character count
+    updateBioCount();
+
+    // Footer preview — uses copyright_text, sidebar_copyright_text,
+    // footer_copyright_text, footer_built_with from the populated inputs
+    updateFooterPreview();
+
+    // Hero heading preview + auto-open override panel if user has saved one
+    updateHeroHeadingPreview();
+    if ((p.hero_heading_override || '').trim()) {
+      const toggle = document.getElementById('hero-heading-overrides-toggle');
+      const panel  = document.getElementById('hero-heading-overrides');
+      if (toggle && panel) { toggle.classList.add('is-open'); panel.classList.add('is-open'); }
     }
 
-    // Show current about section photo if one is uploaded
-    if (p.about_photo) {
-      const wrap = document.getElementById('about-photo-preview-wrap');
-      const img  = document.getElementById('about-photo-preview');
-      if (wrap && img) { wrap.style.display = 'block'; img.src = p.about_photo; }
-    }
-
-    // Show current CV if one is uploaded
-    if (p.cv_file) {
-      const cvSection = document.getElementById('cv-current');
-      const cvFilename = document.getElementById('cv-filename');
-      const cvViewBtn  = document.getElementById('cv-view-btn');
-      if (cvSection) {
-        cvSection.style.display = 'flex';
-        cvFilename.textContent  = p.cv_file.split('/').pop();
-        cvViewBtn.href          = p.cv_file;
-      }
-    }
+    // CV display is handled entirely by loadCVTab() — the CV tab has its
+    // own hero card, preview, and history list. The Profile form no longer
+    // shows CV info.
   } catch { /* ignore */ }
+}
+
+function setProfilePhoto(imgId, emptyId, src) {
+  const img   = document.getElementById(imgId);
+  const empty = document.getElementById(emptyId);
+  if (src) {
+    if (img)   { img.src = src; img.style.display = 'block'; }
+    if (empty) { empty.style.display = 'none'; }
+  } else {
+    if (img)   { img.style.display = 'none'; }
+    if (empty) { empty.style.display = 'flex'; }
+  }
+}
+
+// Selects an availability value via either the visual cards or a stored value.
+// Pass either an HTMLElement (button click) or a string (load).
+function selectAvailability(elOrValue) {
+  const value = typeof elOrValue === 'string' ? elOrValue : elOrValue.dataset.value;
+  setAvailability(value);
+  updateIdentityCard();
+}
+function setAvailability(value) {
+  document.querySelectorAll('.profile-status-option').forEach(b => {
+    b.classList.toggle('is-selected', b.dataset.value === value);
+  });
+  const hidden = document.getElementById('availability-hidden');
+  if (hidden) hidden.value = value;
+}
+
+// Updates the left identity card from current form values (live as user types).
+// Pass an optional profile object to seed fields that aren't in the form.
+function updateIdentityCard(profile) {
+  const form = document.getElementById('profile-form');
+  if (!form) return;
+  const get = (n) => (form.querySelector(`[name="${n}"]`)?.value || '').trim();
+
+  const name     = get('full_name') || (profile && profile.full_name) || 'Your Name';
+  const title    = get('title')     || (profile && profile.title)     || 'Your Title';
+  const email    = get('email')     || (profile && profile.email)     || '';
+  // Phone: prefer the picker's full international number; fall back to the
+  // raw local digits if the picker hasn't initialized yet.
+  let phone = '';
+  if (phoneITI) {
+    const local = get('phone');
+    phone = local ? (phoneITI.getNumber() || local) : '';
+  } else {
+    phone = get('phone');
+  }
+  if (!phone && profile && profile.phone) phone = profile.phone;
+  const location = get('location')  || (profile && profile.location)  || '';
+  const avail    = (document.getElementById('availability-hidden')?.value) || 'Open to Work';
+
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const showRow = (id, v) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = v ? 'flex' : 'none';
+  };
+
+  setText('identity-name', name);
+  setText('identity-title', title);
+  setText('identity-email', email);
+  setText('identity-location', location);
+  setText('identity-phone', phone);
+  showRow('identity-email-row', email);
+  showRow('identity-location-row', location);
+  showRow('identity-phone-row', phone);
+
+  const badge = document.getElementById('identity-status-badge');
+  if (badge) {
+    badge.className = 'profile-status-badge';
+    if (avail === 'On Vacation') badge.classList.add('is-away');
+    else if (avail === 'Available for Freelance') badge.classList.add('is-freelance');
+    else badge.classList.add('is-open');
+    badge.textContent = avail;
+  }
+}
+
+function updateBioCount() {
+  const ta    = document.getElementById('profile-bio-textarea');
+  const count = document.getElementById('profile-bio-count');
+  if (ta && count) count.textContent = ta.value.length;
+}
+
+// ─── Footer panel — live preview, presets, insert chips ──────
+
+// Tracks the most recently focused footer text field so insert-chips know
+// which input to write into. Defaults to the main copyright field.
+let _lastFooterFocused = 'footer-input-copyright';
+
+function resolveFooterPlaceholders(text, name) {
+  return String(text || '')
+    .replace(/\{year\}/g, new Date().getFullYear())
+    .replace(/\{name\}/g, (name || '').trim());
+}
+
+function updateFooterPreview() {
+  const form = document.getElementById('profile-form');
+  if (!form) return;
+  const get = (n) => (form.querySelector(`[name="${n}"]`)?.value || '').trim();
+
+  const name      = get('full_name') || 'Your Name';
+  const main      = get('copyright_text');
+  const sidebar   = get('sidebar_copyright_text') || main;
+  const footer    = get('footer_copyright_text')  || main;
+  const builtWith = get('footer_built_with');
+
+  const fallback = `© {year} {name}. All Rights Reserved.`;
+  const sidebarText = resolveFooterPlaceholders(sidebar || fallback, name);
+  const footerText  = resolveFooterPlaceholders(footer  || fallback, name);
+
+  const sidebarEl = document.getElementById('footer-preview-sidebar');
+  const footerEl  = document.getElementById('footer-preview-footer');
+  const builtEl   = document.getElementById('footer-preview-built');
+  if (sidebarEl) sidebarEl.textContent = sidebarText;
+  if (footerEl)  footerEl.textContent  = footerText;
+  if (builtEl) {
+    if (builtWith) {
+      builtEl.textContent = resolveFooterPlaceholders(builtWith, name);
+      builtEl.style.display = 'block';
+    } else {
+      builtEl.style.display = 'none';
+    }
+  }
+}
+
+function applyFooterPreset(text) {
+  const input = document.getElementById('footer-input-copyright');
+  if (!input) return;
+  input.value = text;
+  input.focus();
+  updateFooterPreview();
+}
+
+function insertIntoFooterField(snippet) {
+  const input = document.getElementById(_lastFooterFocused);
+  if (!input) return;
+  const start = input.selectionStart || 0;
+  const end   = input.selectionEnd   || 0;
+  const before = input.value.slice(0, start);
+  const after  = input.value.slice(end);
+  input.value = before + snippet + after;
+  // Position cursor after the inserted text and refocus the input
+  const cursor = start + snippet.length;
+  input.focus();
+  input.setSelectionRange(cursor, cursor);
+  updateFooterPreview();
+}
+
+function toggleFooterOverrides(btn) {
+  const panel = document.getElementById('footer-overrides');
+  if (!panel) return;
+  const open = panel.classList.toggle('is-open');
+  btn.classList.toggle('is-open', open);
+}
+
+function toggleHeroHeadingOverride(btn) {
+  const panel = document.getElementById('hero-heading-overrides');
+  if (!panel) return;
+  const open = panel.classList.toggle('is-open');
+  btn.classList.toggle('is-open', open);
+}
+
+// One-click reset to the original heading values. Doesn't save automatically;
+// the user still has to click Save Profile to persist.
+function restoreHeroHeadingDefault() {
+  const form = document.getElementById('profile-form');
+  if (!form) return;
+  const set = (n, v) => { const el = form.querySelector(`[name="${n}"]`); if (el) el.value = v; };
+  set('hero_heading_line1',      'I build and ship');
+  set('hero_heading_line2',      'beautiful apps to');
+  set('hero_heading_line3',      'App Store & Play Store.');
+  set('hero_heading_highlights', 'App Store, Play Store');
+  set('hero_heading_override',   '');
+  updateHeroHeadingPreview();
+  Toast.show('Defaults filled — click Save Profile to keep them', 'info');
+}
+
+// ─── Hero heading: shared rendering used by dashboard + portfolio ───
+// Returns HTML for the heading. `text` is the raw line content; highlights
+// is a comma-separated word list; if `override` is set it replaces both.
+function renderHeroHeadingHTML({ line1, line2, line3, highlights, override }) {
+  const escapeHTML = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // ASCII-safe markers (avoiding \x00 which some HTML parsers strip)
+  const HOPEN  = '__HL_OPEN_KP__';
+  const HCLOSE = '__HL_CLOSE_KP__';
+  const finalize = (s) => escapeHTML(s)
+    .split(HOPEN).join('<span class="highlight">')
+    .split(HCLOSE).join('</span>');
+
+  if (override && override.trim()) {
+    // *asterisk* → highlight; \n → <br>
+    const marked = override.replace(/\*([^*\n]+)\*/g, HOPEN + '$1' + HCLOSE);
+    return marked.split('\n').map(finalize).join('<br>');
+  }
+
+  const words = (highlights || '').split(',').map(w => w.trim()).filter(Boolean)
+    .sort((a, b) => b.length - a.length); // longer first to avoid prefix overlap
+  const markup = (line) => {
+    if (!line) return '';
+    let raw = line;
+    words.forEach(w => {
+      const re = new RegExp(escapeRegex(w), 'gi');
+      raw = raw.replace(re, m => HOPEN + m + HCLOSE);
+    });
+    return finalize(raw);
+  };
+  return [line1, line2, line3].map(markup).filter(Boolean).join('<br>');
+}
+
+function updateHeroHeadingPreview() {
+  const form = document.getElementById('profile-form');
+  const preview = document.getElementById('hero-heading-preview');
+  if (!form || !preview) return;
+  const get = (n) => form.querySelector(`[name="${n}"]`)?.value || '';
+  const html = renderHeroHeadingHTML({
+    line1:      get('hero_heading_line1'),
+    line2:      get('hero_heading_line2'),
+    line3:      get('hero_heading_line3'),
+    highlights: get('hero_heading_highlights'),
+    override:   get('hero_heading_override'),
+  });
+  preview.innerHTML = html || '—';
 }
 
 async function saveProfile(e) {
@@ -2049,6 +5011,15 @@ async function saveProfile(e) {
   const form = e.target;
   const data = {};
   new FormData(form).forEach((val, key) => { data[key] = val; });
+
+  // Combine country code + local number from the phone picker into a single
+  // E.164 string. Leading "+" is preserved so the public portfolio can render
+  // a clean tel: link.
+  if (phoneITI) {
+    const local = (form.querySelector('[name="phone"]').value || '').replace(/\D/g, '');
+    data.phone = local === '' ? '' : (phoneITI.getNumber() || '');
+  }
+
   const btn = form.querySelector('[type="submit"]');
   btn.classList.add('loading'); btn.disabled = true;
   try {
@@ -2419,6 +5390,30 @@ async function saveGitHub(e) {
   try {
     await API.put('/profile/github', payload);
     Toast.show('GitHub stats saved!', 'success');
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+
+async function saveFooter(e) {
+  e.preventDefault();
+  const form = e.target;
+  // Always send every field, even blank, so clearing one re-enables the
+  // auto-fallback (or re-uses the main copyright for that side).
+  const payload = {
+    copyright_text:         (form.querySelector('[name="copyright_text"]').value || '').trim(),
+    sidebar_copyright_text: (form.querySelector('[name="sidebar_copyright_text"]').value || '').trim(),
+    footer_copyright_text:  (form.querySelector('[name="footer_copyright_text"]').value || '').trim(),
+    footer_built_with:      (form.querySelector('[name="footer_built_with"]').value || '').trim(),
+  };
+  const btn = form.querySelector('[type="submit"]');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    await API.put('/profile/footer', payload);
+    Toast.show('Footer saved!', 'success');
+    updateFooterPreview();
   } catch (err) {
     Toast.show(err.message, 'error');
   } finally {

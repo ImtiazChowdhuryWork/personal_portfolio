@@ -6,6 +6,7 @@ A full-stack personal portfolio website inspired by the **Drake theme** (wpriver
 
 ## Table of Contents
 
+0. [**Where We Left Off**](#0-where-we-left-off--2026-05-10) — read first when resuming work
 1. [Project Overview](#1-project-overview)
 2. [Full Tech Stack](#2-full-tech-stack)
 3. [Architecture Overview](#3-architecture-overview)
@@ -24,6 +25,39 @@ A full-stack personal portfolio website inspired by the **Drake theme** (wpriver
 16. [Roadmap](#16-roadmap)
 17. [Deployment Guide](#17-deployment-guide)
 18. [Changelog](#18-changelog)
+
+---
+
+## 0. Where We Left Off · 2026-05-10
+
+> Live snapshot at the end of the most recent session — read this first when resuming work.
+
+**Current version:** `v3.45.3` · DB schema is at 10 tables (no pending migrations).
+
+### Last two sessions (2026-05-09 → 2026-05-10) focused entirely on the dashboard's content-editing UX
+
+**CV / Resume system** — built end-to-end:
+- New `cv_files` table + version history with active picker, hide/show toggle, download counter, in-dashboard PDF preview (PDF.js-rendered canvases), Compare-two-CVs modal with side-by-side panes + chip strip + "Make Active" button per pane.
+- Auto-generator (`gofpdf`-based) builds a basic resume from profile/skills/experience. **Needs significant polish — see § 15 → CV / Resume.**
+
+**Profile tab redesigned** — split layout, sticky identity card with two photo uploads, three status cards (Open to Work / Available for Freelance / 🌴 On Vacation), Phosphor-iconed form sections, live identity preview, Bio character counter, phone field with `intl-tel-input` country code picker.
+
+**Footer & Copyright** — split into its own `📜 Footer` sidebar tab with live preview, 5 quick-fill presets, insert chips, `{year}`/`{name}` placeholders, optional "Built with…" line, collapsible per-place overrides for sidebar vs. footer.
+
+**Hero customization on the portfolio** — every previously hardcoded text spot is now editable from the dashboard:
+- `nickname` + `hero_subtitle` (replace hardcoded "Imtiaz" + greeting pill)
+- `hero_heading_line1/2/3` + `hero_heading_highlights` + advanced override (replace the big 3-line hero title)
+- `title` (sidebar designation, hero subtitle, footer tagline)
+- `copyright_text` + sidebar/footer overrides + built-with line
+- `availability` now drives **per-status visibility/wording** of all hire-related buttons + a status banner above the contact form, and tailors the contact-form success message ("On Vacation" no longer falsely promises 24-hour reply).
+
+### Suggested next areas (in priority order)
+
+1. **Dashboard CRUD modals for Projects, Skills, Experience** — this is the biggest gap remaining (§15 → Dashboard). Today the Add buttons just toast a placeholder.
+2. **CV Generate polish** — pick from the punch list in §15 → CV / Resume (section controls, preview-before-save, design pass, richer content).
+3. **Tier 2 status extras** — `vacation_return_date` field + "Back on {date}" banner messaging (we did Tier 1 of the Status overhaul; Tier 2 was deferred).
+4. **Testimonials section on the public portfolio** — table exists in DB, no UI.
+5. **Project detail modal** — clicking "View Details" on an app slide.
 
 ---
 
@@ -664,10 +698,17 @@ When element leaves viewport:
 | PUT | /profile | ✅ | Update profile (preserves untouched fields) |
 | PUT | /profile/photo | ✅ | Update sidebar profile photo only |
 | PUT | /profile/about-photo | ✅ | Update About-section photo only |
-| PUT | /profile/cv | ✅ | Update CV PDF path only |
+| PUT | /profile/cv | ✅ | Update active CV path. Also appends a row to `cv_files` so every saved CV is kept in version history. Body: `{ cv_file, file_name, file_size }` |
+| PUT | /profile/cv/visibility | ✅ | Toggle the public "Download CV" button on/off. Body: `{ cv_visible: bool }` |
+| POST | /profile/cv/generate | ✅ | Build a fresh PDF from profile + skills + experience, save to `/uploads/cv/`, append to history, set as active |
+| GET | /profile/cv/history | ✅ | List every saved CV (newest first). Each row carries `is_active` |
+| POST | /profile/cv/history/:id/activate | ✅ | Set this CV as the active one (mirrors its path onto `profiles.cv_file`) |
+| DELETE | /profile/cv/history/:id | ✅ | Delete one CV from history + remove the file from disk. Refuses to delete the active CV |
+| POST | /profile/cv/download | ❌ | **Public** — increments `profiles.cv_download_count`. Fired by the portfolio when a visitor clicks "Download CV" |
 | PUT | /profile/social | ✅ | Update social links only (GitHub, LinkedIn, Twitter, Instagram, WhatsApp). Empty values clear the field. |
 | PUT | /profile/github | ✅ | Update GitHub Stats fields (username + 4 manual overrides) |
 | PUT | /profile/mail | ✅ | Update SMTP credentials only. Records each new password in `mail_password_histories`. |
+| PUT | /profile/footer | ✅ | Update the four footer fields only (`copyright_text`, `sidebar_copyright_text`, `footer_copyright_text`, `footer_built_with`). Empty values are written through (allowing clear). |
 | POST | /profile/mail/verify | ✅ | Test arbitrary `{ smtp_user, smtp_pass }` against Gmail without sending mail. Returns `{ valid, error }`. |
 | GET | /profile/mail/history | ✅ | List every saved Gmail App Password (newest first). Each row carries `is_active` and `is_hidden` flags. |
 | DELETE | /profile/mail/history/:id | ✅ | Delete a single password-history row |
@@ -708,6 +749,13 @@ When element leaves viewport:
 | tagline | VARCHAR(500) | |
 | bio | TEXT | Long bio for About section |
 | short_bio | VARCHAR(500) | Short bio for hero |
+| nickname | VARCHAR(100) | Greeting name shown in the hero pill ("Say Hi from {nickname}…"). Empty = first word of `full_name` |
+| hero_subtitle | VARCHAR(300) | Full override for the hero pill text. Supports `{name}`, `{title}`, `{nickname}` placeholders. Empty = template "Say Hi from {nickname}, {title}" |
+| hero_heading_line1 | VARCHAR(200) | First line of the big hero heading |
+| hero_heading_line2 | VARCHAR(200) | Second line of the big hero heading |
+| hero_heading_line3 | VARCHAR(200) | Third line of the big hero heading |
+| hero_heading_highlights | VARCHAR(500) | Comma-separated words/phrases to colour brand-blue inside the three lines |
+| hero_heading_override | TEXT | Free-form heading override — newlines = line breaks, `*text*` = highlight. Takes precedence over the line + highlight fields when set |
 | email | VARCHAR(255) | Contact email |
 | phone | VARCHAR(50) | |
 | whats_app | VARCHAR(50) | WhatsApp number |
@@ -718,11 +766,17 @@ When element leaves viewport:
 | instagram | VARCHAR(500) | |
 | profile_photo | VARCHAR(500) | Path to sidebar profile photo |
 | about_photo | VARCHAR(500) | Path to About-section photo (separate image) |
-| cv_file | VARCHAR(500) | Path to CV PDF |
+| cv_file | VARCHAR(500) | Path to currently active CV PDF (mirrored from `cv_files`) |
+| cv_visible | BOOLEAN | Default `true`. When false, hides the public "Download CV" button without deleting the file |
+| cv_download_count | BIGINT | Incremented every time a visitor clicks the public "Download CV" button |
 | availability | VARCHAR(100) | "Open to Work" etc. |
 | years_experience | VARCHAR(20) | "2.5+" |
 | apps_shipped | VARCHAR(20) | "5+" |
 | reply_emails | TEXT | Comma-separated list shown in the dashboard inbox's "From" picker |
+| copyright_text | VARCHAR(200) | Default copyright shown in both sidebar + footer when no override. Supports `{year}` / `{name}` placeholders. Empty = auto "© {year} {full_name}. All Rights Reserved." |
+| sidebar_copyright_text | VARCHAR(200) | Sidebar-only copyright override |
+| footer_copyright_text | VARCHAR(200) | Footer-only copyright override |
+| footer_built_with | VARCHAR(200) | Optional second line under the footer copyright (e.g. "Built with Flutter spirit 💙"). Empty hides the line |
 | smtp_user | VARCHAR(255) | Sending Gmail address (overrides `.env` if non-empty) |
 | smtp_pass | VARCHAR(255) | Gmail App Password (overrides `.env` if non-empty) |
 | git_hub_username | VARCHAR(100) | Drives live GitHub API fetch on the public portfolio |
@@ -827,6 +881,20 @@ Append-only audit log of every Gmail App Password ever saved through the dashboa
 
 The `is_active` and `is_hidden` flags returned by `GET /profile/mail/history` are computed at read time, not stored.
 
+### cv_files
+Append-only version history of every CV ever uploaded or auto-generated. The currently active CV's path is mirrored onto `profiles.cv_file` so the public portfolio doesn't need a join.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | SERIAL | |
+| file_path | VARCHAR(500) | Public path under `/uploads/cv/` |
+| file_name | VARCHAR(255) | Display name shown in the dashboard history list |
+| file_size | BIGINT | Bytes (0 if not recorded) |
+| source | VARCHAR(20) | `"uploaded"` or `"generated"` |
+| created_at | TIMESTAMPTZ | When the CV was saved |
+
+The `is_active` flag returned by `GET /profile/cv/history` is computed at read time, not stored.
+
 ### hidden_mail_accounts
 Lightweight list of Gmail addresses the admin has chosen to hide from the dashboard's Available Accounts panel. History rows for the email are preserved, only the deduped view filters them out.
 
@@ -881,12 +949,14 @@ Lightweight list of Gmail addresses the admin has chosen to hide from the dashbo
 - **⚡ Skills** — Table of all skills with delete button
 - **💼 Experience** — Table of work history with delete button
 - **✉ Messages** — WhatsApp-style inbox: list + chat view, replies with attachments
-- **👤 Profile** — Form for bio, contact, photos, availability, CV upload (no longer holds social or SMTP fields)
+- **👤 Profile** — Split layout: sticky left identity card (two photo uploads with click-to-upload + hover overlay + Cropper.js modal, live name/title/email/phone/location preview, status pill); right side organised into Basic Info, **Hero Heading** (3 lines + highlight words + advanced override + live preview + Restore default), **Hero Pill** (nickname + subtitle override), Status (3 visual cards: Open to Work / Available for Freelance / 🌴 On Vacation), and About You (Short Bio + Long Bio with character count). Phone field uses `intl-tel-input` country picker.
+- **📄 CV / Resume** — Hero card for active CV, Upload + auto-Generate cards, stats row (downloads / versions / last updated), iOS-style visibility toggle, in-dashboard PDF preview (PDF.js canvas rendering for exact-fit height), version history (featured active card + grid of past tiles with stylized PDF-cover artwork, three-dot menu, click-twice-confirm delete). **⫴ Compare** modal: side-by-side panes with dropdown + chip strip for swapping any saved CV into either pane + per-pane "Make Active" button.
 - **🔗 Social Links** — GitHub, LinkedIn, Twitter, Instagram, WhatsApp. WhatsApp uses an `intl-tel-input` country code picker. Saving an empty value clears that link on the public portfolio.
 - **📧 Mail Settings** — Sending Gmail address + 16-character App Password (4×4 boxes with show/hide). Auto-tests credentials against Gmail when the tab opens. Below the form:
   - **Available Accounts** — One card per unique Gmail ever saved (deduped from history). Each card shows the password as 4 boxes, an auto-test status, and buttons: Show / Copy / Use this account / Hide. Hidden accounts can be revealed via the "Show N hidden" toggle and restored.
   - **App Password History** — Append-only audit table of every save. Each row auto-tests in parallel and shows ✅ Valid / ❌ Invalid with the SMTP error on hover.
 - **🐙 GitHub Stats** — Username + 4 manual override inputs (Repositories, Total Commits, Top Language, Years Active). Blank override = use auto-fetched value from GitHub API on the public portfolio.
+- **📜 Footer & Copyright** — Live preview of sidebar + footer copyright lines, main copyright field with `{year}`/`{name}` placeholders, 5 quick-fill presets, insert chips for placeholders + ©/❤️/✨/💙/🚀/·, optional "Built with" second line, collapsible per-place override section. Saves via dedicated `PUT /profile/footer`.
 
 **Auth:** Every page load calls `GET /api/v1/auth/me`. If it returns 401, the page redirects to `/login` immediately.
 
@@ -1033,6 +1103,13 @@ border: 2px solid var(--color-primary);
 - [x] `POST /profile/mail/verify` — connects to Gmail SMTP and runs AUTH PLAIN against arbitrary credentials without sending mail
 - [x] `hidden_mail_accounts` table + hide/unhide endpoints — soft-hide accounts from the dashboard while keeping audit history intact
 - [x] `PUT /profile/github` endpoint with 5 GitHub-related profile fields (username + 4 stat overrides)
+- [x] `cv_files` table — append-only version history of every CV (uploaded or generated)
+- [x] CV management endpoints: `PUT /profile/cv` (now appends history + activates), `PUT /profile/cv/visibility`, `POST /profile/cv/generate`, `GET /profile/cv/history`, `POST /profile/cv/history/:id/activate`, `DELETE /profile/cv/history/:id`
+- [x] Public `POST /profile/cv/download` — increments `profiles.cv_download_count` (no auth)
+- [x] CV auto-generator service (`gofpdf`) — basic working classic-resume layout from profile + skills + experience (needs design polish)
+- [x] CV history backfill — `GetCVHistory` synthesises a `cv_files` row when `profile.cv_file` exists but has no matching history row (handles legacy uploads from before the table existed)
+- [x] `PUT /profile/footer` endpoint — pointer-typed body for the four footer fields (`copyright_text`, `sidebar_copyright_text`, `footer_copyright_text`, `footer_built_with`); empty values clear, nil values preserve
+- [x] Profile model expanded with: `nickname`, `hero_subtitle`, `hero_heading_line1/2/3`, `hero_heading_highlights`, `hero_heading_override`, `copyright_text`, `sidebar_copyright_text`, `footer_copyright_text`, `footer_built_with`
 
 ### Frontend ✅
 - [x] Drake-inspired dark theme (`#1f1f1f` background)
@@ -1086,11 +1163,27 @@ border: 2px solid var(--color-primary);
 - [x] App Password History panel — auto-tests every entry in parallel; Show / Copy / Use this / Delete-row controls
 - [x] Click-twice confirmation pattern (no native `confirm()` — robust against Firefox dialog suppression)
 - [x] GitHub Stats section combines live API auto-fetch with per-card manual overrides; falls back gracefully on rate limit / network error
+- [x] CV / Resume tab — split out of Profile into its own sidebar tab
+- [x] CV version history (`cv_files` table) — every upload/generate kept; admin picks which is active; active CV cannot be deleted
+- [x] CV visibility toggle — hide the public Download CV button without deleting the file (`profiles.cv_visible`)
+- [x] CV download counter (`profiles.cv_download_count`) — public `POST /profile/cv/download` increments, dashboard displays
+- [x] In-dashboard PDF preview iframe of the currently active CV
+- [x] CV auto-generator (basic) — `gofpdf` builds a clean classic resume from profile + skills + experience; lands in history but does NOT auto-activate (admin confirms via inline "Yes, set as active" banner). **Needs polish — see Known Issues.**
+- [x] CV Compare modal — fullscreen side-by-side comparison of any two saved CVs; per-pane dropdown + chip strip for quick swapping; "Make Active" button per pane; backfill of legacy active-CV into history so Compare always sees it
+- [x] Profile section UI overhaul — split layout, sticky identity card with two photo uploads + live preview of name/title/email/phone/location/availability, three icon-decorated form sections, three-card visual availability selector
+- [x] Phone field uses `intl-tel-input` country code picker (BD default) — stored as full E.164 with leading `+`
+- [x] Hero pill (`Say Hi from {nickname}, {title}`) editable from dashboard with `nickname` + `hero_subtitle` override fields
+- [x] Hero heading (`I build and ship / beautiful apps to / App Store & Play Store.`) editable with three line inputs + comma-separated highlight words + advanced free-form override; live preview in the dashboard, "Default heading" reference card, and "↺ Restore default" button
+- [x] Title field (`profile.title`) bound to sidebar designation, hero subtitle pill, and footer tagline (was hardcoded everywhere)
+- [x] Copyright system — editable `copyright_text` with `{year}` / `{name}` placeholders, sidebar/footer per-place overrides, optional "Built with" footer line, 5 quick-fill presets, insert chips
+- [x] Footer & Copyright moved to its own `📜 Footer` sidebar tab with dedicated `PUT /profile/footer` endpoint
+- [x] Status options drive the portfolio — sidebar Hire Me button text/state, hero CTA visibility, contact-card visibility, contact-form type filter, and a status banner above the contact form all change per Open to Work / Available for Freelance / On Vacation
+- [x] Contact form success message + toast tailored to availability (vacation no longer promises 24-hour reply)
 
 ### Database ✅
 - [x] PostgreSQL 17 installed and running as Windows service `postgresql-x64-17`
 - [x] Database `imtiaz_portfolio` created
-- [x] All 9 tables created via AutoMigrate (added `mail_password_histories` and `hidden_mail_accounts`)
+- [x] All 10 tables created via AutoMigrate (added `cv_files`)
 - [x] Seeded: 1 admin, 1 profile, 17 skills, 3 experience entries, 2 projects
 
 ---
@@ -1099,7 +1192,7 @@ border: 2px solid var(--color-primary);
 
 ### Content
 - [ ] **Profile photo** — `frontend/assets/images/profile/placeholder.jpg` is a placeholder. Replace with real photo.
-- [ ] **CV PDF** — `frontend/assets/images/profile/cv.pdf` doesn't exist yet. Add real CV.
+- [x] ~~**CV PDF**~~ — handled by the new CV / Resume tab (upload + version history + auto-generate).
 - [ ] **App screenshots** — Projects have empty `screenshots` arrays. Add real app screenshots.
 - [ ] **App Store / Play Store links** — Currently `https://apps.apple.com` / `https://play.google.com` (generic). Update to real app listings.
 - [x] ~~**Social links**~~ — now driven by the dashboard's Social Links tab; icons hide automatically when a URL is blank.
@@ -1107,16 +1200,26 @@ border: 2px solid var(--color-primary);
 - [x] ~~**GitHub username**~~ — now driven by the dashboard's GitHub Stats tab. The `imtiazchowdhury` placeholder in `github.js` only acts as a fallback when no username is configured.
 
 ### Dashboard
-- [ ] **Add modals** — "Add Project", "Add Skill", "Add Experience" buttons show placeholder toast. Real forms need to be built.
+- [ ] **Add modals** — "Add Project", "Add Skill", "Add Experience" buttons show placeholder toast. Real forms need to be built. **← Highest priority gap remaining.**
 - [ ] **Edit functionality** — Dashboard can only delete, not edit existing entries inline.
-- [ ] **Image upload UI** — Upload endpoint exists but no UI in dashboard to use it.
-- [ ] **Profile photo upload** — Dashboard profile form has no file upload field yet.
+- [ ] **Image upload UI** — Upload endpoint exists but no UI in dashboard to use it (for project screenshots, company logos, etc.).
+- [x] ~~**Profile photo upload**~~ — fully done via the Profile tab's identity card (sidebar + about photos with click-to-upload + Cropper.js modal).
 
 ### Design / UI
 - [ ] **Tech stack content** — When backend is unreachable, fallback message shows. Could use static hardcoded data as fallback.
 - [ ] **Mobile responsiveness** — Some sections need polish on very small screens (< 400px).
 - [ ] **Experience timeline** has a duplicate `class` attribute on the timeline container div.
 - [ ] **Testimonials section** — Table exists in DB, no portfolio section rendered yet.
+
+### CV / Resume
+- [ ] **Generate from data — needs significant work.** Current `gofpdf`-based output is a minimal classic layout (name, title, contact bar, summary, experience, skills). Pending:
+  - Better typography / spacing / hierarchy — current layout is utilitarian, not designed
+  - Optional dark/branded variant matching the portfolio
+  - Section ordering / inclusion controls (skip GitHub stats, skip availability, etc.)
+  - Inline preview before save (so admin doesn't have to generate-then-discard)
+  - Per-section page-break control to avoid orphaned headings
+  - Pull projects/testimonials into the resume too (currently only profile + skills + experience)
+  - Photo + iconography support (gofpdf can embed images, just not wired up yet)
 
 ---
 
@@ -1136,7 +1239,12 @@ border: 2px solid var(--color-primary);
 - ~~GitHub stats with live API + manual override~~ ✅ Done
 - Project detail modal/page (clicking "View Details" on app slide)
 - Dark/light theme toggle
-- CV auto-generation from database content
+- ~~CV version history with active picker, visibility toggle, download counter, in-dashboard preview~~ ✅ Done
+- ~~CV side-by-side compare modal~~ ✅ Done
+- ~~CV auto-generation from database content~~ ⚠️ Partially done (see Known Issues → CV / Resume — minimal `gofpdf` layout works end-to-end, but needs design polish, section controls, preview-before-save, and richer content)
+- ~~Editable hero pill, hero heading, copyright with placeholders~~ ✅ Done
+- ~~Status options drive portfolio buttons (Tier 1)~~ ✅ Done
+- Status Tier 2 — `vacation_return_date` field + "Back on {date}" banner messaging (deferred from this session)
 - About section photo layout (planned)
 
 ### Phase 4 — Production
@@ -1219,5 +1327,43 @@ In `frontend/assets/js/core/api.js`, `BASE_URL` is `/api/v1` (relative). Since t
 | 3.11.0 | 2026-05-09 | Click-twice confirmation pattern across destructive dashboard actions — robust against Firefox dialog suppression | dashboard.html |
 | 3.12.0 | 2026-05-09 | GitHub Stats sidebar tab + dynamic public section — live `api.github.com` fetch (Repositories, Top Language, Years Active) with per-card manual overrides; Total Commits is manual-only | profile.go, profile_handler.go, profile_service.go, routes.go, dashboard.html, github.js |
 | 3.13.0 | 2026-05-09 | README brought current — new endpoints, new tables, new dashboard tabs, Known Issues / Roadmap reconciled | README.md |
+| 3.14.0 | 2026-05-09 | Brand icons added next to each Social Links input in the dashboard (GitHub, LinkedIn, Twitter/X, Instagram, WhatsApp) via Phosphor Icons | dashboard.html |
+| 3.15.0 | 2026-05-09 | CV / Resume split out of Profile into its own dashboard sidebar tab (consistent with Social Links / Mail Settings / GitHub Stats split pattern) | dashboard.html |
+| 3.16.0 | 2026-05-09 | CV version history — `cv_files` table + endpoints (history list, activate, delete). Every upload appends a row; active CV is mirrored onto `profiles.cv_file` | cv_file.go, profile_handler.go, profile_service.go, routes.go, main.go |
+| 3.17.0 | 2026-05-09 | CV visibility toggle + download counter — `cv_visible` and `cv_download_count` columns on `profiles`; public `POST /profile/cv/download` increments counter; portfolio respects the toggle | profile.go, profile_handler.go, profile_service.go, routes.go, about.js |
+| 3.18.0 | 2026-05-09 | CV auto-generator — `gofpdf`-based clean classic resume PDF built from profile + skills + experience, saved to `/uploads/cv/`, registered in history as `source="generated"` | cv_generator_service.go, go.mod |
+| 3.19.0 | 2026-05-09 | Dashboard CV tab rebuilt — in-page PDF preview iframe, Generate button, visibility toggle, download counter, version history list with View / Make Active / Delete (click-twice confirm) | dashboard.html |
+| 3.20.0 | 2026-05-09 | Generate doesn't auto-activate — generated CV lands in history but admin must confirm via inline "Yes, set as active" banner. Uploads still auto-activate. `AddCVHistory` gained an `activate bool` parameter | profile_service.go, profile_handler.go, cv_generator_service.go, dashboard.html |
+| 3.21.0 | 2026-05-09 | CV tab full UI polish — hero card with brand-blue glow, iOS-style toggle switch, 3-up stats row (downloads / versions / last updated), action cards for Upload + Generate (Phosphor icons), preview frame with "Active" corner pill, history as hoverable cards with source-colored stripes and pulsing active glow | dashboard.html |
+| 3.22.0 | 2026-05-09 | Preview redesigned — toolbar (filename + source/size pills + expand / open-in-tab / download icon buttons), 420px default height with Expand toggle to 820px. Version History redesigned — featured "Currently Active" card pinned at top + responsive grid of past-version tiles with stylized PDF-cover artwork, three-dot action menu (Make active / Download / Delete with click-twice confirm), animated popup, click-outside dismiss | dashboard.html |
+| 3.23.0 | 2026-05-09 | CV tab split layout — Preview now occupies 80% horizontal width with Version History as a 20% scrollable side column (max-height 760px). History tiles in side mode reflow to single-column horizontal-cover layout; featured card stacks vertically; View link hidden in favor of the three-dot menu's Download. Falls back to stacked layout below 1100px viewport | dashboard.html |
+| 3.24.0 | 2026-05-09 | Preview iframe auto-fits to full PDF size via PDF.js (3.11.174 from cdnjs) — measures page count + per-page aspect ratio, computes total fit-to-width height, sets iframe height so the entire CV displays without internal scrolling. Uses `view=FitH` URL fragment so the browser PDF viewer matches the calculation. Re-fits on window resize (debounced 250ms). Expand toggle removed (no longer needed) | dashboard.html |
+| 3.25.0 | 2026-05-09 | Tightened CV preview height calculation — was overshooting the actual PDF size, leaving empty space below. Now subtracts ~8px horizontal browser padding from rendered page width, drops top/bottom padding (`toolbar=0` strips the chrome), and reduces inter-page gap to 8px | dashboard.html |
+| 3.26.0 | 2026-05-09 | CV preview switched from `<iframe>` to PDF.js canvas rendering — each page rendered as a stacked `<canvas>`, container height equals the exact sum of canvas heights so there's zero whitespace below. Renders at 2× scale for crisp display on high-DPI screens; debounced resize re-render keeps it sharp after width changes. In-flight render token cancels stale renders when the active CV changes mid-render. "Open in new tab" still uses the native PDF viewer for full interaction | dashboard.html |
+| 3.27.0 | 2026-05-09 | Removed the hero card's "View PDF" button — redundant with the inline preview right below it. Toolbar's Open-in-tab + Download icons remain | dashboard.html |
+| 3.28.0 | 2026-05-09 | Preview button on every history card — click any past CV to load it into the preview without making it active. New "Previewing past version" amber pill appears in the toolbar when the previewed CV isn't the active one; the previewed tile gets a primary-colored outline ring. Featured card's old "View" link replaced with a "Preview" button (handy for jumping back to the active CV) | dashboard.html |
+| 3.29.0 | 2026-05-09 | "↩ Back to active" button in the preview toolbar — appears in green next to the "Previewing past version" pill whenever a non-active CV is loaded; one click jumps the preview back to the currently active version | dashboard.html |
+| 3.30.0 | 2026-05-09 | Back-to-active button reliability fixes — cache the active row in `_cvActiveRow` so the click never depends on history-render timing; reordered `loadCVTab` to render history before preview so highlight ring is correctly applied on first paint; moved the button's inline styles to a real `.cv-back-to-active-btn` class with hover state | dashboard.html |
+| 3.31.0 | 2026-05-09 | CV side-by-side comparison — new `⫴ Compare` icon button in the History panel header opens a fullscreen modal with two scrollable PDF panes, each with its own dropdown to pick any saved CV. Defaults to active CV vs. next-newest. PDF.js renders each pane with independent cancellation tokens. Esc or backdrop click closes. Refuses if fewer than 2 CVs are saved | dashboard.html |
+| 3.32.0 | 2026-05-09 | History backfill for legacy active CVs — `GetCVHistory` now inserts a synthetic `cv_files` row when `profile.cv_file` exists but isn't tracked in history (typical after pre-`cv_files` uploads). Fixes Compare/History invisible legacy CVs and ensures every active CV is delete-protected and addressable | profile_service.go |
+| 3.33.0 | 2026-05-09 | Compare modal — bottom strip of all-CV chips with `← Left` / `Right →` buttons so any saved CV can be swapped into either pane in one click. Chips currently shown in either pane glow with a primary border and the matching button is disabled. Strip + panes stay in sync whether the user uses dropdowns or chip buttons | dashboard.html |
+| 3.34.0 | 2026-05-09 | "Make Active" button on each compare pane — green button below the dropdown that promotes the pane's CV to active. Optimistic local update keeps the modal in sync without a re-fetch; background `loadCVTab()` refreshes the underlying dashboard. Disabled with "Already Active" label when the shown CV is already active | dashboard.html |
+| 3.35.0 | 2026-05-09 | Profile section UI overhaul — split layout with sticky left identity card (live preview of name/title/email/phone/location/availability + click-to-upload sidebar & about photos with hover overlay), and right side organized into 3 panels (Basic Info / Status / About You) with Phosphor icons on every label. Availability is now a 3-card visual selector (Open/Freelance/Busy). Bio shows live character count. Added Phone field (already in DB model, was previously unedited) | dashboard.html |
+| 3.36.0 | 2026-05-09 | Phone field now uses an `intl-tel-input` country code picker (same library as WhatsApp) — flag dropdown + separate dial code, defaults to BD with US/GB/IN/AE preferred. Stored as full E.164 with leading "+". Identity card preview shows the full international number, including after country switches | dashboard.html |
+| 3.37.0 | 2026-05-09 | "Busy" availability replaced with "On Vacation" — palm-tree icon, amber badge color (more apt than the prior coffee/red). CSS class renamed from `is-busy` to `is-away` | dashboard.html |
+| 3.38.0 | 2026-05-09 | Profile `title` field is now wired to the public portfolio in three places (was hardcoded everywhere): sidebar designation, hero subtitle pill ("Say Hi from Imtiaz, {title}"), and footer tagline ("{title} · {location}"). New IDs `sidebar-designation`, `hero-subtitle-title`, `footer-tagline` + `updateFooter()` helper | index.html, about.js |
+| 3.39.0 | 2026-05-09 | Editable copyright with auto-fallback — new `copyright_text` field on `profiles`, new "Footer" panel in the dashboard's Profile tab. Sidebar + footer copyright lines now show the custom text when provided, otherwise auto-fill `© {currentYear} {full_name}. All Rights Reserved.` | profile.go, dashboard.html, index.html, about.js |
+| 3.40.0 | 2026-05-09 | Footer panel customization — three new profile fields (`sidebar_copyright_text`, `footer_copyright_text`, `footer_built_with`); `{year}` / `{name}` placeholders that resolve on the public site; live preview block, 5 quick-fill presets (Standard / Minimal / Made with ❤️ / Crafted by / Reverse), insert chips for placeholders + ©/❤️/✨/💙/🚀/·, collapsible per-place override section. Footer now has an optional second "Built with…" line driven by the new field | profile.go, dashboard.html, index.html, about.js, portfolio.css |
+| 3.41.0 | 2026-05-09 | Footer panel split into its own `📜 Footer` sidebar tab — new dedicated `PUT /profile/footer` endpoint with pointer-typed body (empty = clear, nil = preserve), four footer fields added to the regular profile preserve list so the main Profile save no longer touches them | profile_handler.go, profile_service.go, routes.go, dashboard.html, README.md |
+| 3.42.0 | 2026-05-09 | Hero pill is now editable — two new profile fields: `nickname` (replaces hardcoded "Imtiaz" in the greeting) and `hero_subtitle` (full override of the pill text with `{name}`/`{title}`/`{nickname}` placeholders). New "Hero Pill" section in the Profile tab. Public portfolio resolves nickname → first word of full_name when blank | profile.go, dashboard.html, index.html, about.js |
+| 3.43.0 | 2026-05-09 | Hero heading is now editable — five new profile fields (`hero_heading_line1/2/3`, `hero_heading_highlights`, `hero_heading_override`). Dashboard Profile tab gains a "Hero Heading" section with a live preview, three line inputs, a comma-separated highlight-words field, and a collapsible advanced override (newlines + `*asterisks*` for highlights). Override auto-opens when a value is saved. Same renderer used by the dashboard preview and the public portfolio so they stay perfectly in sync | profile.go, dashboard.html, index.html, about.js |
+| 3.43.1 | 2026-05-09 | Fix hero-heading preview not showing the brand-blue highlight color — public CSS rule was scoped to `.hero-title .highlight`, which never matched in the dashboard preview wrapper. Added a dashboard-wide `.dash-section .highlight` rule mirroring the portfolio styling | dashboard.html |
+| 3.43.2 | 2026-05-09 | Hero-heading renderer marker hardening — replaced `\x00`-based HOPEN/HCLOSE markers with ASCII-safe `__HL_OPEN_KP__` / `__HL_CLOSE_KP__` (some HTML parsers strip null bytes from string fragments before innerHTML assignment, leaving raw marker tokens visible and breaking highlight rendering). Same fix in `dashboard.html` and `about.js` | dashboard.html, about.js |
+| 3.44.0 | 2026-05-10 | Hero Heading section UX polish — clearer per-field hints (with concrete examples + warning that Highlight Words only colours text already in the lines), a "Default heading" reference card showing the original styled output, and a "↺ Restore default" button in the section header that one-click fills the original values | dashboard.html |
+| 3.45.0 | 2026-05-10 | Status options now drive the portfolio's hire-related buttons. New `applyStatusBehavior(p)` in `about.js`: **Open to Work** keeps everything visible with green "Open to opportunities" banner. **Available for Freelance** hides job-only buttons (sidebar relabels to "Start a Project", hero job CTA + Job contact card hidden, form type filtered to Freelance/Other), blue banner. **On Vacation** hides all hero CTAs + both contact cards, sidebar shows disabled amber "Currently Away", form type filtered to Other only, amber banner with vacation message; contact form stays accessible per requirement | index.html, portfolio.css, about.js |
+| 3.45.1 | 2026-05-10 | Contact form success message + toast now tailored to availability — On Vacation no longer falsely promises "reply within 24 hours"; instead shows "🌴 Message received! I'm currently on vacation, but I'll reply when I'm back." Reads `Store.get('profile')` so it picks up whatever about.js loaded | contact.js |
+| 3.45.2 | 2026-05-10 | Moved the contact form success div from above the Send button to below it — was appearing in an unnatural spot mid-form; now sits where users expect to see confirmation after clicking Send | index.html |
+| 3.45.3 | 2026-05-10 | Removed hardcoded "I'll reply within 24 hours" fallback text from the contact-success div — the div is now empty in HTML and contact.js fills it with the status-aware message at submit time. Eliminates the apparent stale-text bug when a cached old contact.js was being served | index.html |
+| 3.46.0 | 2026-05-10 | README session summary — new `§ 0 · Where We Left Off` section at the top with version, recent focus areas, and prioritized suggested next steps. Section 11 dashboard tabs list updated to reflect the new Profile / CV / Footer panel structure. Section 14 backend + frontend lists updated with the session's additions. Section 15 Known Issues + Section 16 Roadmap reconciled (e.g. Profile photo upload now ✅, Status Tier 2 added as deferred work) | README.md |
 
 > **Rule:** Every future change must add a row to this table before the session ends.

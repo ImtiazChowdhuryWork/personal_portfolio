@@ -94,7 +94,7 @@
       <!-- Name left, title right — same row (reference: header is FIRST, above photo) -->
       <div class="sidebar-header">
         <h2 class="sidebar-name" id="sidebar-name">Chowdhury Md. Imtiazul Islam</h2>
-        <div class="sidebar-designation">Flutter<br>Developer</div>
+        <div class="sidebar-designation" id="sidebar-designation">Flutter<br>Developer</div>
       </div>
 
       <!-- Profile photo — below the name, matches reference order -->
@@ -114,7 +114,7 @@
       </div>
 
       <!-- Copyright -->
-      <div class="sidebar-copy">© 2025 Imtiaz. All Rights Reserved.</div>
+      <div class="sidebar-copy" id="sidebar-copy">© 2025 Imtiaz. All Rights Reserved.</div>
 
       <!-- Social icons — single non-wrapping row -->
       <div class="sidebar-social">
@@ -133,8 +133,8 @@
       </div>
 
       <!-- Hire Me button with envelope icon -->
-      <a href="#contact" class="sidebar-hire-btn sidebar-hire-btn--hidden">
-        <i class="ph ph-envelope"></i> Hire Me!
+      <a href="#contact" class="sidebar-hire-btn sidebar-hire-btn--hidden" id="sidebar-hire-btn">
+        <i class="ph ph-envelope"></i> <span id="sidebar-hire-btn-label">Hire Me!</span>
       </a>
 
     </aside>
@@ -195,14 +195,14 @@
 
         <!-- Subtitle pill — Drake style bordered pill above heading -->
         <div class="subtitle scroll-animation" data-animation="fade_from_bottom">
-          <span>👋</span> Say Hi from Imtiaz, Flutter Developer
+          <span>👋</span> <span id="hero-subtitle-text">Say Hi from Imtiaz, <span id="hero-subtitle-title">Flutter Developer</span></span>
         </div>
 
         <!-- Heading + rotating badge side by side (Drake layout) -->
         <div class="hero-top-row scroll-animation" data-animation="fade_from_bottom">
           <div class="hero-text-block">
             <!-- h1: 78px, font-weight 300, line-height 90px -->
-            <h1 class="hero-title">
+            <h1 class="hero-title" id="hero-title">
               I build and ship<br>
               beautiful apps to<br>
               <span class="highlight">App Store</span> &amp;
@@ -237,9 +237,9 @@
         </p>
 
         <!-- CTA buttons: pill-shaped, uppercase, 2px border -->
-        <div class="hero-cta scroll-animation" data-animation="fade_from_bottom">
-          <a href="#contact" class="btn">Hire Me for a Job</a>
-          <a href="#contact" class="btn btn-outline">Hire for Freelance</a>
+        <div class="hero-cta scroll-animation" data-animation="fade_from_bottom" id="hero-cta-row">
+          <a href="#contact" class="btn" id="hero-cta-job">Hire Me for a Job</a>
+          <a href="#contact" class="btn btn-outline" id="hero-cta-freelance">Hire for Freelance</a>
         </div>
 
         <!-- Facts / stats: 72px numbers, 100px gap, margin-top 55px -->
@@ -403,9 +403,15 @@
       <div class="section-label scroll-animation" data-animation="fade_from_bottom">Contact</div>
       <h2 class="section-title scroll-animation" data-animation="fade_from_bottom">Let's work together</h2>
 
+      <!-- Status banner — shown by JS when status is set -->
+      <div id="status-banner" class="status-banner" style="display:none">
+        <i id="status-banner-icon" class="ph"></i>
+        <span id="status-banner-text"></span>
+      </div>
+
       <!-- Two contact intent cards -->
-      <div class="contact-layout scroll-animation" data-animation="fade_from_bottom" style="margin-top:3rem">
-        <div class="contact-card">
+      <div class="contact-layout scroll-animation" data-animation="fade_from_bottom" id="contact-cards-row" style="margin-top:3rem">
+        <div class="contact-card" id="contact-card-job">
           <div class="contact-card-icon">💼</div>
           <h3 class="contact-card-title">Hire Me for a Job</h3>
           <p class="contact-card-desc">
@@ -417,7 +423,7 @@
           </a>
         </div>
 
-        <div class="contact-card">
+        <div class="contact-card" id="contact-card-freelance">
           <div class="contact-card-icon">🚀</div>
           <h3 class="contact-card-title">Hire Me for Freelance</h3>
           <p class="contact-card-desc">
@@ -456,12 +462,11 @@
             <label class="form-label" for="contact-message">Your Message *</label>
             <textarea class="form-control" id="contact-message" name="content" rows="5" placeholder="Tell me about your project or opportunity..." required></textarea>
           </div>
-          <div id="contact-success" class="form-success-msg">
-            ✅ Your message was sent! I'll reply within 24 hours.
-          </div>
           <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top:1rem">
             Send Message →
           </button>
+          <!-- Filled dynamically by contact.js based on availability -->
+          <div id="contact-success" class="form-success-msg"></div>
         </form>
       </div>
 
@@ -478,7 +483,7 @@
     ════════════════════════════════════════════════════════ -->
     <footer>
       <div class="footer-name scroll-animation" data-animation="fade_from_bottom">Chowdhury Md. Imtiazul Islam</div>
-      <div class="footer-tagline scroll-animation" data-animation="fade_from_bottom">Flutter Developer · Dhaka, Bangladesh</div>
+      <div class="footer-tagline scroll-animation" data-animation="fade_from_bottom" id="footer-tagline">Flutter Developer · Dhaka, Bangladesh</div>
 
       <div class="footer-social scroll-animation" data-animation="fade_from_bottom">
         <a data-social="github" href="#" target="_blank" rel="noopener" aria-label="GitHub" style="display:none">GH</a>
@@ -487,9 +492,10 @@
         <a data-social="instagram" href="#" target="_blank" rel="noopener" aria-label="Instagram" style="display:none">IG</a>
       </div>
 
-      <div class="footer-copy">
-        © <span id="footer-year"></span> Chowdhury Md. Imtiazul Islam. Built with Flutter spirit 💙
+      <div class="footer-copy" id="footer-copy">
+        © <span id="footer-year"></span> Chowdhury Md. Imtiazul Islam.
       </div>
+      <div class="footer-built-with" id="footer-built-with" style="display:none"></div>
     </footer>
 
   </main><!-- end .main-content -->
