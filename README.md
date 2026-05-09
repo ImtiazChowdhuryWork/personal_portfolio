@@ -32,32 +32,42 @@ A full-stack personal portfolio website inspired by the **Drake theme** (wpriver
 
 > Live snapshot at the end of the most recent session — read this first when resuming work.
 
-**Current version:** `v3.45.3` · DB schema is at 10 tables (no pending migrations).
+**Current version:** `v3.52.1` · DB schema is at 10 tables (no pending migrations).
 
-### Last two sessions (2026-05-09 → 2026-05-10) focused entirely on the dashboard's content-editing UX
+### Most recent session (2026-05-10, continued) — full dynamism + real-time inbox
 
-**CV / Resume system** — built end-to-end:
-- New `cv_files` table + version history with active picker, hide/show toggle, download counter, in-dashboard PDF preview (PDF.js-rendered canvases), Compare-two-CVs modal with side-by-side panes + chip strip + "Make Active" button per pane.
-- Auto-generator (`gofpdf`-based) builds a basic resume from profile/skills/experience. **Needs significant polish — see § 15 → CV / Resume.**
+**Hero Stats are fully editable** — three counters (Years of Experience / Apps Shipped / Technologies Mastered) now driven by profile fields, each with a value input + multi-line label + clickable `+` chip to toggle the suffix. Centralized: editing once updates the hero counter, the About card, and any `{years_experience}` placeholder in your bios.
 
-**Profile tab redesigned** — split layout, sticky identity card with two photo uploads, three status cards (Open to Work / Available for Freelance / 🌴 On Vacation), Phosphor-iconed form sections, live identity preview, Bio character counter, phone field with `intl-tel-input` country code picker.
+**Count-up animation rewritten** — `Utils.animateCounter` now supports decimals (`0.0 → 2.5+`), eases on quart (smoother tail than cubic), cancels in-flight rAF on the same element so a profile-arrival mid-animation doesn't fight for `textContent`.
 
-**Footer & Copyright** — split into its own `📜 Footer` sidebar tab with live preview, 5 quick-fill presets, insert chips, `{year}`/`{name}` placeholders, optional "Built with…" line, collapsible per-place overrides for sidebar vs. footer.
+**Hero rotating badge is dynamic** — text now reads `{title} • {availability} •` (was hardcoded "Flutter Dev • Open to Work"). SVG `lengthAdjust="spacingAndGlyphs"` so any input length fills the circle.
 
-**Hero customization on the portfolio** — every previously hardcoded text spot is now editable from the dashboard:
-- `nickname` + `hero_subtitle` (replace hardcoded "Imtiaz" + greeting pill)
-- `hero_heading_line1/2/3` + `hero_heading_highlights` + advanced override (replace the big 3-line hero title)
-- `title` (sidebar designation, hero subtitle, footer tagline)
-- `copyright_text` + sidebar/footer overrides + built-with line
-- `availability` now drives **per-status visibility/wording** of all hire-related buttons + a status banner above the contact form, and tailors the contact-form success message ("On Vacation" no longer falsely promises 24-hour reply).
+**About section: every meaningful text spot now editable** — bound the previously-hardcoded **Experience** + **Location** info cards. Added 3 new profile fields: `about_title`, `about_paragraph2`, `focus`. **`{placeholder}` substitution** added to short bio + long bio + paragraph 2: write `"{title} with {years_experience} years…"` and it auto-syncs from the source field. Tokens: `{name}`, `{first_name}`, `{nickname}`, `{title}`, `{tagline}`, `{location}`, `{email}`, `{phone}`, `{availability}`, `{years_experience}`, `{apps_shipped}`, `{tech_mastered}`, `{year}`.
+
+**Profile dashboard rebuild** — split into 4 sub-tabs (**Identity** / **Hero** / **Stats** / **About**) inside the Profile section. Single form, single submit, just hides/shows panes. Identity card stays sticky on the left and now hosts the **Save Profile** button (replaced the bottom sticky bar). **Save button only appears when the form is dirty** — snapshot + per-field diff watches every text input, availability button, photo URL, and `+` chip toggle; status text shows `✓ All changes saved` (green) or `● Unsaved changes` (amber). Re-baselines on save success and on photo upload (photos save to their own endpoint).
+
+**Messages: WhatsApp-style threading** — inbox now shows **one row per unique sender email** (was one row per submission). Chat panel interleaves all of a sender's messages with all replies you've sent, sorted chronologically with per-day separators. Mark-read + Delete now operate on the whole thread. Type chip in the header shows distinct topics if a sender's submissions span Job/Freelance/Other.
+
+**Reply compose UX overhaul:**
+- File size + type validated client-side (10 MB / images & PDF), with toasts for rejected files.
+- Visible limit hint chip ("⚡ Max 10 MB per file · Images & PDF").
+- New **🔗 Link** attachment option — paste any URL with optional label; chips render as clickable cards in chat history; auto-prefixes `https://`; validates with `new URL()`. Links also get appended to the email body so the visitor sees them.
+- **Stopped double-uploading binaries** — the reply endpoint now reads pre-uploaded files from disk via the `attachment_urls` JSON. Cuts wire bytes in half.
+- **SMTP send is now bounded** — backend uses a hand-rolled session with `net.DialTimeout` + per-step deadlines (30 s total). No more indefinite hangs.
+- **Send button is locked while in flight** + 60 s frontend `AbortController`. Catch handler distinguishes abort, network-error, and real server errors and shows a "may already have been sent — reload before retrying" warning where appropriate.
+
+**Real-time messages via Server-Sent Events** — new `internal/services/event_broker.go` (in-memory pub/sub) + `internal/handlers/sse_handler.go` (`GET /api/v1/events?token=...`). Dashboard opens an `EventSource` on load, listens for `message.created`, instantly refreshes the badge + (if the Messages tab is open) the inbox. New messages now show up within ~50 ms of submission instead of waiting for the next poll. 60 s polling fallback only fires if SSE isn't connected. Visibility-aware: pauses polling when the tab is hidden, refreshes immediately on visibility return.
+
+**Unread badge bugfixes** — was never hiding when count went to 0; now hides correctly. Added a soft red pulse animation when the count goes UP between events.
 
 ### Suggested next areas (in priority order)
 
-1. **Dashboard CRUD modals for Projects, Skills, Experience** — this is the biggest gap remaining (§15 → Dashboard). Today the Add buttons just toast a placeholder.
+1. **Dashboard CRUD modals for Projects, Skills, Experience** — biggest remaining gap (§15 → Dashboard). Today the Add buttons just toast a placeholder.
 2. **CV Generate polish** — pick from the punch list in §15 → CV / Resume (section controls, preview-before-save, design pass, richer content).
 3. **Tier 2 status extras** — `vacation_return_date` field + "Back on {date}" banner messaging (we did Tier 1 of the Status overhaul; Tier 2 was deferred).
-4. **Testimonials section on the public portfolio** — table exists in DB, no UI.
-5. **Project detail modal** — clicking "View Details" on an app slide.
+4. **Auto-acknowledgement email to visitors** — send a "thanks, I'll reply soon" the moment the contact form is submitted (currently only the dashboard admin gets the SMTP path).
+5. **Testimonials section on the public portfolio** — table exists in DB, no UI.
+6. **Project detail modal** — clicking "View Details" on an app slide.
 
 ---
 
@@ -1110,6 +1120,13 @@ border: 2px solid var(--color-primary);
 - [x] CV history backfill — `GetCVHistory` synthesises a `cv_files` row when `profile.cv_file` exists but has no matching history row (handles legacy uploads from before the table existed)
 - [x] `PUT /profile/footer` endpoint — pointer-typed body for the four footer fields (`copyright_text`, `sidebar_copyright_text`, `footer_copyright_text`, `footer_built_with`); empty values clear, nil values preserve
 - [x] Profile model expanded with: `nickname`, `hero_subtitle`, `hero_heading_line1/2/3`, `hero_heading_highlights`, `hero_heading_override`, `copyright_text`, `sidebar_copyright_text`, `footer_copyright_text`, `footer_built_with`
+- [x] Profile model expanded with: `tech_mastered`, `years_experience_label`, `apps_shipped_label`, `tech_mastered_label` (Hero Stats fully editable, all in the regular preserve list)
+- [x] Profile model expanded with: `about_title`, `about_paragraph2`, `focus` (About section fully dynamic)
+- [x] Reply handler reads pre-uploaded files from disk via `attachment_urls` JSON instead of accepting binary multipart twice — half the wire bytes per reply, much faster on slow connections (path is sanity-checked to stay inside `uploadDir`)
+- [x] SMTP `Send()` rebuilt with bounded session — `net.DialTimeout` + `conn.SetDeadline` on every step (30 s total). Each error wraps which step failed (e.g. `smtp auth: 535 ...`). Replaces stdlib `smtp.SendMail` which had no timeout
+- [x] Real-time event broker (`services/event_broker.go`) — in-memory pub/sub with per-subscriber buffered channels, non-blocking publish (slow consumers drop frames rather than wedge the broker)
+- [x] SSE endpoint `GET /api/v1/events?token=…` — JWT validated from query string (EventSource can't send headers), 25 s heartbeat to defeat proxy idle timeouts, auto-cleanup on client disconnect
+- [x] `MessageHandler.Create` publishes `message.created` events to the broker the instant a contact-form submission is saved
 
 ### Frontend ✅
 - [x] Drake-inspired dark theme (`#1f1f1f` background)
@@ -1179,6 +1196,17 @@ border: 2px solid var(--color-primary);
 - [x] Footer & Copyright moved to its own `📜 Footer` sidebar tab with dedicated `PUT /profile/footer` endpoint
 - [x] Status options drive the portfolio — sidebar Hire Me button text/state, hero CTA visibility, contact-card visibility, contact-form type filter, and a status banner above the contact form all change per Open to Work / Available for Freelance / On Vacation
 - [x] Contact form success message + toast tailored to availability (vacation no longer promises 24-hour reply)
+- [x] Hero Stats fully editable from dashboard — 3 value inputs + 3 multi-line label inputs + clickable `+` chip per value to toggle the suffix, live preview block, "Restore default" button. Counter animation reads from data attributes so labels and values stay in sync
+- [x] Count-up animation rewritten — decimal-aware (`0.0 → 2.5+`), easeOutQuart, per-element rAF cancellation so a profile-arrival mid-animation doesn't visibly fight with the observer
+- [x] Hero rotating badge text driven by `{title} • {availability} •` (was hardcoded "Flutter Dev • Open to Work"); SVG `lengthAdjust="spacingAndGlyphs"` so any input length fills the circle
+- [x] About section fully dynamic — section title, long bio, secondary paragraph, Location/Availability/Experience/Focus info-cards all bound to profile fields. **`{placeholder}` substitution** in all bios so paragraphs auto-update when source fields change (`{years_experience}`, `{title}`, `{location}`, `{name}`, etc.)
+- [x] Profile dashboard rebuilt as 4 sub-tabs (Identity / Hero / Stats / About) — single form, single save; sticky tab nav at the top of the right column; pane fade animation on switch
+- [x] Save Profile button moved into the sticky identity card (no more bottom bar) — and **only visible when the form is dirty**: snapshot + per-field diff watches text inputs, availability buttons, photo URLs, and `+` chip toggles; status text shows ✓ saved / ● unsaved
+- [x] Messages inbox grouped into **conversations by sender email** — one row per unique sender, chat panel interleaves all of their messages with all your replies sorted chronologically with per-day separators, mark-read / delete now bulk-act on the whole thread, type chip in header shows distinct topics
+- [x] Reply compose: file size + type validated client-side (10 MB / images & PDF) with toast on rejection; visible limit hint; **🔗 Link attachment** option (URL + optional label, validated, chip preview, appended to email body + recorded in `attachment_urls`)
+- [x] Reply send: locked button while in flight (no accidental double-send), stage-aware status text (Send → Sending… → Emailing…), 60 s `AbortController` deadline so the spinner never runs forever, clearer error UX that distinguishes abort / network / server failures
+- [x] Real-time message updates via SSE — dashboard subscribes to `EventSource('/api/v1/events?token=…')` on load, reacts to `message.created` events instantly (badge + inbox refresh, soft red pulse animation when count goes UP); 60 s polling fallback only when SSE is disconnected; visibility-aware (pauses when tab hidden, refreshes on focus)
+- [x] Unread badge correctly hides when count reaches 0 (was leaving stale count visible)
 
 ### Database ✅
 - [x] PostgreSQL 17 installed and running as Windows service `postgresql-x64-17`
@@ -1365,5 +1393,23 @@ In `frontend/assets/js/core/api.js`, `BASE_URL` is `/api/v1` (relative). Since t
 | 3.45.2 | 2026-05-10 | Moved the contact form success div from above the Send button to below it — was appearing in an unnatural spot mid-form; now sits where users expect to see confirmation after clicking Send | index.html |
 | 3.45.3 | 2026-05-10 | Removed hardcoded "I'll reply within 24 hours" fallback text from the contact-success div — the div is now empty in HTML and contact.js fills it with the status-aware message at submit time. Eliminates the apparent stale-text bug when a cached old contact.js was being served | index.html |
 | 3.46.0 | 2026-05-10 | README session summary — new `§ 0 · Where We Left Off` section at the top with version, recent focus areas, and prioritized suggested next steps. Section 11 dashboard tabs list updated to reflect the new Profile / CV / Footer panel structure. Section 14 backend + frontend lists updated with the session's additions. Section 15 Known Issues + Section 16 Roadmap reconciled (e.g. Profile photo upload now ✅, Status Tier 2 added as deferred work) | README.md |
+| 3.47.0 | 2026-05-10 | Hero Stats fully editable end-to-end — 4 new profile fields (`tech_mastered`, `years_experience_label`, `apps_shipped_label`, `tech_mastered_label`), all in the regular preserve list. New "Hero Stats" panel in the Profile tab with 3 stat values + 3 multi-line label inputs, live preview block, "Restore default" button. About section's Experience info-card now reads the same `years_experience` field so the two stats can never disagree | profile.go, profile_service.go, dashboard.html, index.html, about.js |
+| 3.47.1 | 2026-05-10 | Inline `+` chip beside each stat value — clickable toggle to show/hide the suffix without retyping; chip auto-syncs from the input value on load and on direct edit; Restore default re-syncs all three chips | dashboard.html |
+| 3.47.2 | 2026-05-10 | Count-up animation smoothed — `Utils.animateCounter` now decimal-aware (renders `0.0 → 2.5+`), eased on quart (gentler tail than cubic), and cancels in-flight `requestAnimationFrame` on the same element via a `WeakMap` so a profile-arrival mid-animation doesn't visibly fight with the observer. `hero.js` exposes `runStatAnimation(el)` so `about.js` can re-trigger after profile load | utils.js, hero.js, about.js |
+| 3.47.3 | 2026-05-10 | Hero stat cache-bust + IIFE-globals fix — bumped `?v=5` on `utils.js`, `hero.js`, `about.js` so stale cached versions don't run; replaced broken `window.HeroSection` existence check with `typeof HeroSection` (IIFE-declared `const` globals don't attach to `window` in classic scripts), and added a defensive final-text paint so the value is always correct even if the re-animation path can't run | index.html, about.js |
+| 3.48.0 | 2026-05-10 | Hero rotating badge is dynamic — text now reads `{title} • {availability} •` (was hardcoded "Flutter Dev • Open to Work"). New `updateRotatingBadge()` in `about.js`. SVG `lengthAdjust` switched from `spacing` to `spacingAndGlyphs` so any input length fills the circle cleanly | index.html, about.js |
+| 3.49.0 | 2026-05-10 | About section fully dynamic — added 3 new profile fields (`about_title`, `about_paragraph2`, `focus`) all in preserve list. Bound section title h2 + secondary paragraph + Focus info-card. Location and Experience info-cards (previously hardcoded `📍 Dhaka, Bangladesh` / `💼 2.5+ Years`) now read `location` and `years_experience`. Dashboard's About You panel extended with the new fields plus a placeholder reference chip | profile.go, profile_service.go, dashboard.html, index.html, about.js |
+| 3.49.1 | 2026-05-10 | `{placeholder}` substitution in user-authored bios — `resolvePlaceholders(text, p)` resolves `{name}` / `{first_name}` / `{nickname}` / `{title}` / `{tagline}` / `{location}` / `{email}` / `{phone}` / `{availability}` / `{years_experience}` / `{apps_shipped}` / `{tech_mastered}` / `{year}` in `short_bio`, `bio`, `about_paragraph2`. Unknown tokens are left intact so typos are spotable. Single source of truth for repeated values like years of experience | about.js |
+| 3.50.0 | 2026-05-10 | Profile dashboard rebuilt as 4 sub-tabs — Identity (Basic Info + Status) / Hero (Heading + Pill) / Stats / About. Single form, single submit; tabs fade in (220ms), tab nav is sticky at the top of the right column with blur backdrop. Reduces vertical scroll dramatically without losing any functionality. Mobile breakpoint wraps tabs to 2-up | dashboard.html |
+| 3.50.1 | 2026-05-10 | Save Profile button moved inside the sticky identity card (replaces the bottom sticky bar) — sits flush below the status badge with a thin divider; saving from the same place where the live preview lives is a more natural "review → ship it" gesture, and frees the bottom of the right column from sticky clutter | dashboard.html |
+| 3.50.2 | 2026-05-10 | Save Profile button is now hidden until the form is dirty — `snapshotProfileForm()` baselines every named input + photo `src` after `loadProfile`; `isProfileDirty()` diffs on every input/change/photo-upload/availability click/`+` chip toggle; `refreshProfileSaveState()` toggles `.is-dirty` class and updates inline status (✓ All changes saved in green / ● Unsaved changes in amber). Photos re-baseline only their entries on upload (since they save to their own endpoints), so in-progress edits in other fields stay flagged dirty | dashboard.html |
+| 3.51.0 | 2026-05-10 | Messages inbox grouped into conversations by sender email (WhatsApp-style) — `groupThreadsByEmail()` produces one entry per unique lowercased email with unread count, latest activity, distinct types. Chat panel `openThread(email)` interleaves all received messages + all replies sorted chronologically with per-day date separators. Mark-read + Delete now bulk-act on the whole thread; reply still attaches to the latest submission so the per-message backend endpoint stays unchanged. Backwards-compat shim keeps `openMessage(id)` working | dashboard.html |
+| 3.51.1 | 2026-05-10 | Reply compose UX overhaul — file size + type validated client-side against the backend's 10 MB / `jpg/jpeg/png/gif/webp/svg/heic/heif/pdf` whitelist (toast on rejection); visible "⚡ Max 10 MB per file · Images & PDF" hint chip; new **🔗 Link** attachment option (URL + optional label, validated with `new URL`, chip preview with truncated URL, removable, auto-prefixes `https://`). Links append to the email body as `— Links —` block AND ride in `attachment_urls` so chat history renders them as clickable cards with new-tab indicator | dashboard.html |
+| 3.51.2 | 2026-05-10 | Reply send hardened — `_isSendingReply` reentrancy guard + button locked the instant Send is clicked (no accidental double-send). Stage-aware status text (Send → Sending… → Emailing…). Catch handler distinguishes `AbortError` / network error / real server error and shows a "may already have been sent — reload before retrying" warning when appropriate. `finally` always re-enables the button | dashboard.html |
+| 3.51.3 | 2026-05-10 | Reply payload trimmed — backend's `MessageHandler.Reply` now reads pre-uploaded files from disk via `attachment_urls` JSON (URLs already point to `/uploads/replies/...`) instead of accepting binary multipart files a second time. Frontend stops appending `_attachedFiles` as multipart binary. Cuts wire bytes in half per reply, eliminates network-error timeouts on slow connections. Path is sanity-checked to stay inside `uploadDir` (no traversal). Multipart binary loop kept as fallback for legacy clients | message_handler.go, routes.go, dashboard.html |
+| 3.51.4 | 2026-05-10 | SMTP `Send()` no longer hangs forever — replaced stdlib `smtp.SendMail` with a hand-rolled session that sets `net.DialTimeout` (10 s) + `conn.SetDeadline` (30 s overall) on every step. Each step's error wraps which step failed (`smtp dial: ...`, `smtp auth: ...`, `smtp DATA: ...`) so server logs name the exact failure. Frontend gets a matching 60 s `AbortController` deadline so the spinner can't run forever even if backend dies; abort message tells user to reload before retrying to avoid duplicates | email_service.go, dashboard.html |
+| 3.52.0 | 2026-05-10 | Real-time message notifications via Server-Sent Events — new `internal/services/event_broker.go` (in-memory pub/sub with buffered subscriber channels and non-blocking publish) + `internal/handlers/sse_handler.go` (`GET /api/v1/events?token=…`, JWT validated from query string since EventSource can't send headers, 25 s heartbeat, auto-cleanup on client disconnect). `MessageHandler.Create` publishes `message.created` the moment a contact-form submission lands. Dashboard opens a single `EventSource` on load, reacts to events instantly (badge updates within ~50 ms; if Messages tab is open, inbox auto-refreshes too) | event_broker.go, sse_handler.go, message_handler.go, routes.go, dashboard.html |
+| 3.52.1 | 2026-05-10 | Unread badge bugfixes + smart polling — badge now correctly hides when count reaches 0 (was leaving a stale "1" forever); soft red pulse animation (`@keyframes unread-pulse`) flashes when count goes UP between events; 60 s polling fallback only fires when SSE is in a non-`OPEN` state (zero polling traffic when SSE works); visibility-aware (pauses when tab hidden, immediate refresh when tab regains focus) | dashboard.html |
+| 3.53.0 | 2026-05-10 | README updated with the full session — bumped `§ 0` to v3.52.1 with new focus summary + suggested next steps; § 14 backend + frontend lists extended with all the session's additions (Hero Stats, dynamic About, placeholder substitution, profile sub-tabs, dirty-state Save, message threading, Link attachments, SSE real-time, bounded SMTP); changelog rows 3.47.0 through 3.52.1 added per the every-change-gets-a-row rule | README.md |
 
 > **Rule:** Every future change must add a row to this table before the session ends.
