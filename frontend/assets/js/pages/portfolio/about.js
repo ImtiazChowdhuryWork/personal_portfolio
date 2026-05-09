@@ -16,6 +16,8 @@ const AboutSection = (() => {
       Store.set('profile', profile);
       updateAboutSection(profile);
       updateHeroSection(profile);
+      updateHeroStats(profile);
+      updateRotatingBadge(profile);
       updateSidebar(profile);
       updateSocialLinks(profile);
       updateFooter(profile);
@@ -25,12 +27,71 @@ const AboutSection = (() => {
     }
   }
 
+  // Substitutes {placeholder} tokens in user-authored copy so the same source
+  // of truth (years_experience, title, location, …) keeps every paragraph in
+  // sync. Unknown tokens are left untouched so users can spot typos.
+  function resolvePlaceholders(text, p) {
+    if (!text) return '';
+    const fullName = (p.full_name || '').trim();
+    const firstName = fullName.split(/\s+/)[0] || '';
+    const map = {
+      name:             fullName,
+      full_name:        fullName,
+      first_name:       firstName,
+      nickname:         (p.nickname || '').trim() || firstName,
+      title:            p.title || '',
+      tagline:          p.tagline || '',
+      location:         p.location || '',
+      email:            p.email || '',
+      phone:            p.phone || '',
+      availability:     p.availability || '',
+      years_experience: p.years_experience || '',
+      apps_shipped:     p.apps_shipped || '',
+      tech_mastered:    p.tech_mastered || '',
+      year:             new Date().getFullYear(),
+    };
+    return String(text).replace(/\{(\w+)\}/g, (m, key) =>
+      Object.prototype.hasOwnProperty.call(map, key) ? String(map[key]) : m
+    );
+  }
+
   function updateAboutSection(p) {
+    const titleEl = document.getElementById('about-title');
+    if (titleEl && p.about_title) {
+      // Allow \n in the field to map to <br> in the rendered title
+      const safe = resolvePlaceholders(p.about_title, p)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      titleEl.innerHTML = safe.replace(/\\n|\n/g, '<br>');
+    }
+
     const bioEl = document.getElementById('about-bio');
-    if (bioEl && p.bio) bioEl.textContent = p.bio;
+    if (bioEl && p.bio) bioEl.textContent = resolvePlaceholders(p.bio, p);
+
+    const para2El = document.getElementById('about-paragraph2');
+    if (para2El && p.about_paragraph2) {
+      para2El.textContent = resolvePlaceholders(p.about_paragraph2, p);
+    }
 
     const availEl = document.getElementById('about-availability');
     if (availEl && p.availability) availEl.textContent = p.availability;
+
+    // Location info-card mirrors the same field used by the sidebar.
+    const locEl = document.getElementById('about-location');
+    if (locEl && p.location) locEl.textContent = `📍 ${p.location}`;
+
+    // Experience info-card uses the same years_experience that drives the
+    // hero counter, so the two stats can never disagree.
+    const expEl = document.getElementById('about-experience');
+    if (expEl && p.years_experience) expEl.textContent = `💼 ${p.years_experience} Years`;
+
+    // Focus info-card — admin-editable single line. Leading emoji is preserved
+    // if the user writes one; otherwise we add a default.
+    const focusEl = document.getElementById('about-focus');
+    if (focusEl && p.focus) {
+      const v = p.focus.trim();
+      // If the value starts with a non-alpha char (likely emoji), don't double it
+      focusEl.textContent = /^[A-Za-z0-9]/.test(v) ? `📱 ${v}` : v;
+    }
 
     // About section uses its own dedicated photo
     const photoEl = document.getElementById('about-photo');
@@ -67,7 +128,7 @@ const AboutSection = (() => {
 
   function updateHeroSection(p) {
     const shortBio = document.getElementById('hero-short-bio');
-    if (shortBio && p.short_bio) shortBio.textContent = p.short_bio;
+    if (shortBio && p.short_bio) shortBio.textContent = resolvePlaceholders(p.short_bio, p);
 
     // Hero subtitle pill resolution:
     //   1. If `hero_subtitle` is set, use it as a template and resolve placeholders
@@ -99,6 +160,97 @@ const AboutSection = (() => {
       });
       if (html) heading.innerHTML = html;
     }
+  }
+
+  // Splits a stat value like "2.5+" or "100" into its parts so the count-up
+  // observer (hero.js) can animate it. Returns { count, suffix, decimal }.
+  // Empty input falls back to the existing data-* attrs (returns null).
+  function parseStat(raw) {
+    const s = String(raw == null ? '' : raw).trim();
+    if (!s) return null;
+    // Match leading number (with optional decimal) + everything after as suffix
+    const m = s.match(/^(-?\d+(?:\.\d+)?)(.*)$/);
+    if (!m) return { count: NaN, suffix: s, decimal: false, raw: s };
+    const numStr = m[1];
+    return {
+      count: parseFloat(numStr),
+      suffix: m[2] || '',
+      decimal: numStr.includes('.'),
+      raw: s,
+    };
+  }
+
+  // Updates the three hero stat counters from the saved profile. Each stat has
+  // a value field (e.g. "2.5+") and an optional label ("Years of\nExperience").
+  // The IntersectionObserver in hero.js may have already animated the defaults
+  // by the time the profile arrives, so we replace the data-* attrs AND set the
+  // visible textContent to the final value (no second animation, no flicker).
+  function updateHeroStats(p) {
+    const stats = [
+      { id: 'stat-years', value: p.years_experience, label: p.years_experience_label, defaultLabel: 'Years of\nExperience' },
+      { id: 'stat-apps',  value: p.apps_shipped,     label: p.apps_shipped_label,     defaultLabel: 'Apps on App Store\n& Play Store' },
+      { id: 'stat-tech',  value: p.tech_mastered,    label: p.tech_mastered_label,    defaultLabel: 'Technologies\nMastered' },
+    ];
+
+    stats.forEach(s => {
+      const valueEl = document.getElementById(`${s.id}-value`);
+      const labelEl = document.getElementById(`${s.id}-label`);
+
+      if (valueEl) {
+        const parsed = parseStat(s.value);
+        if (parsed && !Number.isNaN(parsed.count)) {
+          // Update data-* so the IntersectionObserver in hero.js uses the new
+          // target whenever it fires.
+          valueEl.dataset.count = String(parsed.count);
+          valueEl.dataset.suffix = parsed.suffix;
+          valueEl.dataset.decimal = parsed.decimal ? 'true' : 'false';
+
+          const decimals = parsed.decimal ? 1 : 0;
+          const finalText = parsed.count.toFixed(decimals) + parsed.suffix;
+
+          // typeof check rather than window.HeroSection — IIFE consts don't
+          // attach to window in classic scripts.
+          if (typeof HeroSection !== 'undefined' && HeroSection.runStatAnimation
+              && valueEl.dataset.animated === 'true') {
+            // Observer already animated to a stale default — re-run smoothly
+            // to land on the correct target. animateCounter cancels the
+            // in-flight rAF so they don't fight over textContent.
+            HeroSection.runStatAnimation(valueEl);
+          } else {
+            // Defensive: always make the final text correct even if the
+            // observer never fires or HeroSection is unavailable.
+            valueEl.textContent = finalText;
+          }
+        } else if (parsed) {
+          // Non-numeric value (e.g. "Coming soon") — just paint as-is
+          valueEl.textContent = parsed.raw;
+        }
+      }
+
+      if (labelEl) {
+        const raw = (s.label || '').trim() || s.defaultLabel;
+        const html = String(raw)
+          .replace(/\\n/g, '\n')
+          .split('\n')
+          .map(seg => seg.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'))
+          .join('<br>');
+        labelEl.innerHTML = html;
+      }
+    });
+  }
+
+  // The rotating circle next to the hero photo reads "{title} • {availability} •".
+  // SVG textPath uses lengthAdjust="spacingAndGlyphs" so the text always fills
+  // the circle regardless of how short or long the inputs are. The trailing
+  // " • " (with NBSP) keeps a clean separator at the seam where the loop closes.
+  function updateRotatingBadge(p) {
+    const textPath = document.getElementById('rotating-badge-text');
+    if (!textPath) return;
+    const title = (p.title || '').trim();
+    const avail = (p.availability || '').trim();
+    const parts = [title, avail].filter(Boolean);
+    if (parts.length === 0) return;
+    textPath.textContent = parts.join(' • ') + ' • ';
   }
 
   // Renders the hero heading HTML from profile fields. Mirrors the helper in

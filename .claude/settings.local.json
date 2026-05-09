@@ -79,7 +79,8 @@
       "PowerShell($env:PGPASSWORD = \"postgres123\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d postgres -c \"SELECT datname FROM pg_database WHERE datname='imtiaz_portfolio';\" 2>&1)",
       "PowerShell($env:PGPASSWORD = \"postgres123\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\createdb.exe\" -U postgres -h 127.0.0.1 imtiaz_portfolio 2>&1; if \\($LASTEXITCODE -eq 0\\) { \"Database created.\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d postgres -c \"SELECT datname FROM pg_database WHERE datname='imtiaz_portfolio';\" })",
       "PowerShell($env:PGPASSWORD = \"postgres123\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d imtiaz_portfolio -c \"DROP TABLE IF EXISTS gmail_connections;\" 2>&1; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d imtiaz_portfolio -c \"\\\\dt\" 2>&1)",
-      "Bash(go vet *)"
+      "Bash(go vet *)",
+      "Bash(xargs grep -l \"stats\\\\|CountUnread\")"
     ]
   }
 }

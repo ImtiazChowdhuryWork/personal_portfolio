@@ -33,6 +33,19 @@ type Profile struct {
 	Bio       string `gorm:"type:text" json:"bio"`
 	ShortBio  string `gorm:"type:varchar(500)" json:"short_bio"`
 
+	// ─── About Section ───────────────────────────────────────
+	// AboutTitle is the section heading shown above the about layout
+	// (was hardcoded "Shipping real apps to real stores." before being wired).
+	AboutTitle string `gorm:"type:varchar(200)" json:"about_title"`
+
+	// AboutParagraph2 is the secondary paragraph rendered below the long bio
+	// in the About section. Supports {placeholder} substitution.
+	AboutParagraph2 string `gorm:"type:text" json:"about_paragraph2"`
+
+	// Focus is the one-liner shown in the "Focus" info card on the About
+	// section (e.g. "Mobile Development", "Full-Stack Engineering").
+	Focus string `gorm:"type:varchar(100)" json:"focus"`
+
 	// Nickname is the short greeting name shown in the hero subtitle pill
 	// ("Say Hi from {nickname}, {title}"). Empty = first word of FullName.
 	Nickname string `gorm:"type:varchar(100)" json:"nickname"`
@@ -94,6 +107,16 @@ type Profile struct {
 
 	// AppsShipped is shown in the stat counters
 	AppsShipped string `gorm:"type:varchar(20);default:'5+'" json:"apps_shipped"`
+
+	// TechMastered is the third hero stat counter ("Technologies Mastered").
+	// Was hardcoded "10+" before being wired through the profile.
+	TechMastered string `gorm:"type:varchar(20);default:'10+'" json:"tech_mastered"`
+
+	// Hero stat labels — line-break with "\n" if a two-line label is wanted.
+	// Empty falls back to the original hardcoded label on the public portfolio.
+	YearsExperienceLabel string `gorm:"type:varchar(100)" json:"years_experience_label"`
+	AppsShippedLabel     string `gorm:"type:varchar(100)" json:"apps_shipped_label"`
+	TechMasteredLabel    string `gorm:"type:varchar(100)" json:"tech_mastered_label"`
 
 	// ─── Reply From Emails ───────────────────────────────────
 	// Comma-separated list of email addresses shown in the dashboard

@@ -11,6 +11,19 @@ const HeroSection = (() => {
     initCounters();
   }
 
+  // Runs the count-up animation for a single stat element. Reads its data-*
+  // attrs so the caller can tweak them (e.g. when profile data arrives) and
+  // re-trigger to land on the new target without flicker.
+  function runStatAnimation(el) {
+    if (!el) return;
+    const target = parseFloat(el.dataset.count);
+    if (Number.isNaN(target)) return;
+    const suffix = el.dataset.suffix || '';
+    const decimals = el.dataset.decimal === 'true' ? 1 : 0;
+    Utils.animateCounter(el, target, 1800, suffix, decimals);
+    el.dataset.animated = 'true';
+  }
+
   function initCounters() {
     const counters = document.querySelectorAll('[data-count]');
     if (!counters.length) return;
@@ -18,23 +31,13 @@ const HeroSection = (() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
-        const el = entry.target;
-        const target = parseFloat(el.dataset.count);
-        const suffix = el.dataset.suffix || '';
-        const isDecimal = el.dataset.decimal === 'true';
-
-        if (isDecimal) {
-          Utils.animateCounter(el, Math.floor(target), 1500, '');
-          setTimeout(() => { el.textContent = target + suffix; }, 1500);
-        } else {
-          Utils.animateCounter(el, target, 1500, suffix);
-        }
-        observer.unobserve(el);
+        runStatAnimation(entry.target);
+        observer.unobserve(entry.target);
       });
     }, { threshold: 0.5 });
 
     counters.forEach(el => observer.observe(el));
   }
 
-  return { init };
+  return { init, runStatAnimation };
 })();
