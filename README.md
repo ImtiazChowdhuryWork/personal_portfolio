@@ -32,9 +32,34 @@ A full-stack personal portfolio website inspired by the **Drake theme** (wpriver
 
 > Live snapshot at the end of the most recent session — read this first when resuming work.
 
-**Current version:** `v3.52.1` · DB schema is at 10 tables (no pending migrations).
+**Current version:** `v3.55.0` · DB schema is at 10 tables, with three new columns on `message_replies` (`delivery_status`, `delivery_error`, `delivered_at`) added on next startup via AutoMigrate. No new tables.
 
-### Most recent session (2026-05-10, continued) — full dynamism + real-time inbox
+### Most recent session (2026-05-10, late) — async reply queue + optimistic UI
+
+**Reply send is now async — chat feels instant.** The `Reply` handler used to call SMTP synchronously, blocking the admin's browser for 10–150 s on heavy emails (and timing out at 60 s with the "took longer than 60 seconds" abort message when many large attachments were involved). The new flow:
+
+1. Handler persists the reply with `delivery_status="pending"` and pushes a job onto a buffered channel (`ReplyQueue`, single worker goroutine, buffer 64).
+2. Handler returns 200 with the new `reply_id` in ~50 ms.
+3. Worker reads attachment bytes from disk, calls `EmailService.Send`, and updates the row to `sent` (with `delivered_at`) or `failed` (with the wrapped SMTP error).
+4. Worker publishes `reply.sent` / `reply.failed` events on the in-memory broker; dashboard's `EventSource` flips the bubble's tick in place — grey ✓ pulsing → blue ✓✓, or red ⚠ with the error inline + a Retry chip.
+
+**Optimistic UI on the dashboard.** Sent bubble appears the moment the admin clicks Send (before the server has even responded), the compose form clears immediately, and the admin can move on. New `tickHtml(status)` / `updateBubbleStatus(replyId, status, err)` helpers handle the in-place tick swap; new `wa-bubble.failed` styling + `wa-bubble-retry` chip for the failure UI; new SSE listeners for the two new event types layered on top of the existing `message.created` plumbing.
+
+**Retry plumbing for failed deliveries.** New `POST /api/v1/messages/replies/:id/retry` re-enqueues a row by ID — the same async path as a fresh send, with the bubble flipping back to pending while the worker takes another shot.
+
+**Server-crash recovery.** On startup the routes setup runs `MessageService.GetPendingReplies()` and re-enqueues every row still marked `pending` from a previous run. So if the server is killed mid-send, the email goes the next time the process comes up. Deliberately NO column-level default on `delivery_status` so AutoMigrate doesn't stamp legacy rows as pending and cause a mass re-send; the renderer treats empty status as "sent" so the historical chat looks unchanged.
+
+### Earlier in the day (2026-05-10) — timeout layer fix (v3.54.0)
+
+Before the async rewrite, the immediate bug was a 60-second abort on big replies. Three layered timeouts (HTTP server `WriteTimeout` 30 s, SMTP session 30 s, frontend `AbortController` 60 s) were all biting near the same point. Fixed by:
+
+- HTTP server `Read/WriteTimeout` 30 s → **5 min** (covers slow uploads/handler runtime).
+- SMTP deadline made adaptive: `30 s + 1 s per 100 KB of body, capped at 5 min`. A 13 MB email gets ~160 s instead of 30 s.
+- Frontend abort made adaptive: `90 s + 1 s per 80 KB of attachment bytes, capped at 5 min`. Backend always has room to return its actual SMTP error first; abort message interpolates the real deadline now.
+
+The async queue (above) is what makes this story complete — even with generous timeouts, the admin no longer waits through the SMTP send at all.
+
+### Earlier session today (2026-05-10) — full dynamism + real-time inbox
 
 **Hero Stats are fully editable** — three counters (Years of Experience / Apps Shipped / Technologies Mastered) now driven by profile fields, each with a value input + multi-line label + clickable `+` chip to toggle the suffix. Centralized: editing once updates the hero counter, the About card, and any `{years_experience}` placeholder in your bios.
 
@@ -698,6 +723,9 @@ When element leaves viewport:
 | POST | /messages | No | Submit contact form (public) |
 | GET | /messages | ✅ | Get all messages (dashboard) |
 | PUT | /messages/:id | ✅ | Mark message as read |
+| POST | /messages/:id/reply | ✅ | Persist reply + enqueue SMTP send. Returns `{ reply_id, delivery_status: "pending" }` immediately (~50 ms); the worker emails in the background and emits `reply.sent` / `reply.failed` over SSE |
+| GET | /messages/:id/replies | ✅ | All reply rows for a message (each carries `delivery_status` / `delivery_error` / `delivered_at` so the dashboard can render the right tick) |
+| POST | /messages/replies/:id/retry | ✅ | Re-enqueue a previously-failed reply by reply ID. Same async path as a fresh send |
 | DELETE | /messages/:id | ✅ | Delete message |
 
 ### Profile
@@ -873,11 +901,13 @@ When element leaves viewport:
 |--------|------|-------|
 | id | SERIAL | |
 | message_id | BIGINT | FK to `messages.id` |
-| from_email | VARCHAR(255) | Address the reply was sent from |
-| subject | VARCHAR(500) | |
-| body | TEXT | |
-| attachments | TEXT | JSON array of uploaded file URLs |
-| sent_at | TIMESTAMPTZ | |
+| from_email | VARCHAR(255) | Sending Gmail address chosen at compose time |
+| reply_text | TEXT | Body the admin typed (without the appended quote of the original) |
+| attachments | TEXT | JSON array of `{name, url, type, size}` — `type:"link"` entries are URLs only and live inline in the email body |
+| delivery_status | VARCHAR(20) | `"pending"` right after enqueue, `"sent"` once SMTP returns 250 OK, `"failed"` if the worker errored. Indexed for the startup-recovery scan. **No DB default** — legacy rows from before async stay empty and the renderer treats empty as "sent" |
+| delivery_error | TEXT | Wrapped SMTP error if `delivery_status="failed"` (e.g. `smtp body write: i/o timeout`). Shown inline on the failed bubble + as the title attr |
+| delivered_at | TIMESTAMPTZ | Set when the worker marks the row sent. NULL while pending or after a failure |
+| created_at | TIMESTAMPTZ | When the admin hit Send (NOT when Gmail accepted it — use `delivered_at` for that) |
 
 ### mail_password_histories
 Append-only audit log of every Gmail App Password ever saved through the dashboard.
@@ -1127,6 +1157,13 @@ border: 2px solid var(--color-primary);
 - [x] Real-time event broker (`services/event_broker.go`) — in-memory pub/sub with per-subscriber buffered channels, non-blocking publish (slow consumers drop frames rather than wedge the broker)
 - [x] SSE endpoint `GET /api/v1/events?token=…` — JWT validated from query string (EventSource can't send headers), 25 s heartbeat to defeat proxy idle timeouts, auto-cleanup on client disconnect
 - [x] `MessageHandler.Create` publishes `message.created` events to the broker the instant a contact-form submission is saved
+- [x] HTTP server `Read/WriteTimeout` raised to 5 minutes (was 30 s) — covers slow uploads + handler runtime; the SMTP service has its own (smaller) deadline below this
+- [x] Adaptive SMTP deadline — `30 s + 1 s per 100 KB of body, capped at 5 min`. Small replies stay snappy (catches stuck handshakes fast); a 13 MB email gets ~160 s without bailing mid-DATA
+- [x] **Async reply queue** (`services/reply_queue.go`) — single worker goroutine consumes a buffered channel of `ReplyJob`s, reads attachment bytes from disk, calls `EmailService.Send`, then patches the DB row to `sent` / `failed` and publishes `reply.sent` / `reply.failed` on the broker. Sequential by design (Gmail throttles concurrent sends from the same account anyway). Buffer size 64; on overflow the row is marked failed so the dashboard surfaces the error rather than silently dropping
+- [x] `MessageReply` extended with `delivery_status` (indexed varchar(20), no DB default — see model comment), `delivery_error` (text), `delivered_at` (nullable timestamp). `MessageService` gained `MarkReplySent`, `MarkReplyFailed`, `MarkReplyPending`, `GetPendingReplies`, `GetReplyByID`
+- [x] `MessageHandler.Reply` rewritten as enqueue-only — persists the row, marks the message replied/read, pushes a job, returns 200 in ~50 ms with `{ reply_id, delivery_status: "pending" }`. Legacy multipart-binary clients still work: their files are persisted to `/uploads/replies/` first and then routed through the same queue
+- [x] `MessageHandler.RetryReply` + `POST /api/v1/messages/replies/:id/retry` — re-enqueues a failed row by ID, flipping it back to pending
+- [x] Startup recovery — `routes.Setup` runs `GetPendingReplies()` and re-enqueues every row still pending from a previous run. A server killed mid-send doesn't lose the email; the next process picks it up
 
 ### Frontend ✅
 - [x] Drake-inspired dark theme (`#1f1f1f` background)
@@ -1204,14 +1241,19 @@ border: 2px solid var(--color-primary);
 - [x] Save Profile button moved into the sticky identity card (no more bottom bar) — and **only visible when the form is dirty**: snapshot + per-field diff watches text inputs, availability buttons, photo URLs, and `+` chip toggles; status text shows ✓ saved / ● unsaved
 - [x] Messages inbox grouped into **conversations by sender email** — one row per unique sender, chat panel interleaves all of their messages with all your replies sorted chronologically with per-day separators, mark-read / delete now bulk-act on the whole thread, type chip in header shows distinct topics
 - [x] Reply compose: file size + type validated client-side (10 MB / images & PDF) with toast on rejection; visible limit hint; **🔗 Link attachment** option (URL + optional label, validated, chip preview, appended to email body + recorded in `attachment_urls`)
-- [x] Reply send: locked button while in flight (no accidental double-send), stage-aware status text (Send → Sending… → Emailing…), 60 s `AbortController` deadline so the spinner never runs forever, clearer error UX that distinguishes abort / network / server failures
+- [x] Reply send: locked button while in flight (no accidental double-send), stage-aware status text, adaptive `AbortController` deadline scaled to total attachment size (`90 s + 1 s per 80 KB`, capped at 5 min), clearer error UX that distinguishes abort / network / server failures
 - [x] Real-time message updates via SSE — dashboard subscribes to `EventSource('/api/v1/events?token=…')` on load, reacts to `message.created` events instantly (badge + inbox refresh, soft red pulse animation when count goes UP); 60 s polling fallback only when SSE is disconnected; visibility-aware (pauses when tab hidden, refreshes on focus)
 - [x] Unread badge correctly hides when count reaches 0 (was leaving stale count visible)
+- [x] **Optimistic reply UI** — sent bubble appears the instant Send is clicked (before the server has even responded), compose form clears immediately so the admin can start the next reply, no spinner. Backend's response stamps the real `reply_id` onto the optimistic bubble so SSE handlers can find it
+- [x] Reply tick states bound to `delivery_status` — pulsing grey ✓ while pending, blue ✓✓ once Gmail accepts, red ⚠ on failure with the SMTP error inline (truncated to 140 chars, full text on hover) and a Retry chip
+- [x] Dashboard listens for `reply.sent` / `reply.failed` SSE events and flips the matching bubble's tick + retry UI in place (no refetch). New helpers: `tickHtml(status)`, `updateBubbleStatus(replyId, status, err)`, `retryReply(replyId)` — Retry hits the new `/messages/replies/:id/retry` endpoint and the bubble flips back to pending
+- [x] Legacy replies (no `delivery_status`) render as "sent" so the historical chat looks unchanged after the migration
 
 ### Database ✅
 - [x] PostgreSQL 17 installed and running as Windows service `postgresql-x64-17`
 - [x] Database `imtiaz_portfolio` created
 - [x] All 10 tables created via AutoMigrate (added `cv_files`)
+- [x] `message_replies` extended with `delivery_status` (indexed), `delivery_error`, `delivered_at` for the async reply queue (no DB default on `delivery_status` so legacy rows stay empty)
 - [x] Seeded: 1 admin, 1 profile, 17 skills, 3 experience entries, 2 projects
 
 ---
@@ -1411,5 +1453,8 @@ In `frontend/assets/js/core/api.js`, `BASE_URL` is `/api/v1` (relative). Since t
 | 3.52.0 | 2026-05-10 | Real-time message notifications via Server-Sent Events — new `internal/services/event_broker.go` (in-memory pub/sub with buffered subscriber channels and non-blocking publish) + `internal/handlers/sse_handler.go` (`GET /api/v1/events?token=…`, JWT validated from query string since EventSource can't send headers, 25 s heartbeat, auto-cleanup on client disconnect). `MessageHandler.Create` publishes `message.created` the moment a contact-form submission lands. Dashboard opens a single `EventSource` on load, reacts to events instantly (badge updates within ~50 ms; if Messages tab is open, inbox auto-refreshes too) | event_broker.go, sse_handler.go, message_handler.go, routes.go, dashboard.html |
 | 3.52.1 | 2026-05-10 | Unread badge bugfixes + smart polling — badge now correctly hides when count reaches 0 (was leaving a stale "1" forever); soft red pulse animation (`@keyframes unread-pulse`) flashes when count goes UP between events; 60 s polling fallback only fires when SSE is in a non-`OPEN` state (zero polling traffic when SSE works); visibility-aware (pauses when tab hidden, immediate refresh when tab regains focus) | dashboard.html |
 | 3.53.0 | 2026-05-10 | README updated with the full session — bumped `§ 0` to v3.52.1 with new focus summary + suggested next steps; § 14 backend + frontend lists extended with all the session's additions (Hero Stats, dynamic About, placeholder substitution, profile sub-tabs, dirty-state Save, message threading, Link attachments, SSE real-time, bounded SMTP); changelog rows 3.47.0 through 3.52.1 added per the every-change-gets-a-row rule | README.md |
+| 3.54.0 | 2026-05-10 | Fix "took longer than 60 seconds" abort when sending replies with many large attachments. Three layered timeouts were all conspiring at ~30s: the HTTP server's `WriteTimeout` (covers the whole handler per Go docs), the SMTP session's hard 30s deadline, and the frontend's 60s `AbortController`. The HTTP server cap was firing mid-DATA-upload to Gmail, the handler kept running, and the browser ultimately gave up at 60s with the abort message. Now: HTTP server `Read/WriteTimeout` 30s → 5 min; SMTP deadline made adaptive (30s base + 1s per 100 KB of body, cap 5 min) so a 13 MB email gets ~160s instead of 30s; frontend abort made adaptive (90s base + 1s per 80 KB of total attachment bytes, cap 5 min) so the backend always has room to return its real SMTP error first. Abort message now interpolates the actual deadline | main.go, email_service.go, dashboard.html |
+| 3.55.0 | 2026-05-10 | **Reply send is now async — WhatsApp/Gmail-style optimistic UI.** The `Reply` handler used to call SMTP synchronously, blocking the admin's browser for 10–150s on heavy emails. Now the handler persists the reply with `delivery_status="pending"` and pushes a job onto a new in-memory `ReplyQueue` (single worker goroutine, buffered channel of 64). The handler returns 200 with the new reply ID in ~50 ms; the worker reads attachment bytes from disk, calls `EmailService.Send`, and patches the DB row to `sent` or `failed` with the wrapped error. New `reply.sent` / `reply.failed` SSE event types let the dashboard flip ticks in real time (grey ✓ pulsing → blue ✓✓ on success, red ⚠ + retry chip on failure). New `POST /api/v1/messages/replies/:id/retry` endpoint re-enqueues a previously-failed reply. New `MessageReply` columns: `delivery_status` (varchar(20), indexed, no DB default to avoid mass-resend of legacy rows on AutoMigrate), `delivery_error` (text), `delivered_at` (nullable timestamp). Startup recovery loop re-enqueues any rows still `pending` after a previous run (server killed mid-send). Frontend renders the sent bubble *before* the request returns, stamps the real reply ID onto it from the response, then SSE handlers update the tick in place. Pre-existing legacy replies have `delivery_status=""` (no default) and the renderer treats empty as "sent" so the historical chat looks unchanged | message_reply.go, message_service.go, reply_queue.go (new), message_handler.go, routes.go, dashboard.html |
+| 3.56.0 | 2026-05-10 | README brought current — § 0 bumped to v3.55.0 with full session summary covering the timeout fix and the async-queue rewrite; § 9 Messages endpoint table now includes the reply, replies-list, and retry endpoints with their delivery-status semantics; § 10 `message_replies` schema rewritten to match the actual model (the prior README listed never-implemented `subject` / `body` / `sent_at` columns) and now lists the three new delivery-state columns; § 14 backend / frontend / database lists extended with all the v3.54 + v3.55 additions | README.md |
 
 > **Rule:** Every future change must add a row to this table before the session ends.

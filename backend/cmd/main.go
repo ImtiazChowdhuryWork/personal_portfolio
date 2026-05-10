@@ -87,12 +87,17 @@ func main() {
 	routes.Setup(router, db, cfg)
 
 	// ─── Step 8: Configure the HTTP server ────────────────────
-	// Setting timeouts prevents slow clients from holding connections open forever
+	// Setting timeouts prevents slow clients from holding connections open forever.
+	// 5 minutes is generous enough for slow-upload reply sends with multiple
+	// large attachments — at residential upload speeds, a ~15 MB email body to
+	// Gmail can easily take 1–2 minutes. The SMTP service has its own 120s
+	// deadline below this, so the server timeout is mainly a backstop against
+	// truly stuck clients.
 	server := &http.Server{
 		Addr:         ":" + cfg.ServerPort,
 		Handler:      router,
-		ReadTimeout:  30 * time.Second,  // max time to read the full request
-		WriteTimeout: 30 * time.Second,  // max time to write the full response
+		ReadTimeout:  5 * time.Minute,   // max time to read the full request (covers slow uploads)
+		WriteTimeout: 5 * time.Minute,   // covers handler execution + response write
 		IdleTimeout:  120 * time.Second, // max time to keep idle connections open
 	}
 

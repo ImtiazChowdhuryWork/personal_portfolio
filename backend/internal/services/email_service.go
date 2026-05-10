@@ -115,7 +115,16 @@ func (s *EmailService) Send(toName, toEmail, fromEmail, subject, body string, at
 		raw = []byte(headers + buf.String())
 	}
 
-	return s.sendWithTimeout(toEmail, raw, 30*time.Second)
+	// Adaptive deadline: 30s base + 1s per 100 KB of message body. A reply
+	// with no attachments stays at ~30s (catches stuck handshakes fast); a
+	// 13 MB reply gets ~160s (room for slow residential uploads to Gmail
+	// without the deadline biting mid-DATA). Capped at 5 minutes to match
+	// the HTTP server's WriteTimeout.
+	timeout := 30*time.Second + time.Duration(len(raw)/100_000)*time.Second
+	if timeout > 5*time.Minute {
+		timeout = 5 * time.Minute
+	}
+	return s.sendWithTimeout(toEmail, raw, timeout)
 }
 
 // sendWithTimeout dials, hand-shakes, authenticates and writes the message

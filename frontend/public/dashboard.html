@@ -1714,6 +1714,27 @@
       font-size: 11px; color: rgba(255,255,255,0.5);
     }
     .wa-bubble-tick { font-size: 13px; color: #53bdeb; }
+    /* Pending = single grey tick + soft pulse so the admin sees it's in flight */
+    .wa-bubble-tick.pending { color: rgba(255,255,255,0.45); animation: wa-tick-pulse 1.4s ease-in-out infinite; }
+    .wa-bubble-tick.sent    { color: #53bdeb; }
+    .wa-bubble-tick.failed  { color: #ff5b5b; }
+    @keyframes wa-tick-pulse { 0%,100% { opacity: 0.45; } 50% { opacity: 1; } }
+    /* Failed bubble accent: thin red side stripe + retry chip */
+    .wa-bubble.failed { box-shadow: inset 3px 0 0 #ff5b5b; }
+    .wa-bubble-retry {
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-top: 6px; padding: 3px 8px;
+      font-size: 11px; font-weight: 600;
+      background: rgba(255,91,91,0.14); color: #ff8a8a;
+      border: 1px solid rgba(255,91,91,0.35); border-radius: 12px;
+      cursor: pointer;
+    }
+    .wa-bubble-retry:hover { background: rgba(255,91,91,0.22); color: #ffb3b3; }
+    .wa-bubble-retry[disabled] { opacity: 0.55; cursor: not-allowed; }
+    .wa-bubble-fail-msg {
+      margin-top: 4px; font-size: 11px; color: #ff8a8a;
+      max-width: 280px; word-break: break-word;
+    }
 
     /* ── Bottom action bar ───────────────────────────────────── */
     .wa-chat-footer {
@@ -3515,6 +3536,23 @@ function startEventStream() {
     }
   });
 
+  // The reply queue worker emits these the moment SMTP returns. The bubble
+  // is already on screen with delivery_status=pending; we just flip its tick
+  // (and add the retry chip on failure). No data refetch needed — the row's
+  // delivery state is reflected entirely by the bubble's DOM.
+  _eventSource.addEventListener('reply.sent', (ev) => {
+    try {
+      const payload = JSON.parse(ev.data || '{}');
+      updateBubbleStatus(payload.reply_id, 'sent', '');
+    } catch { /* ignore malformed event */ }
+  });
+  _eventSource.addEventListener('reply.failed', (ev) => {
+    try {
+      const payload = JSON.parse(ev.data || '{}');
+      updateBubbleStatus(payload.reply_id, 'failed', payload.error || 'Delivery failed');
+    } catch { /* ignore malformed event */ }
+  });
+
   _eventSource.addEventListener('ready', () => {
     // First successful handshake — useful for diagnostics
     // eslint-disable-next-line no-console
@@ -3757,13 +3795,19 @@ async function openThread(emailEnc) {
     }
     const r = item.reply;
     const atts = parseAttachments(r.attachments);
-    return `<div class="wa-bubble-row sent">
-      <div class="wa-bubble sent">
+    // Legacy rows (synchronous-send era) have no delivery_status — treat them
+    // as sent so existing history doesn't suddenly show pending ticks.
+    const status = r.delivery_status || 'sent';
+    const replyId = r.id || '';
+    return `<div class="wa-bubble-row sent" ${replyId ? `data-reply-id="${replyId}"` : ''}>
+      <div class="wa-bubble sent ${status === 'failed' ? 'failed' : ''}">
         ${attachmentHtml(atts)}
         ${r.reply_text || ''}
+        ${status === 'failed' && r.delivery_error ? `<div class="wa-bubble-fail-msg" title="${escapeAttr(r.delivery_error)}">⚠ ${escapeHtml(truncate(r.delivery_error, 140))}</div>` : ''}
+        ${status === 'failed' && replyId ? `<button class="wa-bubble-retry" onclick="retryReply(${replyId})">↻ Retry</button>` : ''}
         <div class="wa-bubble-meta">
           <span class="wa-bubble-time">${time}</span>
-          <span class="wa-bubble-tick">✓✓</span>
+          ${tickHtml(status)}
         </div>
       </div>
     </div>`;
@@ -3941,6 +3985,91 @@ function escapeMessageHtml(s) {
   return String(s || '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/\n/g, '<br>');
+}
+
+// Plain HTML escape with no <br> conversion — for attribute-context strings.
+function escapeHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escapeAttr(s) {
+  return escapeHtml(s).replace(/"/g, '&quot;');
+}
+function truncate(s, n) {
+  s = String(s || '');
+  return s.length > n ? s.slice(0, n - 1) + '…' : s;
+}
+
+// Renders the WhatsApp-style tick for a sent bubble based on delivery state.
+//   pending → single grey pulsing tick (queued / SMTP in flight)
+//   sent    → blue ✓✓ (Gmail accepted)
+//   failed  → red ⚠ (worker error — paired with retry button + reason)
+function tickHtml(status) {
+  if (status === 'pending') return `<span class="wa-bubble-tick pending" title="Sending…">✓</span>`;
+  if (status === 'failed')  return `<span class="wa-bubble-tick failed"  title="Delivery failed">⚠</span>`;
+  return `<span class="wa-bubble-tick sent" title="Delivered">✓✓</span>`;
+}
+
+// Finds a sent bubble by its server reply ID and flips its tick + retry chip
+// in place — called by SSE reply.sent / reply.failed handlers and by retry().
+// No-op if the bubble isn't on screen (e.g. user is on a different conversation).
+function updateBubbleStatus(replyId, status, errMsg) {
+  if (!replyId) return;
+  const row = document.querySelector(`.wa-bubble-row.sent[data-reply-id="${replyId}"]`);
+  if (!row) return;
+  const bubble = row.querySelector('.wa-bubble.sent');
+  if (!bubble) return;
+
+  bubble.classList.toggle('failed', status === 'failed');
+
+  // Replace the tick
+  const tick = row.querySelector('.wa-bubble-tick');
+  if (tick) {
+    tick.outerHTML = tickHtml(status).match(/<span[^>]*>.*?<\/span>/)[0];
+  }
+
+  // Drop any previous fail UI
+  row.querySelectorAll('.wa-bubble-fail-msg, .wa-bubble-retry').forEach(el => el.remove());
+
+  if (status === 'failed') {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'wa-bubble-fail-msg';
+    msgDiv.title = errMsg || 'Delivery failed';
+    msgDiv.textContent = '⚠ ' + truncate(errMsg || 'Delivery failed', 140);
+
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'wa-bubble-retry';
+    retryBtn.textContent = '↻ Retry';
+    retryBtn.onclick = () => retryReply(replyId);
+
+    // Insert above the meta row
+    const meta = bubble.querySelector('.wa-bubble-meta');
+    if (meta) {
+      bubble.insertBefore(msgDiv, meta);
+      bubble.insertBefore(retryBtn, meta);
+    } else {
+      bubble.appendChild(msgDiv);
+      bubble.appendChild(retryBtn);
+    }
+  }
+}
+
+// Hits the retry endpoint for a previously-failed reply. Optimistically flips
+// the bubble back to "pending" so the admin sees feedback immediately; the
+// real success/failure comes back via the same SSE channel as the first send.
+async function retryReply(replyId) {
+  if (!replyId) return;
+  const row = document.querySelector(`.wa-bubble-row.sent[data-reply-id="${replyId}"]`);
+  const btn = row?.querySelector('.wa-bubble-retry');
+  if (btn) { btn.disabled = true; btn.textContent = '↻ Retrying…'; }
+  updateBubbleStatus(replyId, 'pending', '');
+  try {
+    await API.post(`/messages/replies/${replyId}/retry`, {});
+    Toast.show('Retry queued', 'info');
+  } catch (e) {
+    updateBubbleStatus(replyId, 'failed', e.message || 'Retry failed');
+    Toast.show(e.message || 'Retry failed', 'error');
+  }
 }
 
 // Groups all submitted messages by lowercased email so each sender appears
@@ -4365,6 +4494,11 @@ async function sendReply(id) {
     : 'Sending… please wait';
   status.style.color = 'var(--color-text-muted)';
 
+  // Hoisted out of the try block so the catch handler can interpolate the
+  // actual deadline into the abort message. Set to a default before any
+  // upload work; recomputed once we know total attachment size.
+  let replyDeadlineMs = 90_000;
+
   try {
     // Upload each attachment to /upload first. The reply endpoint then reads
     // them from disk via the URLs we pass in — no double-transfer of bytes.
@@ -4420,11 +4554,58 @@ async function sendReply(id) {
 
     const token = localStorage.getItem('portfolio_token');
 
-    // Hard deadline: bail out after 60s so the spinner can't run forever
-    // when SMTP hangs. The backend already enforces a 30s SMTP timeout, so
-    // 60s here is generous headroom for body upload + Gmail handshake.
+    // Hard deadline: bail out so the spinner can't run forever when SMTP
+    // hangs. Scaled by total attachment size — small replies stay snappy
+    // (90s catches real bugs fast), large replies get more time so the
+    // backend's adaptive SMTP deadline (30s base + 1s/100KB) can return
+    // its real error first. Capped at 5 minutes to match the server's
+    // WriteTimeout. 1s per 80 KB roughly tracks a 1 Mbps residential
+    // upload pipe with comfortable headroom.
+    const totalAttachBytes = (uploadedFiles || []).reduce((s, f) => s + (f.size || 0), 0);
+    replyDeadlineMs = Math.min(
+      5 * 60 * 1000,
+      90_000 + Math.floor(totalAttachBytes / 80_000) * 1000
+    );
     const ac = new AbortController();
-    const deadline = setTimeout(() => ac.abort(), 60000);
+    const deadline = setTimeout(() => ac.abort(), replyDeadlineMs);
+
+    // ── Optimistic UI: render the bubble immediately ─────────────
+    // The backend returns 200 in ~50 ms (it just persists the row + queues
+    // the SMTP send), but rendering BEFORE the response makes the chat feel
+    // instant — exactly the WhatsApp/Gmail trick. Tag the bubble with a temp
+    // id so we can swap in the real reply_id after the response, then SSE
+    // events flip the tick from grey ✓ → blue ✓✓ (or red ⚠ on failure).
+    const chatBody = document.getElementById('wa-chat-body');
+    const tempId = 'temp-' + Date.now();
+    let optimisticRow = null;
+    if (chatBody) {
+      const now = new Date().toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short',year:'numeric'});
+      const liveAttachHtml = attachmentHtml(
+        allAttachmentMeta.map(a => ({ ...a, type: a.type || '' }))
+      );
+      optimisticRow = document.createElement('div');
+      optimisticRow.className = 'wa-bubble-row sent';
+      optimisticRow.dataset.replyId = tempId;
+      optimisticRow.innerHTML = `<div class="wa-bubble sent">
+        ${liveAttachHtml}
+        ${escapeHtml(replyText).replace(/\n/g, '<br>')}
+        <div class="wa-bubble-meta">
+          <span class="wa-bubble-time">${now}</span>
+          ${tickHtml('pending')}
+        </div>
+      </div>`;
+      chatBody.appendChild(optimisticRow);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    // Clear the compose form right away — we have an in-flight bubble now,
+    // and the admin should be free to start the next reply without waiting.
+    textarea.value = '';
+    _attachedFiles = [];
+    _attachedLinks = [];
+    renderAttachmentPreviews();
+    const badge = document.getElementById('att-count-badge');
+    if (badge) badge.style.display = 'none';
 
     let res, data;
     try {
@@ -4440,64 +4621,61 @@ async function sendReply(id) {
     }
     if (!res.ok || !data.success) throw new Error(data.message || 'Failed to send');
 
-    status.textContent = '✓ Reply sent successfully!';
-    status.style.color = 'var(--color-primary)';
-
-    // Append sent bubble immediately to the chat body
-    const chatBody = document.getElementById('wa-chat-body');
-    if (chatBody) {
-      const now = new Date().toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short',year:'numeric'});
-      const bubble = document.createElement('div');
-      bubble.className = 'wa-bubble-row sent';
-      // Build attachment HTML from both files and links so the bubble shows
-      // exactly what gets persisted on the server.
-      const liveAttachHtml = attachmentHtml(
-        allAttachmentMeta.map(a => ({ ...a, type: a.type || '' }))
-      );
-
-      bubble.innerHTML = `<div class="wa-bubble sent">
-        ${liveAttachHtml}
-        ${replyText}
-        <div class="wa-bubble-meta">
-          <span class="wa-bubble-time">${now}</span>
-          <span class="wa-bubble-tick">✓✓</span>
-        </div>
-      </div>`;
-      chatBody.appendChild(bubble);
-      chatBody.scrollTop = chatBody.scrollHeight;
+    // Backend persisted the row and queued the SMTP send. Stamp the real
+    // reply_id onto our optimistic bubble so the SSE handlers find it when
+    // reply.sent / reply.failed comes through.
+    const realReplyId = data.data?.reply_id;
+    if (optimisticRow && realReplyId) {
+      optimisticRow.dataset.replyId = String(realReplyId);
     }
 
-    textarea.value = '';
-    _attachedFiles = [];
-    _attachedLinks = [];
-    renderAttachmentPreviews();
-    const badge = document.getElementById('att-count-badge');
-    if (badge) badge.style.display = 'none';
+    status.textContent = '✓ Reply queued — delivering in background';
+    status.style.color = 'var(--color-primary)';
 
-    // Brief pause so user sees the success message, then minimize
+    // Brief pause so user sees the queued status, then close the compose pane.
+    // No need to refresh the inbox — the bubble is already on screen and the
+    // worker will surface success/failure via SSE.
     setTimeout(() => {
       toggleCompose();
-      loadMessages();
       loadStats();
-    }, 900);
+    }, 700);
   } catch (e) {
-    // Three classes of failure to message clearly:
-    //   1. Aborted (we hit the 60s frontend deadline)
-    //   2. Network/fetch error (connection dropped before response)
-    //   3. Server-side error with a real message
-    // For (1) and (2) the email *might* already have been sent, so we tell
-    // the admin to reload before retrying instead of risking a duplicate.
+    // With the async queue, this catch only fires if the enqueue request
+    // itself failed — i.e. the backend never accepted the reply. The SMTP
+    // send hasn't happened yet, so it's safe to mark the optimistic bubble
+    // failed and let the admin retry without worrying about duplicates.
     const isAbort        = e && e.name === 'AbortError';
     const isNetworkError = !isAbort && ((e instanceof TypeError) || /network|fetch/i.test(e.message || ''));
+    let bubbleErr = e.message || 'Failed to send';
     if (isAbort) {
-      status.textContent = '⏱ The send took longer than 60 seconds and was cancelled. Check the conversation — the email may still have gone through. Try again only if it didn\'t.';
+      bubbleErr = 'Request cancelled before reaching the server';
+      const secs = Math.round(replyDeadlineMs / 1000);
+      status.textContent = `⏱ The request took longer than ${secs} seconds and was cancelled before the server accepted it. The email was NOT sent — safe to retry.`;
     } else if (isNetworkError) {
-      status.textContent = '⚠ Network error — the email may have already been sent. Reload the dashboard and check the conversation before retrying.';
+      bubbleErr = 'Network error reaching the server';
+      status.textContent = '⚠ Network error reaching the server — the email was not queued. Safe to retry once you\'re back online.';
     } else {
-      status.textContent = e.message || 'Failed to send';
+      status.textContent = bubbleErr;
     }
     status.style.color = 'var(--color-error)';
     status.style.lineHeight = '1.45';
+
+    // Flip the optimistic bubble to failed so the admin sees ⚠ + Retry.
+    // The temp id can't talk to the backend (no row exists), so the retry
+    // button on this bubble can't help — surface the error inline only.
+    if (optimisticRow) {
+      const bubble = optimisticRow.querySelector('.wa-bubble.sent');
+      if (bubble) bubble.classList.add('failed');
+      const tick = optimisticRow.querySelector('.wa-bubble-tick');
+      if (tick) tick.outerHTML = tickHtml('failed').match(/<span[^>]*>.*?<\/span>/)[0];
+      const meta = bubble?.querySelector('.wa-bubble-meta');
+      if (bubble && meta && !bubble.querySelector('.wa-bubble-fail-msg')) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'wa-bubble-fail-msg';
+        msgDiv.textContent = '⚠ ' + truncate(bubbleErr, 140);
+        bubble.insertBefore(msgDiv, meta);
+      }
+    }
   } finally {
     _isSendingReply = false;
     if (sendBtn) {

@@ -33,12 +33,13 @@ type MessageHandler struct {
 	emailService   *services.EmailService
 	profileService *services.ProfileService
 	broker         *services.EventBroker
+	replyQueue     *services.ReplyQueue
 	uploadDir      string
 }
 
 // NewMessageHandler creates a new MessageHandler.
-func NewMessageHandler(ms *services.MessageService, es *services.EmailService, ps *services.ProfileService, broker *services.EventBroker, uploadDir string) *MessageHandler {
-	return &MessageHandler{msgService: ms, emailService: es, profileService: ps, broker: broker, uploadDir: uploadDir}
+func NewMessageHandler(ms *services.MessageService, es *services.EmailService, ps *services.ProfileService, broker *services.EventBroker, queue *services.ReplyQueue, uploadDir string) *MessageHandler {
+	return &MessageHandler{msgService: ms, emailService: es, profileService: ps, broker: broker, replyQueue: queue, uploadDir: uploadDir}
 }
 
 // GetAll returns all contact messages — protected, dashboard only.
@@ -112,7 +113,18 @@ func (h *MessageHandler) MarkAsRead(c *gin.Context) {
 	utils.Success(c, "Message marked as read", nil)
 }
 
-// Reply sends an email reply to the message sender [protected].
+// Reply enqueues an email reply for asynchronous SMTP delivery [protected].
+//
+// The handler used to call SMTP synchronously, which blocked the admin's
+// browser for 10–150s on replies with large attachments. Now it:
+//   1. Persists the reply with delivery_status="pending"
+//   2. Marks the original message as replied + read
+//   3. Pushes a job onto the in-memory queue
+//   4. Returns 200 OK with the new reply ID — typically in <100 ms
+//
+// A worker goroutine picks the job up, calls SMTP, and updates the row to
+// "sent" or "failed". The dashboard renders the bubble immediately and
+// flips its tick when a reply.sent / reply.failed SSE event arrives.
 func (h *MessageHandler) Reply(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -122,7 +134,6 @@ func (h *MessageHandler) Reply(c *gin.Context) {
 
 	// Parse as multipart form so we can handle file attachments
 	if err := c.Request.ParseMultipartForm(50 << 20); err != nil {
-		// Fall back to JSON if no files attached
 		utils.BadRequest(c, "Invalid form data", nil)
 		return
 	}
@@ -136,91 +147,18 @@ func (h *MessageHandler) Reply(c *gin.Context) {
 
 	attUrlsJSON := c.Request.FormValue("attachment_urls")
 
-	// Collect attachments. The dashboard pre-uploads files via /upload BEFORE
-	// hitting this endpoint and passes their URLs in `attachment_urls`. Reading
-	// those files from disk here avoids resending the binary over the wire (which
-	// previously made every reply with attachments take ~2× as long and caused
-	// "NetworkError" timeouts on slow connections). The multipart binary loop
-	// below is kept as a fallback for clients that don't pre-upload.
-	var attachments []services.Attachment
-	if attUrlsJSON != "" {
-		var meta []struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-			Type string `json:"type"`
-		}
-		if err := json.Unmarshal([]byte(attUrlsJSON), &meta); err == nil {
-			for _, m := range meta {
-				if m.Type == "link" || m.URL == "" {
-					continue // links live in the body text, not as MIME attachments
-				}
-				if !strings.HasPrefix(m.URL, "/uploads/") {
-					continue // only serve our own files
-				}
-				rel := strings.TrimPrefix(m.URL, "/uploads/")
-				full, err := filepath.Abs(filepath.Join(h.uploadDir, rel))
-				if err != nil {
-					continue
-				}
-				// Make sure the resolved path is still inside uploadDir (no traversal)
-				absUploadDir, _ := filepath.Abs(h.uploadDir)
-				if !strings.HasPrefix(full, absUploadDir) {
-					continue
-				}
-				data, err := os.ReadFile(full)
-				if err != nil {
-					continue
-				}
-				ct := mime.TypeByExtension(filepath.Ext(m.Name))
-				if ct == "" {
-					ct = "application/octet-stream"
-				}
-				attachments = append(attachments, services.Attachment{
-					Filename:    m.Name,
-					ContentType: ct,
-					Data:        data,
-				})
-			}
+	// Legacy clients that don't pre-upload files still POST binary multipart
+	// parts. Persist them to /uploads/replies/<ts>_<name> here so the queue
+	// worker can read them back from disk like a normal pre-upload.
+	if attUrlsJSON == "" && c.Request.MultipartForm != nil {
+		stored := h.persistLegacyMultipart(c)
+		if len(stored) > 0 {
+			b, _ := json.Marshal(stored)
+			attUrlsJSON = string(b)
 		}
 	}
 
-	// Fallback: if no pre-uploaded URLs were provided, accept binary files from
-	// the multipart form directly (legacy clients).
-	if len(attachments) == 0 && c.Request.MultipartForm != nil {
-		for _, fileHeaders := range c.Request.MultipartForm.File {
-			for _, fh := range fileHeaders {
-				f, err := fh.Open()
-				if err != nil {
-					continue
-				}
-				data, err := io.ReadAll(f)
-				f.Close()
-				if err != nil {
-					continue
-				}
-				ct := fh.Header.Get("Content-Type")
-				if ct == "" {
-					ct = mime.TypeByExtension(fh.Filename)
-				}
-				if ct == "" {
-					ct = "application/octet-stream"
-				}
-				attachments = append(attachments, services.Attachment{
-					Filename:    fh.Filename,
-					ContentType: ct,
-					Data:        data,
-				})
-			}
-		}
-	}
-
-	// Alias so code below uses same names
-	body := struct {
-		ReplyText string
-		FromEmail string
-	}{ReplyText: replyText, FromEmail: fromEmail}
-
-	// Fetch the original message so we can reply to the right person
+	// Fetch the original message so the worker can build the right To: + body.
 	msg, err := h.msgService.GetByID(uint(id))
 	if err != nil {
 		utils.NotFound(c, "Message not found")
@@ -228,48 +166,140 @@ func (h *MessageHandler) Reply(c *gin.Context) {
 	}
 
 	subject := "Re: " + msg.Type + " — Imtiaz Portfolio"
-	fullBody := body.ReplyText + "\n\n---\nOriginal message from " + msg.Name + ":\n" + msg.Content
+	fullBody := replyText + "\n\n---\nOriginal message from " + msg.Name + ":\n" + msg.Content
 
-	// Use SMTP credentials from DB profile if set — overrides .env
-	emailSvc := h.emailService
-	if profile, err := h.profileService.Get(); err == nil && profile.SMTPUser != "" && profile.SMTPPass != "" {
-		emailSvc = services.NewEmailService(
-			h.emailService.Host(),
-			h.emailService.Port(),
-			profile.SMTPUser,
-			profile.SMTPPass,
-		)
+	// Persist the reply row up front — it owns the delivery state. Worker
+	// updates this same row when SMTP returns.
+	reply := &models.MessageReply{
+		MessageID:      uint(id),
+		ReplyText:      replyText,
+		FromEmail:      fromEmail,
+		Attachments:    attUrlsJSON,
+		DeliveryStatus: "pending",
 	}
-
-	if err := emailSvc.Send(msg.Name, msg.Email, body.FromEmail, subject, fullBody, attachments); err != nil {
-		utils.InternalError(c, "Failed to send email: "+err.Error())
+	if err := h.msgService.CreateReply(reply); err != nil {
+		utils.InternalError(c, "Failed to save reply")
 		return
 	}
 
-	// Use pre-uploaded file URLs (parsed at the top) for chat-history rendering,
-	// otherwise fall back to bare filenames so legacy clients still work.
-	attachmentNames := attUrlsJSON
-	if attachmentNames == "" {
-		var filenames []string
-		for _, att := range attachments {
-			filenames = append(filenames, att.Filename)
-		}
-		attachmentNames = strings.Join(filenames, ",")
-	}
-
-	// Save the reply as a new record so full history is preserved
-	_ = h.msgService.CreateReply(&models.MessageReply{
-		MessageID:   uint(id),
-		ReplyText:   body.ReplyText,
-		FromEmail:   body.FromEmail,
-		Attachments: attachmentNames,
-	})
-
-	// Also update the message flags
-	_ = h.msgService.MarkAsReplied(uint(id), body.ReplyText, attachmentNames)
+	// Update inbox flags so the conversation list reflects "replied" without
+	// waiting for SMTP. If delivery later fails, the bubble's ⚠ icon makes
+	// that obvious; the message itself is still legitimately answered.
+	_ = h.msgService.MarkAsReplied(uint(id), replyText, attUrlsJSON)
 	_ = h.msgService.MarkAsRead(uint(id))
 
-	utils.Success(c, "Reply sent successfully", nil)
+	// Hand off to the worker. From here the admin sees the bubble appear
+	// instantly; the worker takes however long it takes.
+	if h.replyQueue != nil {
+		h.replyQueue.Enqueue(services.ReplyJob{
+			ReplyID:        reply.ID,
+			ToName:         msg.Name,
+			ToEmail:        msg.Email,
+			FromEmail:      fromEmail,
+			Subject:        subject,
+			Body:           fullBody,
+			AttachmentURLs: attUrlsJSON,
+		})
+	} else {
+		// No queue wired — should never happen in production. Leave the row
+		// pending and surface so the operator notices.
+		_ = h.msgService.MarkReplyFailed(reply.ID, "reply queue not initialised")
+	}
+
+	utils.Created(c, "Reply queued for delivery", gin.H{
+		"reply_id":        reply.ID,
+		"delivery_status": "pending",
+	})
+}
+
+// persistLegacyMultipart writes any binary parts on the request to
+// /uploads/replies/<unix-ms>_<filename> and returns metadata in the same
+// shape the worker expects in attachment_urls. Lets old client builds keep
+// working without changing the queue.
+func (h *MessageHandler) persistLegacyMultipart(c *gin.Context) []map[string]interface{} {
+	if c.Request.MultipartForm == nil {
+		return nil
+	}
+	dir := filepath.Join(h.uploadDir, "replies")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return nil
+	}
+	var out []map[string]interface{}
+	for _, fileHeaders := range c.Request.MultipartForm.File {
+		for _, fh := range fileHeaders {
+			f, err := fh.Open()
+			if err != nil {
+				continue
+			}
+			data, err := io.ReadAll(f)
+			f.Close()
+			if err != nil {
+				continue
+			}
+			safeName := strings.ReplaceAll(fh.Filename, "/", "_")
+			safeName = strings.ReplaceAll(safeName, "\\", "_")
+			full := filepath.Join(dir, safeName)
+			if err := os.WriteFile(full, data, 0o644); err != nil {
+				continue
+			}
+			ct := fh.Header.Get("Content-Type")
+			if ct == "" {
+				ct = mime.TypeByExtension(filepath.Ext(fh.Filename))
+			}
+			out = append(out, map[string]interface{}{
+				"name": fh.Filename,
+				"url":  "/uploads/replies/" + safeName,
+				"type": ct,
+				"size": fh.Size,
+			})
+		}
+	}
+	return out
+}
+
+// RetryReply re-enqueues a previously-failed reply [protected].
+// Looks up the row by reply ID, flips it back to "pending", and pushes a
+// fresh job onto the queue. Frontend retry button hits this.
+func (h *MessageHandler) RetryReply(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.BadRequest(c, "Invalid reply ID", nil)
+		return
+	}
+	reply, err := h.msgService.GetReplyByID(uint(id))
+	if err != nil {
+		utils.NotFound(c, "Reply not found")
+		return
+	}
+	msg, err := h.msgService.GetByID(reply.MessageID)
+	if err != nil {
+		utils.NotFound(c, "Original message not found")
+		return
+	}
+	if err := h.msgService.MarkReplyPending(uint(id)); err != nil {
+		utils.InternalError(c, "Failed to reset delivery state")
+		return
+	}
+
+	subject := "Re: " + msg.Type + " — Imtiaz Portfolio"
+	fullBody := reply.ReplyText + "\n\n---\nOriginal message from " + msg.Name + ":\n" + msg.Content
+
+	if h.replyQueue != nil {
+		h.replyQueue.Enqueue(services.ReplyJob{
+			ReplyID:        reply.ID,
+			ToName:         msg.Name,
+			ToEmail:        msg.Email,
+			FromEmail:      reply.FromEmail,
+			Subject:        subject,
+			Body:           fullBody,
+			AttachmentURLs: reply.Attachments,
+		})
+	}
+
+	utils.Success(c, "Retry queued", gin.H{
+		"reply_id":        reply.ID,
+		"delivery_status": "pending",
+	})
 }
 
 // GetReplies returns all replies for a message [protected].
