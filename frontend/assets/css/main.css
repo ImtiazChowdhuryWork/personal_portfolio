@@ -25,7 +25,7 @@
 @import './components/toast.css';
 @import './components/loader.css';
 @import './components/skill-bar.css';
-@import './components/timeline.css';
+@import './components/timeline.css?v=5';
 @import './components/phone-mockup.css';
 @import './components/app-slider.css';
 @import './components/tech-stack.css';

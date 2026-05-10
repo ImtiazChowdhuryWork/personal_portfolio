@@ -9,6 +9,11 @@
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/css/intlTelInput.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/dark.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18/build/js/intlTelInput.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -2116,6 +2121,417 @@
     .iti__dial-code { color: var(--color-text-muted); }
     .iti__selected-flag { background: rgba(255,255,255,0.04); }
     .iti--separate-dial-code .iti__selected-dial-code { color: var(--color-text); }
+
+    /* ─── Experience modal: "Mark as Present" toggle button ──── */
+    .exp-present-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0 14px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text-muted);
+      font-size: 13px; font-weight: 600;
+      font-family: inherit;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+    .exp-present-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-text);
+    }
+    .exp-present-btn.is-active {
+      background: var(--color-primary-glow);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .exp-present-btn i { font-size: 16px; }
+
+    /* End-date input dimmed when Present is active */
+    .form-control:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ─── Dashboard Skills list: portfolio-preview style ─────── */
+    .dash-skills-groups {
+      display: flex; flex-direction: column;
+      gap: var(--space-8);
+    }
+    .dash-skills-group {
+      display: flex; flex-direction: column;
+      gap: var(--space-4);
+    }
+    .dash-skills-group-header {
+      display: flex; align-items: baseline; gap: 10px;
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .dash-skills-group-title {
+      font-size: var(--fs-xs);
+      font-weight: var(--fw-semi);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+    .dash-skills-group-count {
+      font-size: 11px;
+      color: var(--color-text-dim);
+    }
+    .dash-skills-group.is-orphan .dash-skills-group-title {
+      color: var(--color-error);
+    }
+    .dash-skills-group-warning {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-left: auto;
+      padding: 2px 8px;
+      background: rgba(244, 67, 54, 0.10);
+      border: 1px solid rgba(244, 67, 54, 0.30);
+      border-radius: 999px;
+      color: var(--color-error);
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+
+    .dash-skill-row {
+      display: grid;
+      grid-template-columns: 36px 1fr auto auto;
+      align-items: center;
+      gap: var(--space-4);
+      padding: 8px 12px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .dash-skill-row:hover {
+      border-color: var(--color-border-active);
+    }
+    .dash-skill-info { min-width: 0; }
+    .dash-skill-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 6px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    /* Override SkillBar's animated transition — dashboard shows the value
+       immediately so admins can scan/edit without waiting for an animation. */
+    .dash-skill-row .skill-bar-fill { transition: none; }
+    .dash-skill-row .skill-bar-fill::after { display: none; }
+    .dash-skill-pct {
+      font-size: 12px; font-weight: 700;
+      color: var(--color-primary);
+      min-width: 38px; text-align: right;
+    }
+    .dash-skill-actions {
+      display: flex; gap: 6px;
+    }
+    .dash-skill-actions .btn { padding: 5px 10px; font-size: 11px; }
+
+    @media (max-width: 640px) {
+      .dash-skill-row {
+        grid-template-columns: 32px 1fr auto;
+        grid-template-rows: auto auto;
+      }
+      .dash-skill-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+      }
+    }
+
+    /* ─── Skill modal: proficiency slider + linked number ────── */
+    .skill-pct-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .skill-pct-row input[type="range"] {
+      flex: 1; min-width: 0;
+      accent-color: var(--color-primary);
+      cursor: pointer;
+    }
+    .skill-pct-row input[type="number"] {
+      width: 80px;
+      padding: 8px 10px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text);
+      font-size: 14px;
+      font-family: inherit;
+      text-align: right;
+      outline: none;
+      transition: all var(--transition-base);
+    }
+    .skill-pct-row input[type="number"]:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--color-primary-glow);
+    }
+    .skill-pct-suffix {
+      font-size: 13px; font-weight: 600;
+      color: var(--color-text-muted);
+    }
+
+    /* ─── Per-section "Show on portfolio" toggle ─────────────── */
+    .exp-section-label-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px;
+      margin-bottom: var(--space-2);
+    }
+    .exp-section-label-row .form-label { margin-bottom: 0; }
+    .exp-toggle-show {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px;
+      background: rgba(76, 175, 80, 0.10);
+      border: 1px solid rgba(76, 175, 80, 0.35);
+      border-radius: 999px;
+      color: #4caf50;
+      font-size: 11px; font-weight: 700;
+      font-family: inherit;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .exp-toggle-show:hover { transform: translateY(-1px); }
+    .exp-toggle-show i { font-size: 13px; }
+    .exp-toggle-show.is-hidden {
+      background: rgba(244, 67, 54, 0.10);
+      border-color: rgba(244, 67, 54, 0.35);
+      color: var(--color-error);
+    }
+    /* Section visually deemphasised when its toggle is off, but inputs stay
+       enabled so the user can still edit values to flip it back on later. */
+    .form-group.is-section-hidden > *:not(.exp-section-label-row) {
+      opacity: 0.45;
+      filter: grayscale(0.4);
+      transition: opacity 0.2s, filter 0.2s;
+    }
+
+    /* ─── Experience modal: logo drop zone ───────────────────── */
+    .exp-dropzone {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px;
+      padding: 32px 20px;
+      background: var(--color-bg-3);
+      border: 2px dashed var(--color-border);
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .exp-dropzone:hover,
+    .exp-dropzone.is-dragover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-glow);
+    }
+    .exp-dropzone.is-dragover { transform: scale(1.01); }
+    .exp-dropzone-icon {
+      font-size: 40px; line-height: 1;
+      color: var(--color-primary);
+    }
+    .exp-dropzone-title {
+      font-size: 14px; font-weight: 600;
+      color: var(--color-text);
+    }
+    .exp-dropzone-title span {
+      color: var(--color-primary);
+      text-decoration: underline; text-underline-offset: 3px;
+    }
+    .exp-dropzone-hint {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+    }
+    .exp-dropzone-status { font-size: 12px; min-height: 16px; }
+
+    /* Loaded-state card (replaces the dropzone once a file is picked) */
+    .exp-logo-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+    }
+    .exp-logo-card-thumb {
+      width: 64px; height: 64px;
+      border-radius: 10px;
+      object-fit: contain;
+      padding: 4px;
+      background: var(--color-bg-4);
+      border: 1px solid var(--color-border);
+      flex-shrink: 0;
+    }
+    .exp-logo-card-info { flex: 1; min-width: 0; }
+    .exp-logo-card-name {
+      font-size: 13px; font-weight: 600;
+      color: var(--color-text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .exp-logo-card-meta {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-top: 3px;
+    }
+    .exp-logo-card-actions {
+      display: flex; gap: 6px;
+      flex-shrink: 0;
+    }
+    @media (max-width: 540px) {
+      .exp-logo-card { flex-wrap: wrap; }
+      .exp-logo-card-actions { width: 100%; justify-content: flex-end; }
+    }
+
+    /* ─── Experience modal: achievements list editor ─────────── */
+    .exp-ach-list {
+      display: flex; flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .exp-ach-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 8px 4px 4px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      transition: border-color 0.15s, background 0.15s, opacity 0.15s, transform 0.15s;
+    }
+    .exp-ach-row:focus-within {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--color-primary-glow);
+    }
+    .exp-ach-row.is-dragging { opacity: 0.35; }
+    .exp-ach-row.is-drag-over {
+      border-color: var(--color-primary);
+      background: var(--color-primary-glow);
+    }
+    .exp-ach-drag {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 32px;
+      color: var(--color-text-dim);
+      cursor: grab;
+      font-size: 18px; line-height: 1;
+      user-select: none;
+      -webkit-user-drag: element; /* explicit hint for some browsers */
+    }
+    .exp-ach-drag:active { cursor: grabbing; }
+    .exp-ach-drag:hover { color: var(--color-text); }
+    .exp-ach-bullet {
+      color: var(--color-primary);
+      font-size: 14px; font-weight: 700;
+      flex-shrink: 0;
+      padding-bottom: 2px;
+    }
+    .exp-ach-input {
+      flex: 1; min-width: 0;
+      background: transparent; border: none;
+      color: var(--color-text); font-size: 14px;
+      font-family: inherit;
+      padding: 8px 4px;
+      outline: none;
+    }
+    .exp-ach-input::placeholder { color: var(--color-text-dim); }
+    .exp-ach-remove {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      background: transparent; border: none; border-radius: 6px;
+      color: var(--color-text-muted); cursor: pointer;
+      font-size: 16px; line-height: 1;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .exp-ach-remove:hover {
+      background: rgba(244, 67, 54, 0.1);
+      color: var(--color-error);
+    }
+    .exp-ach-add-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px dashed var(--color-border);
+      border-radius: 10px;
+      color: var(--color-text-muted);
+      font-size: 13px; font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .exp-ach-add-btn:hover {
+      border-color: var(--color-primary);
+      border-style: solid;
+      color: var(--color-primary);
+      background: var(--color-primary-glow);
+    }
+    .exp-ach-add-btn i { font-size: 16px; }
+
+    /* ─── Experience modal: tech chip input ──────────────────── */
+    .exp-tech-input {
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      min-height: 50px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      cursor: text;
+      transition: all var(--transition-base);
+    }
+    .exp-tech-input:focus-within {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--color-primary-glow);
+      background: var(--color-bg-4);
+    }
+    .exp-tech-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 4px 4px 12px;
+      background: var(--color-primary-glow);
+      border: 1px solid rgba(84, 197, 248, 0.35);
+      border-radius: 999px;
+      color: var(--color-primary);
+      font-size: 13px; font-weight: 600;
+      max-width: 100%;
+      animation: expChipPop 0.15s ease;
+    }
+    @keyframes expChipPop {
+      from { transform: scale(0.85); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+    .exp-tech-chip-text {
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .exp-tech-chip-remove {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px;
+      background: transparent; border: none; border-radius: 50%;
+      color: var(--color-primary);
+      cursor: pointer;
+      font-size: 16px; line-height: 1;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .exp-tech-chip-remove:hover {
+      background: var(--color-error);
+      color: #fff;
+    }
+    .exp-tech-typing {
+      flex: 1; min-width: 140px;
+      background: transparent; border: none;
+      color: var(--color-text); font-size: 14px;
+      font-family: inherit;
+      padding: 4px 2px;
+      outline: none;
+    }
+    .exp-tech-typing::placeholder { color: var(--color-text-dim); }
+
+    /* ─── Flatpickr dark-theme tweaks to match the dashboard ── */
+    .flatpickr-calendar {
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .flatpickr-monthSelect-months .flatpickr-monthSelect-month { color: var(--color-text); }
+    .flatpickr-monthSelect-months .flatpickr-monthSelect-month.selected,
+    .flatpickr-monthSelect-months .flatpickr-monthSelect-month:hover {
+      background: var(--color-primary-glow);
+      color: var(--color-primary);
+    }
   </style>
 </head>
 <body>
@@ -3600,24 +4016,86 @@ async function deleteProject(id) {
   } catch (e) { Toast.show(e.message, 'error'); }
 }
 
+// Mirrors the labels & order used by the public Tech Stack section
+// (frontend/assets/js/pages/portfolio/techstack.js). Skills with categories
+// outside this list are dropped from the public render — the dashboard
+// surfaces them in a separate "Other" group with a warning so the user
+// notices and re-categorises them.
+const SKILL_CAT_LABELS = {
+  core:             'Core',
+  state_management: 'State Management',
+  backend:          'Backend & APIs',
+  payments:         'Payments',
+  tools:            'Tools & DevOps',
+};
+const SKILL_CAT_ORDER = ['core', 'state_management', 'backend', 'payments', 'tools'];
+
 async function loadSkills() {
   const w = document.getElementById('skills-table-wrapper');
   try {
     const res = await API.get('/skills');
     const skills = res.data || [];
-    if (!skills.length) { w.innerHTML = '<p style="color:var(--color-text-muted)">No skills yet.</p>'; return; }
-    w.innerHTML = `<div class="table-wrapper"><table class="table">
-      <thead><tr><th>Name</th><th>Category</th><th>Percentage</th><th>Actions</th></tr></thead>
-      <tbody>${skills.map(s => `
-        <tr>
-          <td>${s.name}</td>
-          <td>${s.category}</td>
-          <td><strong style="color:var(--color-primary)">${s.percentage}%</strong></td>
-          <td><button class="btn btn-ghost btn-sm" onclick="deleteSkill(${s.id})">Delete</button></td>
-        </tr>
-      `).join('')}</tbody>
-    </table></div>`;
-  } catch (e) { w.innerHTML = `<p style="color:var(--color-error)">${e.message}</p>`; }
+    if (!skills.length) {
+      w.innerHTML = '<p style="color:var(--color-text-muted)">No skills yet. Click <strong>+ Add Skill</strong> to add your first one.</p>';
+      return;
+    }
+
+    // Group by category — preserve the API's sort order within each group
+    const groups = {};
+    skills.forEach(s => {
+      const cat = s.category || '__uncategorised__';
+      (groups[cat] = groups[cat] || []).push(s);
+    });
+
+    const knownGroups   = SKILL_CAT_ORDER.filter(c => groups[c]).map(c => ({ key: c, label: SKILL_CAT_LABELS[c], skills: groups[c], orphan: false }));
+    const orphanGroups  = Object.keys(groups)
+      .filter(c => !SKILL_CAT_LABELS[c])
+      .map(c => ({ key: c, label: c, skills: groups[c], orphan: true }));
+
+    w.innerHTML = `<div class="dash-skills-groups">${
+      [...knownGroups, ...orphanGroups].map(buildSkillsGroup).join('')
+    }</div>`;
+  } catch (e) {
+    w.innerHTML = `<p style="color:var(--color-error)">${e.message}</p>`;
+  }
+}
+
+function buildSkillsGroup({ key, label, skills, orphan }) {
+  return `
+    <div class="dash-skills-group${orphan ? ' is-orphan' : ''}">
+      <div class="dash-skills-group-header">
+        <h4 class="dash-skills-group-title">${label}</h4>
+        <span class="dash-skills-group-count">${skills.length} skill${skills.length === 1 ? '' : 's'}</span>
+        ${orphan
+          ? `<span class="dash-skills-group-warning" title="Custom categories aren't in the public Tech Stack render — visitors won't see these"><i class="ph ph-warning"></i> Won't show publicly</span>`
+          : ''}
+      </div>
+      ${skills.map(buildSkillRow).join('')}
+    </div>
+  `;
+}
+
+function buildSkillRow(s) {
+  const pct = Math.max(0, Math.min(100, parseInt(s.percentage, 10) || 0));
+  const iconHtml = s.icon
+    ? `<img src="${s.icon}" alt="${s.name}" onerror="this.parentNode.innerHTML='<span style=&quot;font-size:11px;font-weight:700;color:var(--color-primary)&quot;>${(s.name || '?').slice(0,2).toUpperCase()}</span>';">`
+    : `<span style="font-size:11px;font-weight:700;color:var(--color-primary)">${(s.name || '?').slice(0,2).toUpperCase()}</span>`;
+  return `
+    <div class="dash-skill-row">
+      <div class="skill-icon">${iconHtml}</div>
+      <div class="dash-skill-info">
+        <div class="dash-skill-name">${s.name}</div>
+        <div class="skill-bar-track">
+          <div class="skill-bar-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <span class="dash-skill-pct">${pct}%</span>
+      <div class="dash-skill-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEditSkillModal(${s.id})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteSkill(${s.id})">Delete</button>
+      </div>
+    </div>
+  `;
 }
 
 async function deleteSkill(id) {
@@ -3633,13 +4111,22 @@ async function loadExperience() {
     const exps = res.data || [];
     if (!exps.length) { w.innerHTML = '<p style="color:var(--color-text-muted)">No experience yet.</p>'; return; }
     w.innerHTML = `<div class="table-wrapper"><table class="table">
-      <thead><tr><th>Company</th><th>Role</th><th>Period</th><th>Actions</th></tr></thead>
+      <thead><tr><th style="width:56px">Logo</th><th>Company</th><th>Role</th><th>Period</th><th>Actions</th></tr></thead>
       <tbody>${exps.map(e => `
         <tr>
+          <td>${e.company_logo
+            ? `<img src="${e.company_logo}" alt="${e.company} logo"
+                 style="width:36px;height:36px;border-radius:8px;object-fit:contain;padding:3px;border:1px solid var(--color-border);background:var(--color-bg-3);display:block"
+                 onerror="this.outerHTML='<div style=&quot;width:36px;height:36px;border-radius:8px;border:1px dashed var(--color-border);background:var(--color-bg-3);display:flex;align-items:center;justify-content:center;color:var(--color-text-dim)&quot;><i class=&quot;ph ph-image&quot;></i></div>'">`
+            : `<div style="width:36px;height:36px;border-radius:8px;border:1px dashed var(--color-border);background:var(--color-bg-3);display:flex;align-items:center;justify-content:center;color:var(--color-text-dim)" title="No logo"><i class="ph ph-image"></i></div>`
+          }</td>
           <td>${e.company}</td>
           <td>${e.role}</td>
-          <td>${e.start_date} — ${e.end_date || 'Present'}</td>
-          <td><button class="btn btn-ghost btn-sm" onclick="deleteExp(${e.id})">Delete</button></td>
+          <td>${e.start_date} — ${e.is_current ? 'Present' : (e.end_date || 'Present')}</td>
+          <td style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="openEditExpModal(${e.id})">Edit</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteExp(${e.id})">Delete</button>
+          </td>
         </tr>
       `).join('')}</tbody>
     </table></div>`;
@@ -6678,10 +7165,983 @@ async function saveSocial(e) {
 
 // Placeholder modal openers (full modal implementation would be added here)
 function openAddProjectModal() { Toast.show('Add project form coming soon', 'info'); }
-function openAddSkillModal()   { Toast.show('Add skill form coming soon', 'info'); }
-function openAddExpModal()     { Toast.show('Add experience form coming soon', 'info'); }
+
+// ─── Skill modal ─────────────────────────────────────────────
+// Add/Edit handler for the Skills section. Mirrors the Experience modal
+// pattern: same modal element used for both create (no id) and update
+// (id supplied), icon upload via the shared /upload endpoint, percentage
+// driven by a range slider linked to a number input.
+const SKILL_PRESET_CATEGORIES = ['core', 'state_management', 'backend', 'payments', 'tools'];
+let _skillEditId  = null;   // null = create, number = update
+let _skillIconUrl = '';     // populated by handleSkillIconFiles after /upload
+
+function openAddSkillModal() {
+  _skillEditId  = null;
+  _skillIconUrl = '';
+  const form = document.getElementById('skill-form');
+  form.reset();
+  document.getElementById('skill-modal-title').textContent = 'Add Skill';
+  document.getElementById('skill-submit-btn').textContent  = 'Create';
+  document.getElementById('skill-category-select').value = 'core';
+  document.getElementById('skill-category-custom').style.display = 'none';
+  document.getElementById('skill-category-custom').value = '';
+  syncSkillPct(80, 'init');
+  hideSkillIconCard();
+  document.getElementById('skill-icon-status').textContent = '';
+  document.getElementById('skill-modal').classList.add('open');
+  setupSkillIconDropzone();
+}
+
+async function openEditSkillModal(id) {
+  let skill;
+  try {
+    const res = await API.get('/skills');
+    skill = (res.data || []).find(s => s.id === id);
+  } catch (err) { Toast.show(err.message, 'error'); return; }
+  if (!skill) { Toast.show('Skill not found', 'error'); return; }
+
+  _skillEditId  = id;
+  _skillIconUrl = skill.icon || '';
+  const form = document.getElementById('skill-form');
+  form.reset();
+  document.getElementById('skill-modal-title').textContent = 'Edit Skill';
+  document.getElementById('skill-submit-btn').textContent  = 'Save changes';
+
+  form.querySelector('[name="name"]').value        = skill.name || '';
+  form.querySelector('[name="description"]').value = skill.description || '';
+  form.querySelector('[name="sort_order"]').value  = skill.sort_order ?? 0;
+
+  // Category: if it's one of the presets, pick it directly. Otherwise switch
+  // to the Custom option and prefill the text input with the saved key.
+  const select = document.getElementById('skill-category-select');
+  const customInput = document.getElementById('skill-category-custom');
+  if (SKILL_PRESET_CATEGORIES.includes(skill.category)) {
+    select.value = skill.category;
+    customInput.style.display = 'none';
+    customInput.value = '';
+  } else {
+    select.value = '__custom__';
+    customInput.style.display = 'block';
+    customInput.value = skill.category || '';
+  }
+
+  syncSkillPct(skill.percentage ?? 0, 'init');
+  document.getElementById('skill-icon-status').textContent = '';
+  if (_skillIconUrl) showSkillIconCard(_skillIconUrl);
+  else               hideSkillIconCard();
+
+  document.getElementById('skill-modal').classList.add('open');
+  setupSkillIconDropzone();
+}
+
+function closeSkillModal() {
+  document.getElementById('skill-modal').classList.remove('open');
+}
+
+// Toggle the custom-category text input when the user picks "+ Custom…"
+function onSkillCategoryChange(select) {
+  const custom = document.getElementById('skill-category-custom');
+  if (select.value === '__custom__') {
+    custom.style.display = 'block';
+    custom.focus();
+  } else {
+    custom.style.display = 'none';
+    custom.value = '';
+  }
+}
+
+// Two-way binding between the range slider and the number input. `source`
+// tells us which control fired the event so we don't ping-pong in a loop.
+function syncSkillPct(value, source) {
+  let v = parseInt(value, 10);
+  if (isNaN(v)) v = 0;
+  v = Math.max(0, Math.min(100, v));
+  if (source !== 'range')  document.getElementById('skill-pct-range').value  = v;
+  if (source !== 'number') document.getElementById('skill-pct-number').value = v;
+}
+
+// ─── Skill icon upload (uses the same dropzone styles as the Experience
+// logo, just smaller). The dropzone is wired exactly once via dataset guard.
+async function handleSkillIconFiles(files) {
+  const file = files && files[0];
+  if (!file) return;
+  const status = document.getElementById('skill-icon-status');
+  status.textContent = '⏳ Uploading...';
+  status.style.color = 'var(--color-text-muted)';
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('folder', 'icons');
+    const res = await API.upload('/upload', fd);
+    _skillIconUrl = res.data.url;
+    showSkillIconCard(_skillIconUrl, file.name, file.size);
+    status.textContent = '';
+  } catch (err) {
+    status.textContent = err.message || 'Upload failed';
+    status.style.color = 'var(--color-error)';
+  }
+}
+
+function showSkillIconCard(url, filename, sizeBytes) {
+  document.getElementById('skill-icon-dropzone').style.display = 'none';
+  const card = document.getElementById('skill-icon-card');
+  const img  = document.getElementById('skill-icon-preview');
+  card.style.display = 'flex';
+  img.src = url;
+  const rawName   = filename || decodeURIComponent(url.split('/').pop() || 'icon');
+  const cleanName = rawName.replace(/^\d{8,}_/, '');
+  document.getElementById('skill-icon-name').textContent = cleanName;
+  const metaEl = document.getElementById('skill-icon-meta');
+  metaEl.textContent = sizeBytes != null ? formatExpFileSize(sizeBytes) : 'Loading dimensions...';
+  img.onload = () => {
+    const dims = `${img.naturalWidth} × ${img.naturalHeight}`;
+    const size = sizeBytes != null ? formatExpFileSize(sizeBytes) : '';
+    metaEl.textContent = size ? `${dims} · ${size}` : dims;
+  };
+}
+
+function hideSkillIconCard() {
+  document.getElementById('skill-icon-dropzone').style.display = 'flex';
+  document.getElementById('skill-icon-card').style.display = 'none';
+  document.getElementById('skill-icon-preview').src = '';
+}
+
+function clearSkillIcon() {
+  _skillIconUrl = '';
+  hideSkillIconCard();
+  const status = document.getElementById('skill-icon-status');
+  if (status) status.textContent = '';
+}
+
+function setupSkillIconDropzone() {
+  const zone = document.getElementById('skill-icon-dropzone');
+  if (!zone || zone.dataset.dropReady) return;
+  zone.dataset.dropReady = '1';
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.add('is-dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.remove('is-dragover');
+  }));
+  zone.addEventListener('drop', e => handleSkillIconFiles(e.dataTransfer.files));
+}
+
+async function submitSkillForm(ev) {
+  ev.preventDefault();
+  const form = ev.target;
+  const btn  = document.getElementById('skill-submit-btn');
+
+  const select   = document.getElementById('skill-category-select');
+  const category = select.value === '__custom__'
+    ? (document.getElementById('skill-category-custom').value || '').trim()
+    : select.value;
+
+  const payload = {
+    name:        form.querySelector('[name="name"]').value.trim(),
+    category:    category,
+    percentage:  parseInt(document.getElementById('skill-pct-number').value, 10) || 0,
+    description: form.querySelector('[name="description"]').value.trim(),
+    icon:        _skillIconUrl,
+    sort_order:  parseInt(form.querySelector('[name="sort_order"]').value, 10) || 0,
+  };
+
+  if (!payload.name || !payload.category) {
+    Toast.show('Name and category are required', 'error');
+    return;
+  }
+  if (payload.percentage < 0 || payload.percentage > 100) {
+    Toast.show('Percentage must be between 0 and 100', 'error');
+    return;
+  }
+
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    if (_skillEditId) {
+      await API.put(`/skills/${_skillEditId}`, payload);
+      Toast.show('Skill updated', 'success');
+    } else {
+      await API.post('/skills', payload);
+      Toast.show('Skill added', 'success');
+    }
+    closeSkillModal();
+    loadSkills();
+    loadStats();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+
+// ─── Experience modal ────────────────────────────────────────
+// Single modal handles both Add (no id) and Edit (id supplied).
+// Form fields map 1:1 to models.Experience; achievements/tech_used are
+// stored as JSON arrays so the textareas split on newline / comma.
+let _expEditId = null;     // null = create, number = update
+let _expLogoUrl = '';      // populated by handleExpLogoFiles after /upload returns
+let _expStartFp = null;    // flatpickr instance for start_date
+let _expEndFp   = null;    // flatpickr instance for end_date
+
+// Lazily mount flatpickr month-select on the two date inputs the first
+// time the modal opens. Stored in module-scoped vars so subsequent opens
+// can call .setDate() / .clear() without re-creating the calendars.
+function ensureExpFlatpickrs() {
+  if (_expStartFp && _expEndFp) return;
+  const opts = {
+    plugins: [ new monthSelectPlugin({
+      shorthand: true,    // "Jan" not "January"
+      dateFormat: "M Y",  // value held by the input AND sent to backend
+      altFormat:  "M Y",
+    })],
+    // Default appendTo (body) avoids the modal's overflow:auto clipping the calendar.
+    static: false,
+  };
+  _expStartFp = flatpickr('#exp-form [name="start_date"]', opts);
+  _expEndFp   = flatpickr('#exp-form [name="end_date"]',   opts);
+}
+
+// Toggle button replaces the old "I currently work here" checkbox.
+// When active: the End Date picker is cleared + disabled, button label
+// flips to "✓ Present", and is_current is sent as true on submit.
+function setExpPresentState(isActive) {
+  const btn      = document.getElementById('exp-present-btn');
+  const endInput = document.querySelector('#exp-form [name="end_date"]');
+  if (!btn || !endInput) return;
+  btn.classList.toggle('is-active', isActive);
+  btn.innerHTML = isActive
+    ? '<i class="ph ph-check-circle"></i><span>Present</span>'
+    : '<i class="ph ph-radio-button"></i><span>Mark as Present</span>';
+  if (isActive && _expEndFp) _expEndFp.clear();
+  endInput.disabled = isActive;
+}
+
+function toggleExpPresent() {
+  const btn = document.getElementById('exp-present-btn');
+  setExpPresentState(!btn.classList.contains('is-active'));
+}
+
+// ─── Per-section visibility toggles ─────────────────────────
+// Each toggleable form-group has a "Visible" pill in its label row.
+// Off state: pill turns red ("Hidden") and the section's content gets
+// dimmed + grayscaled while staying editable. Public timeline checks
+// the matching show_* boolean before rendering the section.
+const EXP_VISIBILITY_FIELDS = [
+  'show_logo', 'show_type', 'show_location',
+  'show_description', 'show_achievements', 'show_tech_used',
+];
+
+function toggleExpVisibility(btn) {
+  const isHidden = btn.classList.toggle('is-hidden');
+  btn.innerHTML = isHidden
+    ? '<i class="ph ph-eye-slash"></i><span>Hidden</span>'
+    : '<i class="ph ph-eye"></i><span>Visible</span>';
+  const group = btn.closest('.form-group');
+  if (group) group.classList.toggle('is-section-hidden', isHidden);
+}
+
+function setExpVisibility(field, visible) {
+  const btn = document.querySelector(`#exp-form [data-show-field="${field}"]`);
+  if (!btn) return;
+  const currentlyHidden = btn.classList.contains('is-hidden');
+  const wantHidden = !visible;
+  if (currentlyHidden !== wantHidden) toggleExpVisibility(btn);
+}
+
+function getExpVisibility(field) {
+  const btn = document.querySelector(`#exp-form [data-show-field="${field}"]`);
+  return btn ? !btn.classList.contains('is-hidden') : true;
+}
+
+// Reset every toggle to ON (used by openAddExpModal).
+function resetExpVisibility() {
+  EXP_VISIBILITY_FIELDS.forEach(f => setExpVisibility(f, true));
+}
+
+// Apply visibility from a saved Experience row. Treats null/undefined as
+// visible so legacy rows (created before these flags existed) default to
+// fully shown — same behaviour the DB column default enforces server-side.
+function applyExpVisibilityFrom(exp) {
+  EXP_VISIBILITY_FIELDS.forEach(f => {
+    setExpVisibility(f, exp[f] !== false);
+  });
+}
+
+function openAddExpModal() {
+  _expEditId = null;
+  _expLogoUrl = '';
+  const form = document.getElementById('exp-form');
+  form.reset();
+  document.getElementById('exp-modal-title').textContent = 'Add Experience';
+  document.getElementById('exp-submit-btn').textContent  = 'Create';
+  hideExpLogoCard();
+  document.getElementById('exp-logo-status').textContent = '';
+  setExpAchievementRows([]);
+  setExpTechChips([]);
+  resetExpVisibility();
+  // Default the type select to full-time so the visual matches the DB default
+  form.querySelector('[name="type"]').value = 'full-time';
+  document.getElementById('exp-modal').classList.add('open');
+  ensureExpFlatpickrs();
+  setupExpDropzone();
+  setupExpTechInput();
+  _expStartFp.clear();
+  _expEndFp.clear();
+  setExpPresentState(false);
+}
+
+async function openEditExpModal(id) {
+  // Pull a fresh copy of the row so the form reflects current DB state
+  // (the table render happens on each load, but we don't want to rely on
+  // a stale snapshot if the user edited something elsewhere).
+  let exp;
+  try {
+    const res = await API.get('/experience');
+    exp = (res.data || []).find(e => e.id === id);
+  } catch (err) { Toast.show(err.message, 'error'); return; }
+  if (!exp) { Toast.show('Experience not found', 'error'); return; }
+
+  _expEditId = id;
+  _expLogoUrl = exp.company_logo || '';
+  const form = document.getElementById('exp-form');
+  form.reset();
+  document.getElementById('exp-modal-title').textContent = 'Edit Experience';
+  document.getElementById('exp-submit-btn').textContent  = 'Save changes';
+
+  form.querySelector('[name="company"]').value     = exp.company || '';
+  form.querySelector('[name="role"]').value        = exp.role || '';
+  form.querySelector('[name="type"]').value        = exp.type || 'full-time';
+  form.querySelector('[name="location"]').value    = exp.location || '';
+  form.querySelector('[name="description"]').value = exp.description || '';
+  setExpAchievementRows(Utils.parseArray(exp.achievements));
+  setExpTechChips(Utils.parseArray(exp.tech_used));
+  applyExpVisibilityFrom(exp);
+  form.querySelector('[name="sort_order"]').value  = exp.sort_order ?? 0;
+
+  document.getElementById('exp-logo-status').textContent = '';
+  if (_expLogoUrl) showExpLogoCard(_expLogoUrl);
+  else             hideExpLogoCard();
+
+  document.getElementById('exp-modal').classList.add('open');
+  ensureExpFlatpickrs();
+  setupExpDropzone();
+  setupExpTechInput();
+  // setDate accepts "Jan 2022" strings because dateFormat == "M Y"
+  if (exp.start_date) _expStartFp.setDate(exp.start_date, true);
+  else                _expStartFp.clear();
+  if (exp.end_date)   _expEndFp.setDate(exp.end_date, true);
+  else                _expEndFp.clear();
+  setExpPresentState(!!exp.is_current);
+}
+
+function closeExpModal() {
+  document.getElementById('exp-modal').classList.remove('open');
+}
+
+// Single entry point for both <input type="file"> change AND drop events.
+// Uploads the first file, then swaps the dropzone for the loaded-state card.
+async function handleExpLogoFiles(files) {
+  const file = files && files[0];
+  if (!file) return;
+
+  const status = document.getElementById('exp-logo-status');
+  status.textContent = '⏳ Uploading...';
+  status.style.color = 'var(--color-text-muted)';
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('folder', 'logos');
+    const res = await API.upload('/upload', fd);
+    _expLogoUrl = res.data.url;
+    showExpLogoCard(_expLogoUrl, file.name, file.size);
+    status.textContent = '';
+  } catch (err) {
+    status.textContent = err.message || 'Upload failed';
+    status.style.color = 'var(--color-error)';
+  }
+}
+
+// Hides the dropzone, shows the loaded card with thumbnail + filename + meta.
+// Used both right after upload (with full file info) and on Edit modal open
+// (where only the URL is known — filename/size are derived from the path).
+function showExpLogoCard(url, filename, sizeBytes) {
+  document.getElementById('exp-logo-dropzone').style.display = 'none';
+  const card = document.getElementById('exp-logo-card');
+  const img  = document.getElementById('exp-logo-preview');
+  card.style.display = 'flex';
+  img.src = url;
+
+  // Strip the leading timestamp prefix (e.g. "1778414809_unnamed.png" -> "unnamed.png")
+  // so the user sees their original filename, not the server's storage key.
+  const rawName = filename || decodeURIComponent(url.split('/').pop() || 'logo');
+  const cleanName = rawName.replace(/^\d{8,}_/, '');
+  document.getElementById('exp-logo-name').textContent = cleanName;
+
+  // Dimensions resolve async via img.onload; size only available after a fresh upload.
+  const metaEl = document.getElementById('exp-logo-meta');
+  metaEl.textContent = sizeBytes != null ? formatExpFileSize(sizeBytes) : 'Loading dimensions...';
+  img.onload = () => {
+    const dims = `${img.naturalWidth} × ${img.naturalHeight}`;
+    const size = sizeBytes != null ? formatExpFileSize(sizeBytes) : '';
+    metaEl.textContent = size ? `${dims} · ${size}` : dims;
+  };
+}
+
+function hideExpLogoCard() {
+  document.getElementById('exp-logo-dropzone').style.display = 'flex';
+  document.getElementById('exp-logo-card').style.display = 'none';
+  document.getElementById('exp-logo-preview').src = '';
+}
+
+function clearExpLogo() {
+  _expLogoUrl = '';
+  hideExpLogoCard();
+  const status = document.getElementById('exp-logo-status');
+  if (status) status.textContent = '';
+}
+
+function formatExpFileSize(bytes) {
+  if (bytes < 1024)         return bytes + ' B';
+  if (bytes < 1024 * 1024)  return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+// ─── Achievements list editor ────────────────────────────────
+// One row = one bullet on the timeline. Rows can be reordered via the
+// drag handle, removed via the X button, and added via "+ Add achievement"
+// or by pressing Enter inside any input.
+let _expAchDragSrc = null;
+
+function addExpAchievementRow(text = '', insertAfter = null) {
+  const list = document.getElementById('exp-ach-list');
+  const row  = document.createElement('div');
+  row.className = 'exp-ach-row';
+  row.innerHTML = `
+    <span class="exp-ach-drag" draggable="true" aria-label="Drag to reorder" title="Drag to reorder">
+      <i class="ph ph-dots-six-vertical"></i>
+    </span>
+    <span class="exp-ach-bullet">▸</span>
+    <input class="exp-ach-input" type="text" placeholder="What did you accomplish?">
+    <button type="button" class="exp-ach-remove" onclick="removeExpAchievementRow(this)" aria-label="Remove">
+      <i class="ph ph-x"></i>
+    </button>
+  `;
+  const input = row.querySelector('.exp-ach-input');
+  input.value = text;
+  // Enter inserts a new empty row immediately below this one
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addExpAchievementRow('', row);
+    }
+  });
+  attachExpAchRowDnd(row);
+  if (insertAfter) list.insertBefore(row, insertAfter.nextSibling);
+  else             list.appendChild(row);
+  // Auto-focus newly-added empty rows so the user can start typing immediately.
+  if (!text) input.focus();
+  return row;
+}
+
+function removeExpAchievementRow(btn) {
+  const row  = btn.closest('.exp-ach-row');
+  const list = document.getElementById('exp-ach-list');
+  if (!row || !list) return;
+  // Always keep at least one (empty) row so the section never visually collapses
+  if (list.children.length <= 1) {
+    const input = row.querySelector('input');
+    input.value = '';
+    input.focus();
+    return;
+  }
+  row.remove();
+}
+
+function setExpAchievementRows(items) {
+  const list = document.getElementById('exp-ach-list');
+  list.innerHTML = '';
+  if (!items || !items.length) { addExpAchievementRow(); return; }
+  items.forEach(t => addExpAchievementRow(t));
+}
+
+function getExpAchievementValues() {
+  return Array.from(document.querySelectorAll('#exp-ach-list .exp-ach-input'))
+    .map(i => i.value.trim())
+    .filter(Boolean);
+}
+
+// HTML5 drag-and-drop reordering. Only the drag handle is draggable so the
+// text input still selects normally. Drop target is the whole row, so the
+// user has a generous hit area.
+function attachExpAchRowDnd(row) {
+  const handle = row.querySelector('.exp-ach-drag');
+
+  handle.addEventListener('dragstart', e => {
+    _expAchDragSrc = row;
+    row.classList.add('is-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox refuses to start a drag without a payload
+    try { e.dataTransfer.setData('text/plain', ''); } catch (_) {}
+  });
+  handle.addEventListener('dragend', () => {
+    row.classList.remove('is-dragging');
+    document.querySelectorAll('.exp-ach-row.is-drag-over')
+      .forEach(r => r.classList.remove('is-drag-over'));
+    _expAchDragSrc = null;
+  });
+
+  row.addEventListener('dragover', e => {
+    if (!_expAchDragSrc || _expAchDragSrc === row) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    row.classList.add('is-drag-over');
+  });
+  row.addEventListener('dragleave', () => row.classList.remove('is-drag-over'));
+  row.addEventListener('drop', e => {
+    e.preventDefault();
+    row.classList.remove('is-drag-over');
+    if (!_expAchDragSrc || _expAchDragSrc === row) return;
+    const list = row.parentElement;
+    const rows = Array.from(list.children);
+    const srcIdx = rows.indexOf(_expAchDragSrc);
+    const tgtIdx = rows.indexOf(row);
+    if (srcIdx < tgtIdx) list.insertBefore(_expAchDragSrc, row.nextSibling);
+    else                 list.insertBefore(_expAchDragSrc, row);
+  });
+}
+
+// ─── Tech-used chip input ────────────────────────────────────
+// Each tech is a chip; the trailing input accepts new tags via Enter or
+// comma. Backspace on an empty input deletes the last chip. Duplicates
+// (case-insensitive) are silently ignored.
+function escExpHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]
+  ));
+}
+
+function addExpTechChip(text) {
+  const value = (text || '').trim();
+  if (!value) return;
+  const wrap  = document.getElementById('exp-tech-input');
+  const input = document.getElementById('exp-tech-typing');
+  // Skip case-insensitive duplicates so "Flutter" and "flutter" don't both stick
+  const existing = Array.from(wrap.querySelectorAll('.exp-tech-chip'))
+    .map(c => c.dataset.value.toLowerCase());
+  if (existing.includes(value.toLowerCase())) return;
+
+  const chip = document.createElement('span');
+  chip.className = 'exp-tech-chip';
+  chip.dataset.value = value;
+  chip.innerHTML = `
+    <span class="exp-tech-chip-text">${escExpHtml(value)}</span>
+    <button type="button" class="exp-tech-chip-remove" aria-label="Remove ${escExpHtml(value)}">×</button>
+  `;
+  chip.querySelector('button').addEventListener('click', () => chip.remove());
+  wrap.insertBefore(chip, input);
+}
+
+function setExpTechChips(items) {
+  const wrap = document.getElementById('exp-tech-input');
+  wrap.querySelectorAll('.exp-tech-chip').forEach(c => c.remove());
+  (items || []).forEach(t => addExpTechChip(t));
+  // Also clear any half-typed text leftover from a prior modal session
+  const input = document.getElementById('exp-tech-typing');
+  if (input) input.value = '';
+}
+
+function getExpTechValues() {
+  return Array.from(document.querySelectorAll('#exp-tech-input .exp-tech-chip'))
+    .map(c => c.dataset.value);
+}
+
+// One-time wiring of the trailing input. Guard via dataset prevents
+// stacking listeners across repeated modal opens.
+function setupExpTechInput() {
+  const input = document.getElementById('exp-tech-typing');
+  if (!input || input.dataset.ready) return;
+  input.dataset.ready = '1';
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addExpTechChip(input.value);
+      input.value = '';
+    } else if (e.key === 'Backspace' && input.value === '') {
+      const chips = document.querySelectorAll('#exp-tech-input .exp-tech-chip');
+      if (chips.length) chips[chips.length - 1].remove();
+    }
+  });
+
+  // Pasting "Flutter, Dart, Firebase" should fan out into separate chips
+  input.addEventListener('paste', e => {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (text && /[,\n]/.test(text)) {
+      e.preventDefault();
+      text.split(/[,\n]+/).forEach(t => addExpTechChip(t));
+      input.value = '';
+    }
+  });
+
+  // Commit any in-progress text when the field loses focus, so users don't
+  // submit the form thinking "React" was added when it was still half-typed.
+  input.addEventListener('blur', () => {
+    if (input.value.trim()) {
+      addExpTechChip(input.value);
+      input.value = '';
+    }
+  });
+}
+
+// Wire drag-and-drop on the dropzone exactly once. The guard via dataset
+// keeps repeated modal opens from stacking duplicate listeners.
+function setupExpDropzone() {
+  const zone = document.getElementById('exp-logo-dropzone');
+  if (!zone || zone.dataset.dropReady) return;
+  zone.dataset.dropReady = '1';
+
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.add('is-dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.remove('is-dragover');
+  }));
+  zone.addEventListener('drop', e => handleExpLogoFiles(e.dataTransfer.files));
+}
+
+async function submitExpForm(ev) {
+  ev.preventDefault();
+  const form = ev.target;
+  const btn  = document.getElementById('exp-submit-btn');
+
+  const isCurrent = document.getElementById('exp-present-btn').classList.contains('is-active');
+  const payload = {
+    company:      form.querySelector('[name="company"]').value.trim(),
+    role:         form.querySelector('[name="role"]').value.trim(),
+    start_date:   form.querySelector('[name="start_date"]').value.trim(),
+    end_date:     isCurrent ? '' : form.querySelector('[name="end_date"]').value.trim(),
+    is_current:   isCurrent,
+    type:         form.querySelector('[name="type"]').value,
+    location:     form.querySelector('[name="location"]').value.trim(),
+    description:  form.querySelector('[name="description"]').value.trim(),
+    achievements: getExpAchievementValues(),
+    tech_used:    getExpTechValues(),
+    company_logo: _expLogoUrl,
+    sort_order:   parseInt(form.querySelector('[name="sort_order"]').value, 10) || 0,
+
+    // Per-section visibility — controls what renders on the public timeline
+    show_logo:         getExpVisibility('show_logo'),
+    show_type:         getExpVisibility('show_type'),
+    show_location:     getExpVisibility('show_location'),
+    show_description:  getExpVisibility('show_description'),
+    show_achievements: getExpVisibility('show_achievements'),
+    show_tech_used:    getExpVisibility('show_tech_used'),
+  };
+
+  if (!payload.company || !payload.role || !payload.start_date) {
+    Toast.show('Company, role and start date are required', 'error');
+    return;
+  }
+
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    if (_expEditId) {
+      await API.put(`/experience/${_expEditId}`, payload);
+      Toast.show('Experience updated', 'success');
+    } else {
+      await API.post('/experience', payload);
+      Toast.show('Experience added', 'success');
+    }
+    closeExpModal();
+    loadExperience();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<!-- Add / Edit Skill modal -->
+<div class="modal-overlay" id="skill-modal" onclick="if(event.target===this) closeSkillModal()">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="skill-modal-title">Add Skill</h3>
+      <button type="button" class="modal-close" onclick="closeSkillModal()" aria-label="Close">&times;</button>
+    </div>
+
+    <form id="skill-form" novalidate onsubmit="submitSkillForm(event)">
+      <div class="profile-field-grid">
+        <div class="form-group">
+          <label class="form-label social-label"><i class="ph ph-tag" style="color:var(--color-primary)"></i> Name *</label>
+          <input class="form-control" name="name" placeholder="Flutter" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label social-label"><i class="ph ph-folder" style="color:var(--color-primary)"></i> Category *</label>
+          <select class="form-control" name="category" id="skill-category-select"
+            onchange="onSkillCategoryChange(this)">
+            <option value="core">Core (framework / language)</option>
+            <option value="state_management">State Management</option>
+            <option value="backend">Backend</option>
+            <option value="payments">Payments</option>
+            <option value="tools">Tools</option>
+            <option value="__custom__">+ Custom category…</option>
+          </select>
+          <input class="form-control" id="skill-category-custom" name="category_custom"
+            placeholder="Custom category key (e.g. devops)"
+            style="display:none;margin-top:8px" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label social-label">
+          <i class="ph ph-percent" style="color:var(--color-primary)"></i> Proficiency
+          <span style="color:var(--color-text-muted);font-weight:400">— shown as a bar on the public site</span>
+        </label>
+        <div class="skill-pct-row">
+          <input type="range" id="skill-pct-range" name="percentage_range"
+            min="0" max="100" step="1" value="80"
+            oninput="syncSkillPct(this.value, 'range')">
+          <input type="number" id="skill-pct-number" name="percentage"
+            min="0" max="100" step="1" value="80"
+            oninput="syncSkillPct(this.value, 'number')">
+          <span class="skill-pct-suffix">%</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-text-align-left" style="color:var(--color-primary)"></i> Description</label>
+        <textarea class="form-control" name="description" rows="2"
+          placeholder="One short line shown on hover (e.g. &quot;Cross-platform UI framework by Google&quot;)"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-image" style="color:var(--color-primary)"></i> Icon</label>
+
+        <input type="file" id="skill-icon-file-input" accept="image/*" style="display:none"
+          onchange="handleSkillIconFiles(this.files); this.value=''">
+
+        <div class="exp-dropzone" id="skill-icon-dropzone" style="padding:20px 16px"
+          onclick="document.getElementById('skill-icon-file-input').click()">
+          <div class="exp-dropzone-icon" style="font-size:30px"><i class="ph ph-cloud-arrow-up"></i></div>
+          <div class="exp-dropzone-title">
+            Drop an icon here, or <span>click to browse</span>
+          </div>
+          <div class="exp-dropzone-hint">
+            PNG / SVG &middot; square &middot; <strong style="color:var(--color-text)">128&times;128&nbsp;px</strong>
+            recommended &middot; max 10&nbsp;MB
+          </div>
+          <div class="exp-dropzone-status" id="skill-icon-status"></div>
+        </div>
+
+        <div class="exp-logo-card" id="skill-icon-card" style="display:none">
+          <img class="exp-logo-card-thumb" id="skill-icon-preview" src="" alt="Icon preview">
+          <div class="exp-logo-card-info">
+            <div class="exp-logo-card-name" id="skill-icon-name">&mdash;</div>
+            <div class="exp-logo-card-meta" id="skill-icon-meta">&mdash;</div>
+          </div>
+          <div class="exp-logo-card-actions">
+            <button type="button" class="btn btn-ghost btn-sm"
+              onclick="document.getElementById('skill-icon-file-input').click()">
+              <i class="ph ph-arrow-clockwise"></i> Replace
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="clearSkillIcon()">
+              <i class="ph ph-trash"></i> Remove
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="max-width:200px">
+        <label class="form-label social-label"><i class="ph ph-sort-ascending" style="color:var(--color-primary)"></i> Sort Order</label>
+        <input class="form-control" type="number" name="sort_order" placeholder="0" value="0">
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeSkillModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="skill-submit-btn">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add / Edit Experience modal -->
+<div class="modal-overlay" id="exp-modal" onclick="if(event.target===this) closeExpModal()">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="exp-modal-title">Add Experience</h3>
+      <button type="button" class="modal-close" onclick="closeExpModal()" aria-label="Close">&times;</button>
+    </div>
+
+    <form id="exp-form" novalidate onsubmit="submitExpForm(event)">
+      <div class="profile-field-grid">
+        <div class="form-group">
+          <label class="form-label social-label"><i class="ph ph-buildings" style="color:var(--color-primary)"></i> Company *</label>
+          <input class="form-control" name="company" placeholder="SperkTech" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label social-label"><i class="ph ph-briefcase" style="color:var(--color-primary)"></i> Role *</label>
+          <input class="form-control" name="role" placeholder="Flutter Developer" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label social-label"><i class="ph ph-calendar-blank" style="color:var(--color-primary)"></i> Start Date *</label>
+          <input class="form-control" name="start_date" placeholder="Select month" readonly required>
+        </div>
+        <div class="form-group">
+          <label class="form-label social-label"><i class="ph ph-calendar-x" style="color:var(--color-primary)"></i> End Date</label>
+          <div style="display:flex;gap:8px;align-items:stretch">
+            <input class="form-control" name="end_date" placeholder="Select month" readonly
+              style="flex:1;min-width:0">
+            <button type="button" id="exp-present-btn" class="exp-present-btn" onclick="toggleExpPresent()">
+              <i class="ph ph-radio-button"></i><span>Mark as Present</span>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="exp-section-label-row">
+            <label class="form-label social-label"><i class="ph ph-clock" style="color:var(--color-primary)"></i> Type</label>
+            <button type="button" class="exp-toggle-show" data-show-field="show_type"
+              onclick="toggleExpVisibility(this)" title="Show this section on the public portfolio">
+              <i class="ph ph-eye"></i><span>Visible</span>
+            </button>
+          </div>
+          <select class="form-control" name="type">
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+            <option value="internship">Internship</option>
+            <option value="freelance">Freelance</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="exp-section-label-row">
+            <label class="form-label social-label"><i class="ph ph-map-pin" style="color:var(--color-primary)"></i> Location</label>
+            <button type="button" class="exp-toggle-show" data-show-field="show_location"
+              onclick="toggleExpVisibility(this)" title="Show this section on the public portfolio">
+              <i class="ph ph-eye"></i><span>Visible</span>
+            </button>
+          </div>
+          <input class="form-control" name="location" placeholder="Dhaka, Bangladesh">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="exp-section-label-row">
+          <label class="form-label social-label"><i class="ph ph-image" style="color:var(--color-primary)"></i> Company Logo</label>
+          <button type="button" class="exp-toggle-show" data-show-field="show_logo"
+            onclick="toggleExpVisibility(this)" title="Show this section on the public portfolio">
+            <i class="ph ph-eye"></i><span>Visible</span>
+          </button>
+        </div>
+
+        <input type="file" id="exp-logo-file-input" accept="image/*" style="display:none"
+          onchange="handleExpLogoFiles(this.files); this.value=''">
+
+        <!-- Empty state: drop zone -->
+        <div class="exp-dropzone" id="exp-logo-dropzone"
+          onclick="document.getElementById('exp-logo-file-input').click()">
+          <div class="exp-dropzone-icon"><i class="ph ph-cloud-arrow-up"></i></div>
+          <div class="exp-dropzone-title">
+            Drop your logo here, or <span>click to browse</span>
+          </div>
+          <div class="exp-dropzone-hint">
+            PNG / SVG &middot; square &middot; <strong style="color:var(--color-text)">256&times;256&nbsp;px</strong>
+            recommended &middot; max 10&nbsp;MB
+          </div>
+          <div class="exp-dropzone-status" id="exp-logo-status"></div>
+        </div>
+
+        <!-- Loaded state: preview card -->
+        <div class="exp-logo-card" id="exp-logo-card" style="display:none">
+          <img class="exp-logo-card-thumb" id="exp-logo-preview" src="" alt="Logo preview">
+          <div class="exp-logo-card-info">
+            <div class="exp-logo-card-name" id="exp-logo-name">&mdash;</div>
+            <div class="exp-logo-card-meta" id="exp-logo-meta">&mdash;</div>
+          </div>
+          <div class="exp-logo-card-actions">
+            <button type="button" class="btn btn-ghost btn-sm"
+              onclick="document.getElementById('exp-logo-file-input').click()">
+              <i class="ph ph-arrow-clockwise"></i> Replace
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="clearExpLogo()">
+              <i class="ph ph-trash"></i> Remove
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="exp-section-label-row">
+          <label class="form-label social-label"><i class="ph ph-text-align-left" style="color:var(--color-primary)"></i> Description</label>
+          <button type="button" class="exp-toggle-show" data-show-field="show_description"
+            onclick="toggleExpVisibility(this)" title="Show this section on the public portfolio">
+            <i class="ph ph-eye"></i><span>Visible</span>
+          </button>
+        </div>
+        <textarea class="form-control" name="description" rows="3"
+          placeholder="One short paragraph summarising the role..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="exp-section-label-row">
+          <label class="form-label social-label"><i class="ph ph-list-checks" style="color:var(--color-primary)"></i> Achievements</label>
+          <button type="button" class="exp-toggle-show" data-show-field="show_achievements"
+            onclick="toggleExpVisibility(this)" title="Show this section on the public portfolio">
+            <i class="ph ph-eye"></i><span>Visible</span>
+          </button>
+        </div>
+        <div class="exp-ach-list" id="exp-ach-list"><!-- rows injected by JS --></div>
+        <button type="button" class="exp-ach-add-btn" onclick="addExpAchievementRow()">
+          <i class="ph ph-plus-circle"></i> Add achievement
+        </button>
+        <p style="font-size:11px;color:var(--color-text-muted);margin-top:8px;line-height:1.6">
+          Each item becomes a bullet on the timeline card.
+          Press <kbd style="padding:1px 5px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-bg-3);font-size:10px">Enter</kbd>
+          to add a new line, drag the handle to reorder.
+        </p>
+      </div>
+
+      <div class="profile-field-grid">
+        <div class="form-group" style="grid-column:1 / -1">
+          <div class="exp-section-label-row">
+            <label class="form-label social-label"><i class="ph ph-stack" style="color:var(--color-primary)"></i> Tech Used</label>
+            <button type="button" class="exp-toggle-show" data-show-field="show_tech_used"
+              onclick="toggleExpVisibility(this)" title="Show this section on the public portfolio">
+              <i class="ph ph-eye"></i><span>Visible</span>
+            </button>
+          </div>
+          <div class="exp-tech-input" id="exp-tech-input"
+            onclick="if(event.target===this)document.getElementById('exp-tech-typing').focus()">
+            <input type="text" id="exp-tech-typing" class="exp-tech-typing"
+              placeholder="Type a tech and press Enter…" autocomplete="off">
+          </div>
+          <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px;line-height:1.6">
+            Press
+            <kbd style="padding:1px 5px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-bg-3);font-size:10px">Enter</kbd>
+            or
+            <kbd style="padding:1px 5px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-bg-3);font-size:10px">,</kbd>
+            to add a tag &middot;
+            <kbd style="padding:1px 5px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-bg-3);font-size:10px">Backspace</kbd>
+            on an empty input removes the last one.
+          </p>
+        </div>
+        <div class="form-group">
+          <label class="form-label social-label"><i class="ph ph-sort-ascending" style="color:var(--color-primary)"></i> Sort Order</label>
+          <input class="form-control" type="number" name="sort_order" placeholder="0" value="0">
+          <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">Lower = appears first.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeExpModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="exp-submit-btn">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- Profile photo crop modal -->
 <div class="crop-modal" id="crop-modal">

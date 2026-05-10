@@ -61,6 +61,20 @@ type Experience struct {
 	// SortOrder controls which experience shows first (lower = more recent, shown first)
 	SortOrder int `gorm:"default:0" json:"sort_order"`
 
+	// ─── Per-section visibility flags ──────────────────────────
+	// Each flag controls whether the corresponding section renders on the
+	// public timeline. Stored as *bool (not bool) so GORM's Updates() can
+	// persist a `false` toggle — Updates skips zero-value fields, and
+	// `false` is the zero value of a plain bool, so plain-bool toggles get
+	// silently dropped on save. Null/missing on legacy rows is treated as
+	// "visible" by the frontend, matching the column default.
+	ShowLogo         *bool `gorm:"default:true" json:"show_logo"`
+	ShowType         *bool `gorm:"default:true" json:"show_type"`
+	ShowLocation     *bool `gorm:"default:true" json:"show_location"`
+	ShowDescription  *bool `gorm:"default:true" json:"show_description"`
+	ShowAchievements *bool `gorm:"default:true" json:"show_achievements"`
+	ShowTechUsed     *bool `gorm:"default:true" json:"show_tech_used"`
+
 	// GORM timestamp fields
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
