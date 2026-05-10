@@ -24,8 +24,15 @@
   display: flex;
   align-items: center;
   gap: var(--space-16);
-  padding: var(--space-16) var(--space-12);
+  /* Horizontal padding (80px = var(--space-20)) is sized to clear the
+     Swiper next/prev arrow circles. The 48px arrows sit at left:10px /
+     right:10px (Swiper defaults), so they extend out to 58px from each
+     edge — the 80px padding leaves ~22px of breathing room between the
+     arrow and the start of the slide content. */
+  padding: var(--space-16) var(--space-20);
   min-height: 80vh;
+  /* Anchor for the absolutely-positioned "View Details" button below */
+  position: relative;
 }
 
 /* ─── Left side — text content ─────────────────────────────────*/

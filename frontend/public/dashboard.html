@@ -2238,6 +2238,115 @@
       }
     }
 
+    /* ─── Project modal: section dividers ────────────────────── */
+    .proj-section-title {
+      display: flex; align-items: center; gap: 8px;
+      margin: 28px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--color-text-muted);
+    }
+    .proj-section-title:first-child { margin-top: 0; }
+    .proj-section-title i { color: var(--color-primary); font-size: 14px; }
+
+    /* ─── Project modal: Featured toggle (mirrors Mark-as-Present) ─ */
+    .proj-featured-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+    }
+    .proj-featured-row-label {
+      flex: 1;
+      font-size: 13px; color: var(--color-text);
+    }
+    .proj-featured-row-label small {
+      display: block;
+      font-size: 11px; color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* ─── Project modal: screenshots multi-image grid ─────────── */
+    .proj-shots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .proj-shot-card {
+      position: relative;
+      aspect-ratio: 9 / 16;
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: opacity 0.15s, transform 0.15s, border-color 0.15s;
+    }
+    .proj-shot-card.is-dragging { opacity: 0.35; }
+    .proj-shot-card.is-drag-over {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--color-primary-glow);
+    }
+    .proj-shot-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .proj-shot-card-pending {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+      color: var(--color-text-muted);
+      font-size: 11px;
+    }
+    .proj-shot-card-actions {
+      position: absolute;
+      top: 4px; right: 4px;
+      display: flex; gap: 4px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .proj-shot-card:hover .proj-shot-card-actions { opacity: 1; }
+    .proj-shot-card-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px;
+      background: rgba(10, 10, 15, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 12px; line-height: 1;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .proj-shot-card-btn:hover { background: var(--color-primary); }
+    .proj-shot-card-btn.is-remove:hover { background: var(--color-error); }
+    .proj-shot-card-handle {
+      position: absolute;
+      bottom: 4px; left: 4px;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px;
+      background: rgba(10, 10, 15, 0.7);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px; line-height: 1;
+      cursor: grab;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .proj-shot-card:hover .proj-shot-card-handle { opacity: 1; }
+    .proj-shot-card-handle:active { cursor: grabbing; }
+    .proj-shot-card-position {
+      position: absolute;
+      top: 4px; left: 4px;
+      padding: 2px 8px;
+      background: rgba(10, 10, 15, 0.75);
+      border-radius: 6px;
+      color: var(--color-primary);
+      font-size: 10px; font-weight: 700;
+    }
+
     /* ─── Skill modal: proficiency slider + linked number ────── */
     .skill-pct-row {
       display: flex; align-items: center; gap: 12px;
@@ -3993,15 +4102,30 @@ async function loadProjects() {
     const projects = res.data || [];
     if (!projects.length) { w.innerHTML = '<p style="color:var(--color-text-muted)">No projects yet.</p>'; return; }
     w.innerHTML = `<div class="table-wrapper"><table class="table">
-      <thead><tr><th>Name</th><th>Status</th><th>Featured</th><th>Actions</th></tr></thead>
-      <tbody>${projects.map(p => `
+      <thead><tr><th style="width:64px">Thumb</th><th>Name</th><th>Tech</th><th>Status</th><th>Featured</th><th>Actions</th></tr></thead>
+      <tbody>${projects.map(p => {
+        const techList = Utils.parseArray(p.tech_stack);
+        const techPreview = techList.length
+          ? `<span style="color:var(--color-text)">${techList[0]}</span>${techList.length > 1 ? ` <span style="color:var(--color-text-muted)">+${techList.length - 1}</span>` : ''}`
+          : '<span style="color:var(--color-text-dim)">—</span>';
+        return `
         <tr>
+          <td>${p.thumbnail
+            ? `<img src="${p.thumbnail}" alt="${p.name}"
+                 style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--color-border);background:var(--color-bg-3);display:block"
+                 onerror="this.outerHTML='<div style=&quot;width:48px;height:48px;border-radius:8px;border:1px dashed var(--color-border);background:var(--color-bg-3);display:flex;align-items:center;justify-content:center;color:var(--color-text-dim)&quot;><i class=&quot;ph ph-image&quot;></i></div>'">`
+            : `<div style="width:48px;height:48px;border-radius:8px;border:1px dashed var(--color-border);background:var(--color-bg-3);display:flex;align-items:center;justify-content:center;color:var(--color-text-dim)" title="No thumbnail"><i class="ph ph-image"></i></div>`
+          }</td>
           <td>${p.name}</td>
+          <td style="font-size:12px">${techPreview}</td>
           <td><span class="badge badge-${p.status==='live'?'success':'primary'}">${p.status}</span></td>
           <td>${p.featured ? '⭐ Yes' : 'No'}</td>
-          <td><button class="btn btn-ghost btn-sm" onclick="deleteProject(${p.id})">Delete</button></td>
+          <td style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="openEditProjectModal(${p.id})">Edit</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteProject(${p.id})">Delete</button>
+          </td>
         </tr>
-      `).join('')}</tbody>
+      `;}).join('')}</tbody>
     </table></div>`;
   } catch (e) { w.innerHTML = `<p style="color:var(--color-error)">${e.message}</p>`; }
 }
@@ -7163,8 +7287,474 @@ async function saveSocial(e) {
   }
 }
 
-// Placeholder modal openers (full modal implementation would be added here)
-function openAddProjectModal() { Toast.show('Add project form coming soon', 'info'); }
+// ─── Project modal ───────────────────────────────────────────
+// Add/Edit handler for the Projects section. Mirrors the Skill+Experience
+// modal patterns: same modal element used for both create (no id) and
+// update (id supplied). Sub-editors inside this modal:
+//   • tech_stack chips — same chip-input as Experience (proj-tech-* IDs)
+//   • features bullets — same bulleted editor as achievements (proj-feat-list)
+//   • thumbnail — single-image dropzone like Experience logo
+//   • screenshots — NEW multi-image dropzone with drag-reorder
+let _projEditId  = null;
+let _projThumbUrl = '';
+let _projShots    = []; // ordered array of uploaded screenshot URLs
+
+function openAddProjectModal() {
+  _projEditId   = null;
+  _projThumbUrl = '';
+  _projShots    = [];
+  const form = document.getElementById('proj-form');
+  form.reset();
+  document.getElementById('proj-modal-title').textContent = 'Add Project';
+  document.getElementById('proj-submit-btn').textContent  = 'Create';
+  form.querySelector('[name="status"]').value = 'live';
+  setProjFeatured(false);
+  hideProjThumbCard();
+  document.getElementById('proj-thumb-status').textContent = '';
+  setProjTechChips([]);
+  setProjFeatRows([]);
+  setProjShots([]);
+  document.getElementById('proj-shots-status').textContent = '';
+  document.getElementById('proj-modal').classList.add('open');
+  setupProjThumbDropzone();
+  setupProjShotsDropzone();
+  setupProjTechInput();
+}
+
+async function openEditProjectModal(id) {
+  let project;
+  try {
+    const res = await API.get('/projects');
+    project = (res.data || []).find(p => p.id === id);
+  } catch (err) { Toast.show(err.message, 'error'); return; }
+  if (!project) { Toast.show('Project not found', 'error'); return; }
+
+  _projEditId   = id;
+  _projThumbUrl = project.thumbnail || '';
+  _projShots    = Utils.parseArray(project.screenshots);
+
+  const form = document.getElementById('proj-form');
+  form.reset();
+  document.getElementById('proj-modal-title').textContent = 'Edit Project';
+  document.getElementById('proj-submit-btn').textContent  = 'Save changes';
+
+  form.querySelector('[name="name"]').value             = project.name || '';
+  form.querySelector('[name="slug"]').value             = project.slug || '';
+  form.querySelector('[name="description"]').value      = project.description || '';
+  form.querySelector('[name="long_description"]').value = project.long_description || '';
+  form.querySelector('[name="status"]').value           = project.status || 'live';
+  form.querySelector('[name="sort_order"]').value       = project.sort_order ?? 0;
+  form.querySelector('[name="app_store_url"]').value    = project.app_store_url || '';
+  form.querySelector('[name="play_store_url"]').value   = project.play_store_url || '';
+  form.querySelector('[name="github_url"]').value       = project.github_url || '';
+
+  setProjFeatured(!!project.featured);
+  document.getElementById('proj-thumb-status').textContent = '';
+  if (_projThumbUrl) showProjThumbCard(_projThumbUrl);
+  else               hideProjThumbCard();
+
+  setProjTechChips(Utils.parseArray(project.tech_stack));
+  setProjFeatRows(Utils.parseArray(project.features));
+  setProjShots(_projShots);
+  document.getElementById('proj-shots-status').textContent = '';
+
+  document.getElementById('proj-modal').classList.add('open');
+  setupProjThumbDropzone();
+  setupProjShotsDropzone();
+  setupProjTechInput();
+}
+
+function closeProjectModal() {
+  document.getElementById('proj-modal').classList.remove('open');
+}
+
+// ─── Featured toggle ─────────────────────────────────────────
+function setProjFeatured(isActive) {
+  const btn = document.getElementById('proj-featured-btn');
+  if (!btn) return;
+  btn.classList.toggle('is-active', isActive);
+  btn.innerHTML = isActive
+    ? '<i class="ph ph-star-fill"></i><span>Featured</span>'
+    : '<i class="ph ph-radio-button"></i><span>Mark as Featured</span>';
+}
+function toggleProjFeatured() {
+  const btn = document.getElementById('proj-featured-btn');
+  setProjFeatured(!btn.classList.contains('is-active'));
+}
+
+// ─── Thumbnail upload (single image) ─────────────────────────
+async function handleProjThumbFiles(files) {
+  const file = files && files[0];
+  if (!file) return;
+  const status = document.getElementById('proj-thumb-status');
+  status.textContent = '⏳ Uploading...';
+  status.style.color = 'var(--color-text-muted)';
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('folder', 'thumbnails');
+    const res = await API.upload('/upload', fd);
+    _projThumbUrl = res.data.url;
+    showProjThumbCard(_projThumbUrl, file.name, file.size);
+    status.textContent = '';
+  } catch (err) {
+    status.textContent = err.message || 'Upload failed';
+    status.style.color = 'var(--color-error)';
+  }
+}
+function showProjThumbCard(url, filename, sizeBytes) {
+  document.getElementById('proj-thumb-dropzone').style.display = 'none';
+  const card = document.getElementById('proj-thumb-card');
+  const img  = document.getElementById('proj-thumb-preview');
+  card.style.display = 'flex';
+  img.src = url;
+  const rawName   = filename || decodeURIComponent(url.split('/').pop() || 'thumbnail');
+  const cleanName = rawName.replace(/^\d{8,}_/, '');
+  document.getElementById('proj-thumb-name').textContent = cleanName;
+  const metaEl = document.getElementById('proj-thumb-meta');
+  metaEl.textContent = sizeBytes != null ? formatExpFileSize(sizeBytes) : 'Loading dimensions...';
+  img.onload = () => {
+    const dims = `${img.naturalWidth} × ${img.naturalHeight}`;
+    const size = sizeBytes != null ? formatExpFileSize(sizeBytes) : '';
+    metaEl.textContent = size ? `${dims} · ${size}` : dims;
+  };
+}
+function hideProjThumbCard() {
+  document.getElementById('proj-thumb-dropzone').style.display = 'flex';
+  document.getElementById('proj-thumb-card').style.display = 'none';
+  document.getElementById('proj-thumb-preview').src = '';
+}
+function clearProjThumb() {
+  _projThumbUrl = '';
+  hideProjThumbCard();
+}
+function setupProjThumbDropzone() {
+  const zone = document.getElementById('proj-thumb-dropzone');
+  if (!zone || zone.dataset.dropReady) return;
+  zone.dataset.dropReady = '1';
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.add('is-dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.remove('is-dragover');
+  }));
+  zone.addEventListener('drop', e => handleProjThumbFiles(e.dataTransfer.files));
+}
+
+// ─── Screenshots multi-image grid + reorder ──────────────────
+// Accepts multiple files at once, uploads each in parallel to the same
+// /upload endpoint, and renders thumbnail cards in `_projShots` order.
+// Drag the ☰ handle on a card to reorder; × to remove from the list.
+async function handleProjShotsFiles(files) {
+  if (!files || !files.length) return;
+  const status = document.getElementById('proj-shots-status');
+  const total  = files.length;
+  let done = 0, failed = 0;
+  status.style.color = 'var(--color-text-muted)';
+  status.textContent = `⏳ Uploading ${total}...`;
+
+  // Parallel uploads — on success, push the URL onto the list and re-render.
+  // We don't strictly need ordering during upload (user can reorder after) so
+  // Promise.all over the files is fine.
+  await Promise.all(Array.from(files).map(async file => {
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('folder', 'screenshots');
+      const res = await API.upload('/upload', fd);
+      _projShots.push(res.data.url);
+    } catch {
+      failed += 1;
+    } finally {
+      done += 1;
+      status.textContent = `⏳ Uploading ${done}/${total}...`;
+    }
+  }));
+
+  renderProjShots();
+  if (failed === 0) {
+    status.style.color = 'var(--color-primary)';
+    status.textContent = `✓ ${total} uploaded`;
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  } else {
+    status.style.color = 'var(--color-error)';
+    status.textContent = `${failed} of ${total} failed to upload`;
+  }
+}
+
+function setProjShots(urls) {
+  _projShots = Array.isArray(urls) ? urls.slice() : [];
+  renderProjShots();
+}
+
+function renderProjShots() {
+  const grid = document.getElementById('proj-shots-grid');
+  grid.innerHTML = _projShots.map((url, i) => `
+    <div class="proj-shot-card" draggable="false" data-index="${i}">
+      <img src="${url}" alt="Screenshot ${i + 1}"
+        onerror="this.outerHTML='<div class=&quot;proj-shot-card-pending&quot;>Image failed to load</div>'">
+      <span class="proj-shot-card-position">#${i + 1}</span>
+      <div class="proj-shot-card-actions">
+        <button type="button" class="proj-shot-card-btn is-remove" title="Remove"
+          onclick="removeProjShot(${i})"><i class="ph ph-x"></i></button>
+      </div>
+      <span class="proj-shot-card-handle" draggable="true" title="Drag to reorder">
+        <i class="ph ph-dots-six-vertical"></i>
+      </span>
+    </div>
+  `).join('');
+  // Re-bind drag handlers for the new cards
+  grid.querySelectorAll('.proj-shot-card').forEach(card => attachProjShotCardDnd(card));
+}
+
+function removeProjShot(index) {
+  _projShots.splice(index, 1);
+  renderProjShots();
+}
+
+let _projShotDragSrc = null;
+function attachProjShotCardDnd(card) {
+  const handle = card.querySelector('.proj-shot-card-handle');
+  handle.addEventListener('dragstart', e => {
+    _projShotDragSrc = card;
+    card.classList.add('is-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', ''); } catch (_) {}
+  });
+  handle.addEventListener('dragend', () => {
+    card.classList.remove('is-dragging');
+    document.querySelectorAll('.proj-shot-card.is-drag-over')
+      .forEach(c => c.classList.remove('is-drag-over'));
+    _projShotDragSrc = null;
+  });
+  card.addEventListener('dragover', e => {
+    if (!_projShotDragSrc || _projShotDragSrc === card) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    card.classList.add('is-drag-over');
+  });
+  card.addEventListener('dragleave', () => card.classList.remove('is-drag-over'));
+  card.addEventListener('drop', e => {
+    e.preventDefault();
+    card.classList.remove('is-drag-over');
+    if (!_projShotDragSrc || _projShotDragSrc === card) return;
+    const srcIdx = parseInt(_projShotDragSrc.dataset.index, 10);
+    const tgtIdx = parseInt(card.dataset.index, 10);
+    if (Number.isNaN(srcIdx) || Number.isNaN(tgtIdx)) return;
+    // Reorder _projShots: remove src, splice into target position
+    const [moved] = _projShots.splice(srcIdx, 1);
+    _projShots.splice(tgtIdx, 0, moved);
+    renderProjShots();
+  });
+}
+
+function setupProjShotsDropzone() {
+  const zone = document.getElementById('proj-shots-dropzone');
+  if (!zone || zone.dataset.dropReady) return;
+  zone.dataset.dropReady = '1';
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.add('is-dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    zone.classList.remove('is-dragover');
+  }));
+  zone.addEventListener('drop', e => handleProjShotsFiles(e.dataTransfer.files));
+}
+
+// ─── tech_stack chip input (mirrors Experience tech_used) ────
+function addProjTechChip(text) {
+  const value = (text || '').trim();
+  if (!value) return;
+  const wrap  = document.getElementById('proj-tech-input');
+  const input = document.getElementById('proj-tech-typing');
+  const existing = Array.from(wrap.querySelectorAll('.exp-tech-chip'))
+    .map(c => c.dataset.value.toLowerCase());
+  if (existing.includes(value.toLowerCase())) return;
+  const chip = document.createElement('span');
+  chip.className = 'exp-tech-chip';
+  chip.dataset.value = value;
+  chip.innerHTML = `
+    <span class="exp-tech-chip-text">${escExpHtml(value)}</span>
+    <button type="button" class="exp-tech-chip-remove" aria-label="Remove ${escExpHtml(value)}">×</button>
+  `;
+  chip.querySelector('button').addEventListener('click', () => chip.remove());
+  wrap.insertBefore(chip, input);
+}
+function setProjTechChips(items) {
+  const wrap = document.getElementById('proj-tech-input');
+  wrap.querySelectorAll('.exp-tech-chip').forEach(c => c.remove());
+  (items || []).forEach(t => addProjTechChip(t));
+  const input = document.getElementById('proj-tech-typing');
+  if (input) input.value = '';
+}
+function getProjTechValues() {
+  return Array.from(document.querySelectorAll('#proj-tech-input .exp-tech-chip'))
+    .map(c => c.dataset.value);
+}
+function setupProjTechInput() {
+  const input = document.getElementById('proj-tech-typing');
+  if (!input || input.dataset.ready) return;
+  input.dataset.ready = '1';
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addProjTechChip(input.value);
+      input.value = '';
+    } else if (e.key === 'Backspace' && input.value === '') {
+      const chips = document.querySelectorAll('#proj-tech-input .exp-tech-chip');
+      if (chips.length) chips[chips.length - 1].remove();
+    }
+  });
+  input.addEventListener('paste', e => {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (text && /[,\n]/.test(text)) {
+      e.preventDefault();
+      text.split(/[,\n]+/).forEach(t => addProjTechChip(t));
+      input.value = '';
+    }
+  });
+  input.addEventListener('blur', () => {
+    if (input.value.trim()) {
+      addProjTechChip(input.value);
+      input.value = '';
+    }
+  });
+}
+
+// ─── features bulleted editor (mirrors Experience achievements) ─
+let _projFeatDragSrc = null;
+function addProjFeatRow(text = '', insertAfter = null) {
+  const list = document.getElementById('proj-feat-list');
+  const row  = document.createElement('div');
+  row.className = 'exp-ach-row';
+  row.innerHTML = `
+    <span class="exp-ach-drag" draggable="true" aria-label="Drag to reorder" title="Drag to reorder">
+      <i class="ph ph-dots-six-vertical"></i>
+    </span>
+    <span class="exp-ach-bullet">▸</span>
+    <input class="exp-ach-input" type="text" placeholder="What feature does this app provide?">
+    <button type="button" class="exp-ach-remove" onclick="removeProjFeatRow(this)" aria-label="Remove">
+      <i class="ph ph-x"></i>
+    </button>
+  `;
+  const input = row.querySelector('.exp-ach-input');
+  input.value = text;
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addProjFeatRow('', row);
+    }
+  });
+  attachProjFeatRowDnd(row);
+  if (insertAfter) list.insertBefore(row, insertAfter.nextSibling);
+  else             list.appendChild(row);
+  if (!text) input.focus();
+}
+function removeProjFeatRow(btn) {
+  const row  = btn.closest('.exp-ach-row');
+  const list = document.getElementById('proj-feat-list');
+  if (!row || !list) return;
+  if (list.children.length <= 1) {
+    const input = row.querySelector('input');
+    input.value = ''; input.focus();
+    return;
+  }
+  row.remove();
+}
+function setProjFeatRows(items) {
+  const list = document.getElementById('proj-feat-list');
+  list.innerHTML = '';
+  if (!items || !items.length) { addProjFeatRow(); return; }
+  items.forEach(t => addProjFeatRow(t));
+}
+function getProjFeatValues() {
+  return Array.from(document.querySelectorAll('#proj-feat-list .exp-ach-input'))
+    .map(i => i.value.trim()).filter(Boolean);
+}
+function attachProjFeatRowDnd(row) {
+  const handle = row.querySelector('.exp-ach-drag');
+  handle.addEventListener('dragstart', e => {
+    _projFeatDragSrc = row;
+    row.classList.add('is-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', ''); } catch (_) {}
+  });
+  handle.addEventListener('dragend', () => {
+    row.classList.remove('is-dragging');
+    document.querySelectorAll('#proj-feat-list .exp-ach-row.is-drag-over')
+      .forEach(r => r.classList.remove('is-drag-over'));
+    _projFeatDragSrc = null;
+  });
+  row.addEventListener('dragover', e => {
+    if (!_projFeatDragSrc || _projFeatDragSrc === row) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    row.classList.add('is-drag-over');
+  });
+  row.addEventListener('dragleave', () => row.classList.remove('is-drag-over'));
+  row.addEventListener('drop', e => {
+    e.preventDefault();
+    row.classList.remove('is-drag-over');
+    if (!_projFeatDragSrc || _projFeatDragSrc === row) return;
+    const list = row.parentElement;
+    const rows = Array.from(list.children);
+    const srcIdx = rows.indexOf(_projFeatDragSrc);
+    const tgtIdx = rows.indexOf(row);
+    if (srcIdx < tgtIdx) list.insertBefore(_projFeatDragSrc, row.nextSibling);
+    else                 list.insertBefore(_projFeatDragSrc, row);
+  });
+}
+
+// ─── Submit ──────────────────────────────────────────────────
+async function submitProjectForm(ev) {
+  ev.preventDefault();
+  const form = ev.target;
+  const btn  = document.getElementById('proj-submit-btn');
+
+  const payload = {
+    name:             form.querySelector('[name="name"]').value.trim(),
+    slug:             form.querySelector('[name="slug"]').value.trim(),
+    description:      form.querySelector('[name="description"]').value.trim(),
+    long_description: form.querySelector('[name="long_description"]').value.trim(),
+    tech_stack:       getProjTechValues(),
+    features:         getProjFeatValues(),
+    screenshots:      _projShots.slice(),
+    thumbnail:        _projThumbUrl,
+    app_store_url:    form.querySelector('[name="app_store_url"]').value.trim(),
+    play_store_url:   form.querySelector('[name="play_store_url"]').value.trim(),
+    github_url:       form.querySelector('[name="github_url"]').value.trim(),
+    status:           form.querySelector('[name="status"]').value || 'live',
+    featured:         document.getElementById('proj-featured-btn').classList.contains('is-active'),
+    sort_order:       parseInt(form.querySelector('[name="sort_order"]').value, 10) || 0,
+  };
+
+  if (!payload.name) {
+    Toast.show('Project name is required', 'error');
+    return;
+  }
+
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    if (_projEditId) {
+      await API.put(`/projects/${_projEditId}`, payload);
+      Toast.show('Project updated', 'success');
+    } else {
+      await API.post('/projects', payload);
+      Toast.show('Project added', 'success');
+    }
+    closeProjectModal();
+    loadProjects();
+    loadStats();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
 
 // ─── Skill modal ─────────────────────────────────────────────
 // Add/Edit handler for the Skills section. Mirrors the Experience modal
@@ -7865,6 +8455,177 @@ async function submitExpForm(ev) {
 }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<!-- Add / Edit Project modal -->
+<div class="modal-overlay" id="proj-modal" onclick="if(event.target===this) closeProjectModal()">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="proj-modal-title">Add Project</h3>
+      <button type="button" class="modal-close" onclick="closeProjectModal()" aria-label="Close">&times;</button>
+    </div>
+
+    <form id="proj-form" novalidate onsubmit="submitProjectForm(event)">
+
+      <!-- ─── BASIC ─── -->
+      <div class="proj-section-title"><i class="ph ph-app-window"></i> Basic</div>
+      <div class="profile-field-grid">
+        <div class="form-group" style="grid-column:1 / -1">
+          <label class="form-label social-label"><i class="ph ph-tag" style="color:var(--color-primary)"></i> Name *</label>
+          <input class="form-control" name="name" placeholder="Project Finder" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label social-label"><i class="ph ph-pulse" style="color:var(--color-primary)"></i> Status</label>
+          <select class="form-control" name="status">
+            <option value="live">🟢 Live</option>
+            <option value="development">🟡 In Development</option>
+            <option value="archived">⚪ Archived</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label social-label"><i class="ph ph-sort-ascending" style="color:var(--color-primary)"></i> Sort Order</label>
+          <input class="form-control" type="number" name="sort_order" placeholder="0" value="0">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="proj-featured-row">
+          <i class="ph ph-star" style="color:var(--color-primary);font-size:18px"></i>
+          <div class="proj-featured-row-label">
+            <strong style="color:var(--color-heading)">Featured project</strong>
+            <small>Featured projects are highlighted in the public showcase.</small>
+          </div>
+          <button type="button" id="proj-featured-btn" class="exp-present-btn" onclick="toggleProjFeatured()">
+            <i class="ph ph-radio-button"></i><span>Mark as Featured</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ─── DESCRIPTIONS ─── -->
+      <div class="proj-section-title"><i class="ph ph-text-align-left"></i> Descriptions</div>
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-text-aa" style="color:var(--color-primary)"></i> Short description</label>
+        <textarea class="form-control" name="description" rows="2"
+          placeholder="2–3 sentences shown on the app card"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-text-aa" style="color:var(--color-primary)"></i> Long description</label>
+        <textarea class="form-control" name="long_description" rows="4"
+          placeholder="Full description shown on the project detail (currently hidden behind View Details)"></textarea>
+      </div>
+
+      <!-- ─── TECH STACK ─── -->
+      <div class="proj-section-title"><i class="ph ph-stack"></i> Tech stack</div>
+      <div class="form-group">
+        <div class="exp-tech-input" id="proj-tech-input"
+          onclick="if(event.target===this)document.getElementById('proj-tech-typing').focus()">
+          <input type="text" id="proj-tech-typing" class="exp-tech-typing"
+            placeholder="Type a tech and press Enter…" autocomplete="off">
+        </div>
+        <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+          Press
+          <kbd style="padding:1px 5px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-bg-3);font-size:10px">Enter</kbd>
+          or
+          <kbd style="padding:1px 5px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-bg-3);font-size:10px">,</kbd>
+          to add a tag.
+        </p>
+      </div>
+
+      <!-- ─── FEATURES ─── -->
+      <div class="proj-section-title"><i class="ph ph-list-checks"></i> Features</div>
+      <div class="form-group">
+        <div class="exp-ach-list" id="proj-feat-list"><!-- rows injected by JS --></div>
+        <button type="button" class="exp-ach-add-btn" onclick="addProjFeatRow()">
+          <i class="ph ph-plus-circle"></i> Add feature
+        </button>
+        <p style="font-size:11px;color:var(--color-text-muted);margin-top:8px">
+          Each item becomes a bullet on the public app card. Press <kbd style="padding:1px 5px;border:1px solid var(--color-border);border-radius:4px;background:var(--color-bg-3);font-size:10px">Enter</kbd> to add a new line.
+        </p>
+      </div>
+
+      <!-- ─── THUMBNAIL + SCREENSHOTS ─── -->
+      <div class="proj-section-title"><i class="ph ph-images"></i> Images</div>
+
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-image" style="color:var(--color-primary)"></i> Thumbnail</label>
+        <input type="file" id="proj-thumb-file-input" accept="image/*" style="display:none"
+          onchange="handleProjThumbFiles(this.files); this.value=''">
+        <div class="exp-dropzone" id="proj-thumb-dropzone" style="padding:20px 16px"
+          onclick="document.getElementById('proj-thumb-file-input').click()">
+          <div class="exp-dropzone-icon" style="font-size:30px"><i class="ph ph-cloud-arrow-up"></i></div>
+          <div class="exp-dropzone-title">Drop a thumbnail here, or <span>click to browse</span></div>
+          <div class="exp-dropzone-hint">PNG / JPG &middot; 16:9 or square &middot; max 10&nbsp;MB</div>
+          <div class="exp-dropzone-status" id="proj-thumb-status"></div>
+        </div>
+        <div class="exp-logo-card" id="proj-thumb-card" style="display:none">
+          <img class="exp-logo-card-thumb" id="proj-thumb-preview" src="" alt="Thumbnail preview"
+            style="object-fit:cover;padding:0">
+          <div class="exp-logo-card-info">
+            <div class="exp-logo-card-name" id="proj-thumb-name">&mdash;</div>
+            <div class="exp-logo-card-meta" id="proj-thumb-meta">&mdash;</div>
+          </div>
+          <div class="exp-logo-card-actions">
+            <button type="button" class="btn btn-ghost btn-sm"
+              onclick="document.getElementById('proj-thumb-file-input').click()">
+              <i class="ph ph-arrow-clockwise"></i> Replace
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="clearProjThumb()">
+              <i class="ph ph-trash"></i> Remove
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-images-square" style="color:var(--color-primary)"></i> Screenshots</label>
+        <input type="file" id="proj-shots-file-input" accept="image/*" multiple style="display:none"
+          onchange="handleProjShotsFiles(this.files); this.value=''">
+        <div class="exp-dropzone" id="proj-shots-dropzone" style="padding:20px 16px"
+          onclick="document.getElementById('proj-shots-file-input').click()">
+          <div class="exp-dropzone-icon" style="font-size:30px"><i class="ph ph-images"></i></div>
+          <div class="exp-dropzone-title">Drop screenshots here, or <span>click to browse</span></div>
+          <div class="exp-dropzone-hint">
+            Multiple files OK &middot; PNG / JPG &middot; phone aspect ratio recommended &middot; max 10&nbsp;MB each
+          </div>
+          <div class="exp-dropzone-status" id="proj-shots-status"></div>
+        </div>
+        <div class="proj-shots-grid" id="proj-shots-grid"><!-- thumbnail cards injected by JS --></div>
+        <p style="font-size:11px;color:var(--color-text-muted);margin-top:8px">
+          The phone mockup on the public app card cycles through these in order. Drag the ☰ handle to reorder.
+        </p>
+      </div>
+
+      <!-- ─── LINKS ─── -->
+      <div class="proj-section-title"><i class="ph ph-link"></i> Store &amp; Repo Links</div>
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-apple-logo" style="color:var(--color-primary)"></i> App Store URL</label>
+        <input class="form-control" type="url" name="app_store_url" placeholder="https://apps.apple.com/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-google-play-logo" style="color:var(--color-primary)"></i> Play Store URL</label>
+        <input class="form-control" type="url" name="play_store_url" placeholder="https://play.google.com/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-github-logo" style="color:var(--color-primary)"></i> GitHub URL</label>
+        <input class="form-control" type="url" name="github_url" placeholder="https://github.com/...">
+      </div>
+
+      <!-- ─── ADVANCED ─── -->
+      <div class="proj-section-title"><i class="ph ph-gear-six"></i> Advanced</div>
+      <div class="form-group">
+        <label class="form-label social-label"><i class="ph ph-link-simple" style="color:var(--color-primary)"></i> Slug override</label>
+        <input class="form-control" name="slug" placeholder="auto-generated from name (e.g. project-finder)" autocomplete="off">
+        <p style="font-size:11px;color:var(--color-text-muted);margin-top:6px">
+          Leave blank to auto-generate from the name. Only override if you need a specific URL slug.
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeProjectModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="proj-submit-btn">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- Add / Edit Skill modal -->
 <div class="modal-overlay" id="skill-modal" onclick="if(event.target===this) closeSkillModal()">

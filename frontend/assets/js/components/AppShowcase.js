@@ -73,16 +73,50 @@ const AppShowcase = (() => {
       });
     });
 
-    // Render phone mockups inside each slide
+    // Render the iOS + Android phone pair inside each slide. Both phones
+    // share the same screenshots array; the Android one is offset by 1
+    // (startIndex) so the two cycle out of sync — at any moment visitors
+    // see two different screens, which makes the showcase feel more alive.
+    // Only the first phone shows the dot indicator strip so we don't end
+    // up with two duplicate strips below the pair.
     container.querySelectorAll('.app-slide').forEach((slide, i) => {
-      const phoneSlot = slide.querySelector('.phone-slot');
-      if (phoneSlot) {
+      const screenshots = Utils.parseArray(apps[i]?.screenshots);
+      const iosSlot     = slide.querySelector('.phone-slot-item--ios');
+      const androidSlot = slide.querySelector('.phone-slot-item--android');
+      if (iosSlot) {
         PhoneMockup.render({
-          container: phoneSlot,
-          screenshots: Utils.parseArray(apps[i]?.screenshots),
-          interval: 3000,
+          container:   iosSlot,
+          screenshots,
+          interval:    3000,
+          variant:     'ios',
+          startIndex:  0,
+          showDots:    true,
         });
       }
+      if (androidSlot) {
+        PhoneMockup.render({
+          container:   androidSlot,
+          screenshots,
+          interval:    3000,
+          variant:     'android',
+          startIndex:  1,
+          showDots:    false,
+        });
+      }
+    });
+
+    // "View Details" buttons → open the ProjectDetail modal for the
+    // matching project. Bound once per render via event delegation so
+    // we don't have to re-wire when Swiper clones/destroys slides.
+    container.querySelectorAll('.app-view-details-btn').forEach((btn, i) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const project = apps[i];
+        if (project && typeof ProjectDetail !== 'undefined') {
+          ProjectDetail.show(project);
+        }
+      });
     });
   }
 
@@ -128,8 +162,17 @@ const AppShowcase = (() => {
             <div class="app-store-links">${storeLinks}</div>
           </div>
           <div class="app-slide-phone">
-            <div class="phone-slot"></div>
+            <div class="phone-slot-pair">
+              <div class="phone-slot-item phone-slot-item--ios"></div>
+              <div class="phone-slot-item phone-slot-item--android"></div>
+            </div>
           </div>
+          <button type="button" class="app-view-details-btn"
+            data-project-id="${app.id}" aria-label="View details for ${app.name}">
+            <i class="ph ph-info"></i>
+            <span>View Details</span>
+            <i class="ph ph-arrow-right"></i>
+          </button>
         </div>
       </div>
     `;

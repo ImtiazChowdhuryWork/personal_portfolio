@@ -24,16 +24,17 @@
 @import './components/form.css';
 @import './components/toast.css';
 @import './components/loader.css';
-@import './components/skill-bar.css';
+@import './components/skill-bar.css?v=2';
 @import './components/timeline.css?v=5';
-@import './components/phone-mockup.css';
-@import './components/app-slider.css';
+@import './components/phone-mockup.css?v=2';
+@import './components/app-slider.css?v=2';
 @import './components/tech-stack.css';
 @import './components/architecture-card.css';
 @import './components/github-stats.css';
 @import './components/stat-card.css';
 @import './components/table.css';
 @import './components/portfolio-card.css';
+@import './components/project-detail.css?v=4';
 
 /* ─── 4. Page-specific styles ────────────────────────────────*/
 @import './pages/portfolio.css';

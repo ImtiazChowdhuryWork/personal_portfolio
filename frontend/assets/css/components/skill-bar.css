@@ -29,7 +29,11 @@
   gap: var(--space-4);
   margin-bottom: var(--space-5);
   position: relative;
+  /* Lift the whole row above its siblings while hovered so the absolutely-
+     positioned tooltip can overlay neighbouring rows without their hit-areas
+     intercepting the pointer. */
 }
+.skill-item:hover { z-index: 5; }
 
 .skill-icon {
   width: 36px;
@@ -62,10 +66,55 @@
   justify-content: space-between;
 }
 
-.skill-desc {
+/* ─── Hover tooltip (description) ──────────────────────────────*/
+.skill-tooltip {
+  position: absolute;
+  /* Sits above the row with a gap for the arrow */
+  bottom: calc(100% + 10px);
+  left: 0;
+  max-width: 100%;
+  padding: 10px 14px;
+  background: var(--color-bg-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color: var(--color-text);
   font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  display: none; /* Shown on hover via JS */
+  font-weight: var(--fw-medium);
+  line-height: 1.55;
+  /* Hidden by default; fades + slides up on hover */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+  pointer-events: none;
+  z-index: 20;
+  white-space: normal;
+}
+.skill-tooltip::after {
+  /* Caret pointing down at the row */
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 28px;
+  border: 6px solid transparent;
+  border-top-color: var(--color-border);
+}
+.skill-tooltip::before {
+  /* Inner caret to match the bg colour (sits 1px above the border caret) */
+  content: '';
+  position: absolute;
+  top: calc(100% - 1px);
+  left: 28px;
+  border: 6px solid transparent;
+  border-top-color: var(--color-bg-4);
+  z-index: 1;
+}
+.skill-item:hover .skill-tooltip,
+.skill-item:focus-within .skill-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 /* ─── Skill bar track ──────────────────────────────────────────*/

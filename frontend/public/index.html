@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
   <!-- ─── Main CSS ──────────────────────────────────────────── -->
-  <link rel="stylesheet" href="/assets/css/main.css?v=7">
+  <link rel="stylesheet" href="/assets/css/main.css?v=14">
 
   <!-- Favicon (Flutter blue diamond) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💙</text></svg>">
@@ -501,6 +501,21 @@
   </main><!-- end .main-content -->
 </div><!-- end .portfolio-layout -->
 
+<!-- Project Details modal — opened from each AppShowcase slide's "View Details"
+     button. Reuses .modal-overlay base from modal.css; section + gallery styling
+     lives in components/project-detail.css. ProjectDetail.js renders into .pd-body. -->
+<div class="modal-overlay pd-overlay" id="project-detail-modal"
+  onclick="if(event.target===this) ProjectDetail.close()">
+  <div class="pd-shell">
+    <button type="button" class="pd-close" onclick="ProjectDetail.close()" aria-label="Close">
+      <i class="ph ph-x"></i>
+    </button>
+    <div class="pd-scroll">
+      <div class="pd-body"><!-- injected by ProjectDetail.show(project) --></div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════════════════════════
      SCRIPTS — loaded at end of body for best page load performance
 ═══════════════════════════════════════════════════════════ -->
@@ -521,9 +536,10 @@
 <script src="/assets/js/components/Toast.js"></script>
 <script src="/assets/js/components/Sidebar.js"></script>
 <script src="/assets/js/components/Navbar.js"></script>
-<script src="/assets/js/components/SkillBar.js"></script>
-<script src="/assets/js/components/PhoneMockup.js"></script>
-<script src="/assets/js/components/AppShowcase.js"></script>
+<script src="/assets/js/components/SkillBar.js?v=2"></script>
+<script src="/assets/js/components/PhoneMockup.js?v=2"></script>
+<script src="/assets/js/components/AppShowcase.js?v=4"></script>
+<script src="/assets/js/components/ProjectDetail.js?v=1"></script>
 
 <!-- ─── Portfolio section scripts ────────────────────────── -->
 <script src="/assets/js/pages/portfolio/hero.js?v=5"></script>
