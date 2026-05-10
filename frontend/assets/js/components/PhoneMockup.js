@@ -21,17 +21,41 @@ const PhoneMockup = (() => {
    * WHAT IT DOES: Renders a phone frame with screenshots cycling inside.
    *               If no screenshots exist, shows a placeholder gradient.
    * @param {object} opts
-   * @param {HTMLElement} opts.container - where to render the phone
-   * @param {string[]} opts.screenshots  - array of image URLs
-   * @param {number} opts.interval       - ms between screenshot changes
+   * @param {HTMLElement} opts.container  - where to render the phone
+   * @param {string[]} opts.screenshots   - array of image URLs
+   * @param {number}   opts.interval      - ms between screenshot changes
+   * @param {string}   opts.variant       - 'ios' (default, notch + dynamic
+   *                                         island) or 'android' (centered
+   *                                         punch-hole camera, smaller radius)
+   * @param {number}   opts.startIndex    - which screenshot to show first.
+   *                                         Used by AppShowcase to cycle the
+   *                                         iOS + Android phones out of sync.
+   * @param {boolean}  opts.showDots      - render the dot indicator strip
+   *                                         underneath. Default true; the
+   *                                         showcase pair turns this off on
+   *                                         the second phone so we don't
+   *                                         show two duplicate strips.
    */
-  function render({ container, screenshots = [], interval = 3000 }) {
+  function render({
+    container,
+    screenshots = [],
+    interval = 3000,
+    variant = 'ios',
+    startIndex = 0,
+    showDots = true,
+  }) {
     if (!container) return;
 
     const hasScreenshots = screenshots.length > 0;
+    // Clamp startIndex into valid range so callers can't crash the render
+    // by passing a number larger than the array length.
+    const startIdx = hasScreenshots
+      ? ((startIndex % screenshots.length) + screenshots.length) % screenshots.length
+      : 0;
+
     const screenContent = hasScreenshots
       ? screenshots.map((url, i) => `
-          <img class="phone-screenshot ${i === 0 ? 'active' : ''}"
+          <img class="phone-screenshot ${i === startIdx ? 'active' : ''}"
                src="${url}"
                alt="App screenshot ${i + 1}"
                onerror="this.style.display='none';">
@@ -44,18 +68,24 @@ const PhoneMockup = (() => {
            <span>Screenshots coming soon</span>
          </div>`;
 
-    const dotsHTML = hasScreenshots && screenshots.length > 1
+    const dotsHTML = (showDots && hasScreenshots && screenshots.length > 1)
       ? `<div class="phone-dots">
            ${screenshots.map((_, i) => `
-             <div class="phone-dot ${i === 0 ? 'active' : ''}" data-idx="${i}"></div>
+             <div class="phone-dot ${i === startIdx ? 'active' : ''}" data-idx="${i}"></div>
            `).join('')}
          </div>`
       : '';
 
+    // Variant-specific top chrome: iOS gets the pill notch + dynamic island
+    // dot, Android gets a small centered punch-hole camera.
+    const topChrome = variant === 'android'
+      ? `<div class="phone-punch-hole"></div>`
+      : `<div class="phone-notch"></div>`;
+
     container.innerHTML = `
-      <div class="phone-mockup">
+      <div class="phone-mockup phone-mockup--${variant}">
         <div class="phone-frame">
-          <div class="phone-notch"></div>
+          ${topChrome}
           <div class="phone-screen">${screenContent}</div>
           <div class="phone-btn-right"></div>
           <div class="phone-btn-left-1"></div>
@@ -67,12 +97,12 @@ const PhoneMockup = (() => {
 
     // Start the screenshot cycling if multiple screenshots exist
     if (hasScreenshots && screenshots.length > 1) {
-      startCycling(container, screenshots.length, interval);
+      startCycling(container, screenshots.length, interval, startIdx);
     }
   }
 
-  function startCycling(container, total, interval) {
-    let current = 0;
+  function startCycling(container, total, interval, startIdx = 0) {
+    let current = startIdx;
     setInterval(() => {
       current = (current + 1) % total;
       updateActive(container, current);

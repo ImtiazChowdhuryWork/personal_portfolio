@@ -42,6 +42,10 @@ const SkillBar = (() => {
           </div>
         </div>
         <span class="skill-percent">0%</span>
+        ${skill.description
+          ? `<div class="skill-tooltip" role="tooltip">${skill.description}</div>`
+          : ''
+        }
       </div>
     `).join('');
 

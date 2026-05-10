@@ -75,16 +75,28 @@ func (s *ProjectService) Create(project *models.Project) error {
 /**
  * FUNCTION: Update
  * WHAT IT DOES:   Updates an existing project's fields in the database.
- *                 Only updates fields that are provided (partial update).
+ *                 Uses an explicit field allowlist via Select(...) so that
+ *                 zero values (empty strings, false bools) get persisted —
+ *                 GORM's plain Updates(struct) silently skips zero values,
+ *                 which would mean the dashboard couldn't clear a description
+ *                 or toggle Featured off on an existing row.
  * WHERE CALLED:   project_handler.go → PUT /api/v1/projects/:id
- * LAST UPDATED:   2026-05-07 — initial creation
+ * LAST UPDATED:   2026-05-10 — Select-based allowlist for zero-value fix
  */
 func (s *ProjectService) Update(id uint, updates *models.Project) (*models.Project, error) {
 	var project models.Project
 	if err := s.db.First(&project, id).Error; err != nil {
 		return nil, errors.New("project not found")
 	}
-	s.db.Model(&project).Updates(updates)
+	// Explicit allowlist of editable columns. ID / CreatedAt / DeletedAt /
+	// UpdatedAt are deliberately excluded so the dashboard can't accidentally
+	// reset them by sending defaults.
+	s.db.Model(&project).Select(
+		"name", "slug", "description", "long_description",
+		"tech_stack", "features", "screenshots",
+		"thumbnail", "app_store_url", "play_store_url", "github_url",
+		"status", "featured", "sort_order",
+	).Updates(updates)
 	return &project, nil
 }
 
