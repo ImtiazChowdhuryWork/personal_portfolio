@@ -66,6 +66,21 @@
   flex: 1;
 }
 
+.timeline-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  background: var(--color-bg-4);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+  padding: 4px;
+}
+
+@media (max-width: 640px) {
+  .timeline-logo { width: 48px; height: 48px; }
+}
+
 .timeline-role {
   font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
@@ -172,3 +187,4 @@
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
 }
+

@@ -80,7 +80,12 @@
       "PowerShell($env:PGPASSWORD = \"postgres123\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\createdb.exe\" -U postgres -h 127.0.0.1 imtiaz_portfolio 2>&1; if \\($LASTEXITCODE -eq 0\\) { \"Database created.\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d postgres -c \"SELECT datname FROM pg_database WHERE datname='imtiaz_portfolio';\" })",
       "PowerShell($env:PGPASSWORD = \"postgres123\"; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d imtiaz_portfolio -c \"DROP TABLE IF EXISTS gmail_connections;\" 2>&1; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -U postgres -h 127.0.0.1 -d imtiaz_portfolio -c \"\\\\dt\" 2>&1)",
       "Bash(go vet *)",
-      "Bash(xargs grep -l \"stats\\\\|CountUnread\")"
+      "Bash(xargs grep -l \"stats\\\\|CountUnread\")",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/uploads/logos/1778414809_unnamed.png\" -Method Head -UseBasicParsing -TimeoutSec 5; \"$\\($r.StatusCode\\) $\\($r.StatusDescription\\) | Content-Type: $\\($r.Headers['Content-Type']\\) | Length: $\\($r.Headers['Content-Length']\\)\" } catch { \"ERROR: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/assets/js/pages/portfolio/experience.js\" -UseBasicParsing -TimeoutSec 5; if \\($r.Content -match 'company_logo'\\) { \"OK: server is serving NEW experience.js \\(contains 'company_logo'\\)\" } else { \"STALE: server is serving OLD experience.js \\(no 'company_logo' reference\\)\" } } catch { \"ERROR: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(psql *)",
+      "PowerShell($env:PGPASSWORD = 'postgres123'; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -h localhost -p 5432 -U postgres -d imtiaz_portfolio -c \"SELECT column_name FROM information_schema.columns WHERE table_name='experiences' AND column_name IN \\('tech_stack','tech_used'\\) ORDER BY column_name;\")",
+      "PowerShell($env:PGPASSWORD = 'postgres123'; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -h localhost -p 5432 -U postgres -d imtiaz_portfolio -c \"ALTER TABLE experiences DROP COLUMN IF EXISTS tech_stack;\")"
     ]
   }
 }
