@@ -12,7 +12,10 @@ package services
 
 import (
 	"errors"
+	"time"
+
 	"imtiaz-portfolio/internal/models"
+
 	"gorm.io/gorm"
 )
 
@@ -84,6 +87,53 @@ func (s *MessageService) CreateReply(reply *models.MessageReply) error {
 func (s *MessageService) GetReplies(messageID uint) ([]models.MessageReply, error) {
 	var replies []models.MessageReply
 	err := s.db.Where("message_id = ?", messageID).Order("created_at ASC").Find(&replies).Error
+	return replies, err
+}
+
+// GetReplyByID returns one reply row — used by the retry endpoint to
+// rebuild a worker job from a previously-failed delivery.
+func (s *MessageService) GetReplyByID(id uint) (*models.MessageReply, error) {
+	var reply models.MessageReply
+	if err := s.db.First(&reply, id).Error; err != nil {
+		return nil, errors.New("reply not found")
+	}
+	return &reply, nil
+}
+
+// MarkReplySent flips the row to delivery_status="sent" + sets DeliveredAt.
+// Called by the queue worker after SMTP returns 250 OK.
+func (s *MessageService) MarkReplySent(id uint) error {
+	now := time.Now()
+	return s.db.Model(&models.MessageReply{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"delivery_status": "sent",
+		"delivery_error":  "",
+		"delivered_at":    &now,
+	}).Error
+}
+
+// MarkReplyFailed flips the row to delivery_status="failed" with the wrapped
+// SMTP error so the dashboard can show ⚠ + the reason on hover.
+func (s *MessageService) MarkReplyFailed(id uint, errMsg string) error {
+	return s.db.Model(&models.MessageReply{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"delivery_status": "failed",
+		"delivery_error":  errMsg,
+	}).Error
+}
+
+// MarkReplyPending resets a row to pending — used when retrying a failed
+// reply so the UI tick animation is consistent with a fresh send.
+func (s *MessageService) MarkReplyPending(id uint) error {
+	return s.db.Model(&models.MessageReply{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"delivery_status": "pending",
+		"delivery_error":  "",
+	}).Error
+}
+
+// GetPendingReplies returns every reply still in "pending" — used at server
+// startup to recover jobs that were in-flight when the process exited.
+func (s *MessageService) GetPendingReplies() ([]models.MessageReply, error) {
+	var replies []models.MessageReply
+	err := s.db.Where("delivery_status = ?", "pending").Order("created_at ASC").Find(&replies).Error
 	return replies, err
 }
 

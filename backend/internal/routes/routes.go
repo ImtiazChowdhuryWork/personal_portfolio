@@ -89,13 +89,40 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// via /api/v1/events and gets pushed when new messages arrive.
 	broker := services.NewEventBroker()
 
+	// Async reply queue — Reply handler enqueues here, a worker goroutine
+	// inside the queue does the actual SMTP send and reports back through
+	// the broker so the dashboard can flip ticks in real time.
+	replyQueue := services.NewReplyQueue(emailSvc, msgSvc, profileSvc, broker, cfg.UploadDir)
+
+	// Recover any replies that were left "pending" by a previous run (e.g.
+	// the server was killed mid-send). Worker will retry them now.
+	if pending, err := msgSvc.GetPendingReplies(); err == nil {
+		for _, r := range pending {
+			origMsg, err := msgSvc.GetByID(r.MessageID)
+			if err != nil {
+				continue
+			}
+			subject := "Re: " + origMsg.Type + " — Imtiaz Portfolio"
+			fullBody := r.ReplyText + "\n\n---\nOriginal message from " + origMsg.Name + ":\n" + origMsg.Content
+			replyQueue.Enqueue(services.ReplyJob{
+				ReplyID:        r.ID,
+				ToName:         origMsg.Name,
+				ToEmail:        origMsg.Email,
+				FromEmail:      r.FromEmail,
+				Subject:        subject,
+				Body:           fullBody,
+				AttachmentURLs: r.Attachments,
+			})
+		}
+	}
+
 	// ─── Step 4: Initialize all handlers with their services ──
 	// Handlers handle HTTP — they read requests and call services
 	authHandler := handlers.NewAuthHandler(authSvc)
 	projectHandler := handlers.NewProjectHandler(projectSvc)
 	skillHandler := handlers.NewSkillHandler(skillSvc)
 	expHandler := handlers.NewExperienceHandler(expSvc)
-	msgHandler := handlers.NewMessageHandler(msgSvc, emailSvc, profileSvc, broker, cfg.UploadDir)
+	msgHandler := handlers.NewMessageHandler(msgSvc, emailSvc, profileSvc, broker, replyQueue, cfg.UploadDir)
 	profileHandler := handlers.NewProfileHandler(profileSvc, emailSvc, cvGenSvc, cfg.UploadDir)
 	uploadHandler := handlers.NewUploadHandler(uploadSvc)
 	statsHandler := handlers.NewStatsHandler(db)
@@ -162,6 +189,9 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	protected.POST("/messages/:id/reply", msgHandler.Reply)
 	protected.GET("/messages/:id/replies", msgHandler.GetReplies)
 	protected.DELETE("/messages/:id", msgHandler.Delete)
+
+	// Re-send a previously-failed reply via the same async queue.
+	protected.POST("/messages/replies/:id/retry", msgHandler.RetryReply)
 
 	// Profile editing (dashboard settings)
 	protected.PUT("/profile", profileHandler.Update)
