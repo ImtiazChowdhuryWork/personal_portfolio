@@ -85,7 +85,10 @@
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:8080/assets/js/pages/portfolio/experience.js\" -UseBasicParsing -TimeoutSec 5; if \\($r.Content -match 'company_logo'\\) { \"OK: server is serving NEW experience.js \\(contains 'company_logo'\\)\" } else { \"STALE: server is serving OLD experience.js \\(no 'company_logo' reference\\)\" } } catch { \"ERROR: $\\($_.Exception.Message\\)\" })",
       "PowerShell(psql *)",
       "PowerShell($env:PGPASSWORD = 'postgres123'; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -h localhost -p 5432 -U postgres -d imtiaz_portfolio -c \"SELECT column_name FROM information_schema.columns WHERE table_name='experiences' AND column_name IN \\('tech_stack','tech_used'\\) ORDER BY column_name;\")",
-      "PowerShell($env:PGPASSWORD = 'postgres123'; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -h localhost -p 5432 -U postgres -d imtiaz_portfolio -c \"ALTER TABLE experiences DROP COLUMN IF EXISTS tech_stack;\")"
+      "PowerShell($env:PGPASSWORD = 'postgres123'; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -h localhost -p 5432 -U postgres -d imtiaz_portfolio -c \"ALTER TABLE experiences DROP COLUMN IF EXISTS tech_stack;\")",
+      "Bash(powershell.exe -Command \"Get-Service -Name 'postgresql*' | Select-Object Name, Status\")",
+      "Bash(dir /s /b \"I:\\\\website\\\\personal_portfolio\")",
+      "Bash(findstr /i dashboard)"
     ]
   }
 }

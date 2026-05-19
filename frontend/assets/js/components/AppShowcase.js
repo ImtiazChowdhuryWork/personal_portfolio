@@ -103,6 +103,16 @@ const AppShowcase = (() => {
           showDots:    false,
         });
       }
+
+      // Tapping either phone swaps which one is in front
+      const pair      = slide.querySelector('.phone-slot-pair');
+      const iosMock   = iosSlot?.querySelector('.phone-mockup');
+      const droidMock = androidSlot?.querySelector('.phone-mockup');
+      if (pair && iosMock && droidMock) {
+        [iosMock, droidMock].forEach(mock => {
+          mock.addEventListener('click', () => pair.classList.toggle('phone-slot-pair--swapped'));
+        });
+      }
     });
 
     // "View Details" buttons → open the ProjectDetail modal for the

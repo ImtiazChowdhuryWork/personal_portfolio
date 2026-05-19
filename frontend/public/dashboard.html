@@ -4120,10 +4120,10 @@ async function loadProjects() {
           <td style="font-size:12px">${techPreview}</td>
           <td><span class="badge badge-${p.status==='live'?'success':'primary'}">${p.status}</span></td>
           <td>${p.featured ? '⭐ Yes' : 'No'}</td>
-          <td style="display:flex;gap:6px">
+          <td><div style="display:flex;gap:6px">
             <button class="btn btn-ghost btn-sm" onclick="openEditProjectModal(${p.id})">Edit</button>
             <button class="btn btn-ghost btn-sm" onclick="deleteProject(${p.id})">Delete</button>
-          </td>
+          </div></td>
         </tr>
       `;}).join('')}</tbody>
     </table></div>`;
