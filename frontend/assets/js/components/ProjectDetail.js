@@ -35,7 +35,9 @@ const ProjectDetail = (() => {
     const shots = Utils.parseArray(project.screenshots);
     if (shots.length > 0) _initViewer(overlay, shots.length);
 
-    _escHandler = (e) => { if (e.key === 'Escape') close(); };
+    _escHandler = (e) => {
+      if (e.key === 'Escape' && !document.querySelector('.pd-lightbox')) close();
+    };
     _keyHandler = (e) => {
       if (_totalShots < 2) return;
       if (e.key === 'ArrowLeft')  _navigate(overlay, -1);
@@ -147,10 +149,28 @@ const ProjectDetail = (() => {
   function _openLightbox(overlay) {
     const active = overlay.querySelector('.pd-viewer-img.active');
     if (!active) return;
+
     const lb = document.createElement('div');
     lb.className = 'pd-lightbox';
     lb.innerHTML = `<img src="${active.src}" alt="Screenshot fullscreen">`;
-    lb.addEventListener('click', () => lb.remove());
+
+    function closeLightbox() {
+      lb.classList.add('pd-lightbox--closing');
+      setTimeout(() => lb.remove(), 270);
+    }
+
+    function escHandler(e) {
+      if (e.key === 'Escape') {
+        document.removeEventListener('keydown', escHandler);
+        closeLightbox();
+      }
+    }
+
+    lb.addEventListener('click', () => {
+      document.removeEventListener('keydown', escHandler);
+      closeLightbox();
+    });
+    document.addEventListener('keydown', escHandler);
     document.body.appendChild(lb);
   }
 
