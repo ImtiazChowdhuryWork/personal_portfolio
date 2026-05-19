@@ -221,13 +221,36 @@
   align-items: center;
   justify-content: center;
 }
-.phone-slot-item { position: relative; }
+.phone-slot-item {
+  position: relative;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 .phone-slot-item--ios     { z-index: 2; }
-.phone-slot-item--android { z-index: 1; margin-left: -60px; }
+.phone-slot-item--android {
+  z-index: 1;
+  margin-left: -60px;
+  transform: scale(0.92);
+  cursor: pointer;
+}
+.phone-slot-item--android:hover { transform: scale(0.95); }
+
+/* Swapped: Android is now in front, iOS behind */
+.phone-slot-pair--swapped .phone-slot-item--ios {
+  z-index: 1;
+  transform: scale(0.92);
+  cursor: pointer;
+}
+.phone-slot-pair--swapped .phone-slot-item--ios:hover { transform: scale(0.95); }
+.phone-slot-pair--swapped .phone-slot-item--android {
+  z-index: 2;
+  transform: scale(1);
+  cursor: default;
+}
 
 .phone-mockup--android { animation-delay: -2s; }
 
 @media (max-width: 768px) {
   .phone-slot-pair .phone-mockup { width: 200px; height: 420px; }
   .phone-slot-item--android { margin-left: -50px; }
+  .phone-slot-pair--swapped .phone-slot-item--ios { margin-left: -50px; }
 }
