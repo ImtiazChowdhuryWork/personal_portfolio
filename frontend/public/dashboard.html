@@ -58,9 +58,86 @@
     }
     .dash-page-title { font-size: 1.5rem; font-weight: 700; color: var(--color-heading); }
 
-    /* Stats grid */
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    /* ── Overview redesign ─────────────────────────────────── */
+    .ov-welcome {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      gap: 1rem; background: var(--color-bg-3); border: 1px solid var(--color-border);
+      border-radius: 16px; padding: 1.5rem 2rem; margin-bottom: 1.5rem;
+    }
+    .ov-greeting { font-size: 1.5rem; font-weight: 700; color: var(--color-heading); margin-bottom: .25rem; }
+    .ov-date { font-size: .85rem; color: var(--color-text-muted); }
+
+    .ov-section-label {
+      font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+      color: var(--color-text-muted); margin-bottom: .75rem;
+    }
+
+    .ov-health-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;
+    }
+    @media (max-width: 900px) { .ov-health-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .ov-health-card {
+      background: var(--color-bg-3); border: 1px solid var(--color-border); border-radius: 14px;
+      padding: 1.1rem 1.25rem; display: flex; align-items: center; gap: .9rem;
+      cursor: pointer; transition: all .2s ease;
+    }
+    .ov-health-card:hover { border-color: var(--color-primary); transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+    .ov-health-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .ov-health-body { flex: 1; min-width: 0; }
+    .ov-health-count { font-size: 1.6rem; font-weight: 800; color: var(--color-heading); line-height: 1; }
+    .ov-health-label { font-size: .75rem; color: var(--color-text-muted); margin-top: .15rem; }
+    .ov-health-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+      box-shadow: 0 0 6px currentColor;
+    }
+    .ov-dot-green  { background: #4caf50; color: #4caf50; }
+    .ov-dot-amber  { background: #ff9800; color: #ff9800; }
+    .ov-dot-red    { background: #f44336; color: #f44336; }
+    .ov-dot-blue   { background: var(--color-primary); color: var(--color-primary); }
+
+    .ov-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 900px) { .ov-two-col { grid-template-columns: 1fr; } }
+
+    .ov-msg-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .65rem 0; border-bottom: 1px solid var(--color-border);
+      cursor: pointer; transition: opacity .15s;
+    }
+    .ov-msg-item:last-child { border-bottom: none; }
+    .ov-msg-item:hover { opacity: .8; }
+    .ov-msg-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--color-primary-glow);
+      border: 1px solid var(--color-border-active); display: flex; align-items: center;
+      justify-content: center; font-weight: 700; color: var(--color-primary);
+      font-size: .85rem; flex-shrink: 0;
+    }
+    .ov-msg-name { font-size: .85rem; font-weight: 600; color: var(--color-heading); }
+    .ov-msg-preview { font-size: .78rem; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ov-msg-time { font-size: .72rem; color: var(--color-text-dim); white-space: nowrap; margin-left: auto; align-self: flex-start; padding-top: 2px; }
+    .ov-msg-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-primary); flex-shrink: 0; }
+
+    .ov-progress-bar-track {
+      height: 8px; background: var(--color-bg-4); border-radius: 99px;
+      overflow: hidden; margin-bottom: 1rem;
+    }
+    .ov-progress-bar-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--color-primary), #4caf50);
+      transition: width .6s ease;
+    }
+    .ov-check-item {
+      display: flex; align-items: center; gap: .6rem;
+      font-size: .82rem; padding: .3rem 0; color: var(--color-text);
+    }
+    .ov-check-icon { font-size: .9rem; flex-shrink: 0; width: 16px; text-align: center; }
+    .ov-check-done { color: #4caf50; }
+    .ov-check-miss { color: var(--color-text-dim); }
+    .ov-check-item.is-miss { color: var(--color-text-muted); }
+
+    /* Stats grid — kept for backward compat with loadStats() calls */
+    .stats-grid { display: none; }
+    @media (max-width: 900px) { .ov-health-grid { grid-template-columns: repeat(2, 1fr); } }
 
     /* Dashboard sections */
     .dash-section { display: none; }
@@ -2682,24 +2759,44 @@
 
     <!-- OVERVIEW section -->
     <div class="dash-section active" id="section-overview">
-      <div class="stats-grid" id="stats-grid">
-        <div class="stat-card"><div class="stat-value" id="stat-projects">—</div><div class="stat-label">Projects</div></div>
-        <div class="stat-card"><div class="stat-value" id="stat-skills">—</div><div class="stat-label">Skills</div></div>
-        <div class="stat-card"><div class="stat-value" id="stat-services">—</div><div class="stat-label">Services</div></div>
-        <div class="stat-card"><div class="stat-value" id="stat-architecture">—</div><div class="stat-label">Architecture</div></div>
-        <div class="stat-card"><div class="stat-value" id="stat-messages">—</div><div class="stat-label">Messages</div></div>
-        <div class="stat-card"><div class="stat-value" id="stat-unread">—</div><div class="stat-label">Unread</div></div>
+
+      <!-- Welcome bar -->
+      <div class="ov-welcome">
+        <div>
+          <div class="ov-greeting" id="ov-greeting">Welcome back 👋</div>
+          <div class="ov-date" id="ov-date"></div>
+        </div>
+        <a href="/" target="_blank" class="btn btn-outline btn-sm">View Portfolio →</a>
       </div>
-      <div class="dash-panel">
-        <div class="dash-panel-header">
-          <h3 class="dash-panel-title">Quick Links</h3>
+
+      <!-- Content health -->
+      <div class="ov-section-label">Content at a Glance</div>
+      <div class="ov-health-grid" id="ov-health-grid">
+        <!-- rendered by JS -->
+      </div>
+
+      <!-- Messages + Completeness -->
+      <div class="ov-two-col">
+        <div class="dash-panel" style="margin-bottom:0">
+          <div class="dash-panel-header">
+            <h3 class="dash-panel-title">Recent Messages</h3>
+            <button onclick="showSection('messages')" class="btn btn-ghost btn-sm">View all</button>
+          </div>
+          <div id="ov-messages"><div style="color:var(--color-text-muted);font-size:.85rem">Loading…</div></div>
         </div>
-        <div style="display:flex;gap:1rem;flex-wrap:wrap">
-          <a href="/" target="_blank" class="btn btn-outline btn-sm">View Portfolio</a>
-          <button onclick="showSection('projects')" class="btn btn-ghost btn-sm">Manage Projects</button>
-          <button onclick="showSection('messages')" class="btn btn-ghost btn-sm">View Messages</button>
-          <button onclick="showSection('profile')" class="btn btn-ghost btn-sm">Edit Profile</button>
+        <div class="dash-panel" style="margin-bottom:0">
+          <div class="dash-panel-header">
+            <h3 class="dash-panel-title">Portfolio Completeness</h3>
+          </div>
+          <div id="ov-completeness"><div style="color:var(--color-text-muted);font-size:.85rem">Loading…</div></div>
         </div>
+      </div>
+
+      <!-- Hidden legacy stat elements (kept so loadStats() doesn't break) -->
+      <div style="display:none">
+        <span id="stat-projects"></span><span id="stat-skills"></span>
+        <span id="stat-services"></span><span id="stat-architecture"></span>
+        <span id="stat-messages"></span><span id="stat-unread"></span>
       </div>
     </div>
 
@@ -3839,6 +3936,7 @@
   // Load initial stats + start the visibility-aware poll so the unread
   // badge updates within ~30s when a visitor sends a new message.
   loadStats();
+  loadOverview();
   startStatsPolling();
 
   // Wire up sidebar navigation
@@ -3952,7 +4050,8 @@ function showSection(name) {
       mail:'Mail Settings', github:'GitHub Stats', footer:'Footer & Copyright' }[name] || name;
 
   // Lazy-load section data
-  if (name === 'projects') loadProjects();
+  if (name === 'overview') loadOverview();
+  else if (name === 'projects') loadProjects();
   else if (name === 'skills') loadSkills();
   else if (name === 'experience') loadExperience();
   else if (name === 'services') loadServices();
@@ -4013,16 +4112,22 @@ async function autoTestMailForm() {
 // message arrives between polls.
 let _lastUnreadSeen = -1;
 
+let _lastStats = {};
+
 async function loadStats() {
   try {
     const res = await API.get('/stats');
     const s = res.data;
-    document.getElementById('stat-projects').textContent = s.total_projects;
-    document.getElementById('stat-services').textContent     = s.total_services     ?? '—';
-    document.getElementById('stat-architecture').textContent = s.total_architecture ?? '—';
-    document.getElementById('stat-skills').textContent = s.total_skills;
-    document.getElementById('stat-messages').textContent = s.total_messages;
-    document.getElementById('stat-unread').textContent = s.unread_messages;
+    _lastStats = s;
+    // Legacy hidden elements (kept for compatibility)
+    document.getElementById('stat-projects').textContent      = s.total_projects;
+    document.getElementById('stat-services').textContent      = s.total_services     ?? '—';
+    document.getElementById('stat-architecture').textContent  = s.total_architecture ?? '—';
+    document.getElementById('stat-skills').textContent        = s.total_skills;
+    document.getElementById('stat-messages').textContent      = s.total_messages;
+    document.getElementById('stat-unread').textContent        = s.unread_messages;
+    // Keep health grid live on every poll
+    renderHealthGrid(s);
 
     const badge = document.getElementById('unread-count');
     if (badge) {
@@ -4172,6 +4277,138 @@ async function deleteProject(id) {
     loadProjects();
     loadStats();
   } catch (e) { Toast.show(e.message, 'error'); }
+}
+
+// ─── Overview ────────────────────────────────────────────────────────────────
+
+async function loadOverview() {
+  renderGreeting();
+
+  // Fetch all three in parallel — completeness needs fresh stats, not _lastStats
+  const [statsRes, msgsRes, profileRes] = await Promise.allSettled([
+    API.get('/stats'),
+    API.get('/messages'),
+    API.get('/profile'),
+  ]);
+
+  const stats   = statsRes.status   === 'fulfilled' ? (statsRes.value.data   || {}) : {};
+  const msgs    = msgsRes.status    === 'fulfilled' ? (msgsRes.value.data    || []) : [];
+  const profile = profileRes.status === 'fulfilled' ? (profileRes.value.data || {}) : {};
+
+  renderRecentMessages(msgs);
+  renderCompleteness(stats, profile);
+}
+
+function renderGreeting() {
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const el = document.getElementById('ov-greeting');
+  if (el) el.textContent = `${greet}, Imtiaz 👋`;
+
+  const dateEl = document.getElementById('ov-date');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+}
+
+function renderHealthGrid(s) {
+  const grid = document.getElementById('ov-health-grid');
+  if (!grid) return;
+
+  function dot(val, green, amber) {
+    if (val >= green) return 'ov-dot-green';
+    if (val >= amber) return 'ov-dot-amber';
+    return 'ov-dot-red';
+  }
+
+  const cards = [
+    { icon: '📱', label: 'Projects',     count: s.total_projects    ?? 0, section: 'projects',     dot: dot(s.total_projects    ?? 0, 3, 1) },
+    { icon: '⚡', label: 'Skills',       count: s.total_skills      ?? 0, section: 'skills',       dot: dot(s.total_skills      ?? 0, 5, 1) },
+    { icon: '💼', label: 'Experience',   count: s.total_experience  ?? 0, section: 'experience',   dot: dot(s.total_experience  ?? 0, 2, 1) },
+    { icon: '🛠', label: 'Services',     count: s.total_services    ?? 0, section: 'services',     dot: dot(s.total_services    ?? 0, 2, 1) },
+    { icon: '🏗', label: 'Architecture', count: s.total_architecture ?? 0, section: 'architecture', dot: dot(s.total_architecture ?? 0, 3, 1) },
+    {
+      icon: '✉', label: 'Messages', section: 'messages',
+      count: s.total_messages ?? 0,
+      badge: s.unread_messages > 0 ? `<span style="font-size:.7rem;padding:2px 7px;background:rgba(244,67,54,.15);border-radius:99px;color:#f44336;font-weight:700;margin-left:6px">${s.unread_messages} unread</span>` : '',
+      dot: s.unread_messages >= 3 ? 'ov-dot-red' : s.unread_messages >= 1 ? 'ov-dot-amber' : 'ov-dot-green',
+    },
+  ];
+
+  grid.innerHTML = cards.map(c => `
+    <div class="ov-health-card" onclick="showSection('${c.section}')">
+      <div class="ov-health-icon">${c.icon}</div>
+      <div class="ov-health-body">
+        <div class="ov-health-count">${c.count}${c.badge || ''}</div>
+        <div class="ov-health-label">${c.label}</div>
+      </div>
+      <div class="ov-health-dot ${c.dot}"></div>
+    </div>
+  `).join('');
+}
+
+function renderRecentMessages(msgs) {
+  const el = document.getElementById('ov-messages');
+  if (!el) return;
+
+  const unread = msgs.filter(m => !m.is_read);
+  const show   = (unread.length ? unread : msgs).slice(0, 3);
+
+  if (!show.length) {
+    el.innerHTML = `<p style="color:var(--color-text-muted);font-size:.85rem;padding:.5rem 0">No messages yet.</p>`;
+    return;
+  }
+
+  el.innerHTML = show.map(m => `
+    <div class="ov-msg-item" onclick="showSection('messages')">
+      <div class="ov-msg-avatar">${(m.name || '?')[0].toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div class="ov-msg-name">${m.name || 'Unknown'}</div>
+        <div class="ov-msg-preview">${(m.content || '').slice(0, 55)}${(m.content||'').length > 55 ? '…' : ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="ov-msg-time">${timeAgo(m.created_at)}</div>
+        ${!m.is_read ? '<div class="ov-msg-unread-dot"></div>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCompleteness(stats, profile) {
+  const el = document.getElementById('ov-completeness');
+  if (!el) return;
+
+  const checks = [
+    { label: 'Profile name set',        done: !!(profile.full_name) },
+    { label: 'Profile photo uploaded',  done: !!(profile.profile_photo) },
+    { label: 'Bio / About written',     done: (profile.bio || '').length >= 30 },
+    { label: 'At least 1 project',      done: (stats.total_projects     || 0) >= 1 },
+    { label: 'At least 5 skills',       done: (stats.total_skills       || 0) >= 5 },
+    { label: 'At least 1 service',      done: (stats.total_services     || 0) >= 1 },
+    { label: 'Architecture patterns',   done: (stats.total_architecture  || 0) >= 1 },
+    { label: 'Social links added',      done: !!(profile.github || profile.linkedin || profile.twitter) },
+    { label: 'CV uploaded',             done: !!(profile.cv_file) },
+  ];
+
+  const done  = checks.filter(c => c.done).length;
+  const pct   = Math.round((done / checks.length) * 100);
+  const color = pct === 100 ? '#4caf50' : pct >= 70 ? 'var(--color-primary)' : '#ff9800';
+
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <span style="font-size:.85rem;color:var(--color-text-muted)">${done} of ${checks.length} complete</span>
+      <span style="font-size:1rem;font-weight:700;color:${color}">${pct}%</span>
+    </div>
+    <div class="ov-progress-bar-track">
+      <div class="ov-progress-bar-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--color-primary),${color})"></div>
+    </div>
+    ${checks.map(c => `
+      <div class="ov-check-item ${c.done ? '' : 'is-miss'}">
+        <span class="ov-check-icon ${c.done ? 'ov-check-done' : 'ov-check-miss'}">${c.done ? '✓' : '○'}</span>
+        <span>${c.label}</span>
+      </div>
+    `).join('')}
+  `;
 }
 
 // ─── Confirm Dialog ──────────────────────────────────────────────────────────
@@ -4678,7 +4915,9 @@ function getInitials(name) {
 }
 
 function timeAgo(dateStr) {
+  if (!dateStr) return '';
   const d = new Date(dateStr), now = new Date();
+  if (isNaN(d)) return '';
   const diff = now - d;
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return 'Just now';
