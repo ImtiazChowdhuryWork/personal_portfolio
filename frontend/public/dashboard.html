@@ -58,6 +58,17 @@
     }
     .dash-page-title { font-size: 1.5rem; font-weight: 700; color: var(--color-heading); }
 
+    /* ── Password toggle ───────────────────────────────────── */
+    .pass-wrap { position: relative; }
+    .pass-wrap .form-control { padding-right: 44px; }
+    .pass-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: var(--color-text-muted); font-size: 18px; line-height: 1;
+      transition: color .15s;
+    }
+    .pass-toggle:hover { color: var(--color-primary); }
+
     /* ── Overview redesign ─────────────────────────────────── */
     .ov-welcome {
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
@@ -2725,7 +2736,7 @@
 
   <!-- ── Dashboard Sidebar ── -->
   <aside class="dash-sidebar">
-    <div class="dash-logo">Imtiaz<span>.</span></div>
+    <div class="dash-logo"><span id="dash-logo-name">Imtiaz</span><span>.</span></div>
     <nav class="dash-nav">
       <a href="#" class="active" data-section="overview">📊 Overview</a>
       <a href="#" data-section="projects">📱 Projects</a>
@@ -2743,6 +2754,7 @@
       <a href="#" data-section="mail">📧 Mail Settings</a>
       <a href="#" data-section="github">🐙 GitHub Stats</a>
       <a href="#" data-section="footer">📜 Footer</a>
+      <a href="#" data-section="account">⚙ Account</a>
     </nav>
     <div style="margin-top:auto;padding-top:2rem;border-top:1px solid var(--color-border)">
       <a href="/" style="color:var(--color-text-muted);font-size:0.875rem;text-decoration:none">← View Portfolio</a><br><br>
@@ -2848,6 +2860,79 @@
         </div>
         <div id="services-table-wrapper">
           <div style="color:var(--color-text-muted)">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT SETTINGS section -->
+    <div class="dash-section" id="section-account">
+      <div style="max-width:480px">
+        <div class="dash-panel">
+          <div class="dash-panel-header">
+            <h3 class="dash-panel-title">Dashboard Sidebar Name</h3>
+          </div>
+          <p style="font-size:.85rem;color:var(--color-text-muted);margin-bottom:1.25rem">
+            This is the name shown in the top-left of your dashboard (e.g. <strong style="color:var(--color-heading)">Imtiaz.</strong>)
+          </p>
+          <form onsubmit="submitAccountName(event)">
+            <div class="form-group">
+              <label class="form-label">Sidebar Name</label>
+              <input class="form-control" id="acc-name" type="text" placeholder="Imtiaz" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+          </form>
+        </div>
+
+        <!-- Change Password -->
+        <div class="dash-panel">
+          <div class="dash-panel-header">
+            <h3 class="dash-panel-title">Change Password</h3>
+          </div>
+          <form onsubmit="submitAccountPassword(event)">
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <div class="pass-wrap">
+                <input class="form-control" id="acc-cur-pass" type="password" placeholder="••••••••" required>
+                <button type="button" class="pass-toggle" onclick="togglePass('acc-cur-pass', this)" aria-label="Toggle visibility"><i class="ph ph-eye"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password <span style="color:var(--color-text-muted);font-weight:400">(min 6 chars)</span></label>
+              <div class="pass-wrap">
+                <input class="form-control" id="acc-new-pass" type="password" placeholder="••••••••" required minlength="6">
+                <button type="button" class="pass-toggle" onclick="togglePass('acc-new-pass', this)" aria-label="Toggle visibility"><i class="ph ph-eye"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <div class="pass-wrap">
+                <input class="form-control" id="acc-con-pass" type="password" placeholder="••••••••" required minlength="6">
+                <button type="button" class="pass-toggle" onclick="togglePass('acc-con-pass', this)" aria-label="Toggle visibility"><i class="ph ph-eye"></i></button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Change Password</button>
+          </form>
+        </div>
+
+        <!-- Change Email -->
+        <div class="dash-panel" style="margin-bottom:0">
+          <div class="dash-panel-header">
+            <h3 class="dash-panel-title">Change Login Email</h3>
+          </div>
+          <form onsubmit="submitAccountEmail(event)">
+            <div class="form-group">
+              <label class="form-label">New Email</label>
+              <input class="form-control" id="acc-email" type="email" placeholder="new@email.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Current Password <span style="color:var(--color-text-muted);font-weight:400">(required)</span></label>
+              <div class="pass-wrap">
+                <input class="form-control" id="acc-email-pass" type="password" placeholder="••••••••" required>
+                <button type="button" class="pass-toggle" onclick="togglePass('acc-email-pass', this)" aria-label="Toggle visibility"><i class="ph ph-eye"></i></button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Save Email</button>
+          </form>
         </div>
       </div>
     </div>
@@ -3937,6 +4022,7 @@
   // badge updates within ~30s when a visitor sends a new message.
   loadStats();
   loadOverview();
+  loadAccount();
   startStatsPolling();
 
   // Wire up sidebar navigation
@@ -4047,7 +4133,8 @@ function showSection(name) {
     { overview:'Overview', projects:'Projects', skills:'Skills',
       experience:'Experience', services:'Services', architecture:'Architecture', messages:'Messages',
       profile:'Profile', cv:'CV / Resume', social:'Social Links',
-      mail:'Mail Settings', github:'GitHub Stats', footer:'Footer & Copyright' }[name] || name;
+      mail:'Mail Settings', github:'GitHub Stats', footer:'Footer & Copyright',
+      account:'Account Settings' }[name] || name;
 
   // Lazy-load section data
   if (name === 'overview') loadOverview();
@@ -4055,6 +4142,7 @@ function showSection(name) {
   else if (name === 'skills') loadSkills();
   else if (name === 'experience') loadExperience();
   else if (name === 'services') loadServices();
+  else if (name === 'account') loadAccount();
   else if (name === 'architecture') loadArchitecture();
   else if (name === 'messages') loadMessages();
   else if (name === 'mail') {
@@ -4277,6 +4365,87 @@ async function deleteProject(id) {
     loadProjects();
     loadStats();
   } catch (e) { Toast.show(e.message, 'error'); }
+}
+
+// ─── Password visibility toggle ──────────────────────────────────────────────
+function togglePass(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const icon  = btn.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'ph ph-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'ph ph-eye';
+  }
+}
+
+// ─── Account Settings ────────────────────────────────────────────────────────
+
+async function loadAccount() {
+  try {
+    const res = await API.get('/account');
+    const u = res.data;
+    const nameEl = document.getElementById('acc-name');
+    const emailEl = document.getElementById('acc-email');
+    if (nameEl)  nameEl.value  = u.name  || '';
+    if (emailEl) emailEl.value = u.email || '';
+    _updateLogoName(u.name);
+  } catch (e) {
+    Toast.show('Could not load account info', 'error');
+  }
+}
+
+function _updateLogoName(name) {
+  const el = document.getElementById('dash-logo-name');
+  if (el && name) el.textContent = name;
+}
+
+async function submitAccountName(ev) {
+  ev.preventDefault();
+  const name = document.getElementById('acc-name').value.trim();
+  if (!name) { Toast.show('Name cannot be empty', 'error'); return; }
+  try {
+    await API.put('/account/name', { name });
+    _updateLogoName(name);
+    Toast.show('Sidebar name updated', 'success');
+  } catch (e) { Toast.show(e.message, 'error'); }
+}
+
+async function submitAccountEmail(ev) {
+  ev.preventDefault();
+  const email    = document.getElementById('acc-email').value.trim();
+  const password = document.getElementById('acc-email-pass').value;
+  if (!email || !password) { Toast.show('Email and password are required', 'error'); return; }
+  try {
+    await API.put('/account/email', { email, current_password: password });
+    Toast.show('Email updated — please log in again', 'success');
+    _clearPassField('acc-email-pass');
+    loadAccount();
+  } catch (e) { Toast.show(e.message, 'error'); }
+}
+
+async function submitAccountPassword(ev) {
+  ev.preventDefault();
+  const current = document.getElementById('acc-cur-pass').value;
+  const next    = document.getElementById('acc-new-pass').value;
+  const confirm = document.getElementById('acc-con-pass').value;
+  if (next !== confirm) { Toast.show('New passwords do not match', 'error'); return; }
+  if (next.length < 6)  { Toast.show('New password must be at least 6 characters', 'error'); return; }
+  try {
+    await API.put('/account/password', { current_password: current, new_password: next });
+    Toast.show('Password changed successfully', 'success');
+    ['acc-cur-pass', 'acc-new-pass', 'acc-con-pass'].forEach(_clearPassField);
+  } catch (e) { Toast.show(e.message, 'error'); }
+}
+
+function _clearPassField(id) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  input.value = '';
+  input.type  = 'password';
+  const icon = input.closest('.pass-wrap')?.querySelector('.pass-toggle i');
+  if (icon) icon.className = 'ph ph-eye';
 }
 
 // ─── Overview ────────────────────────────────────────────────────────────────

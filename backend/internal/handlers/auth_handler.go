@@ -100,3 +100,67 @@ func (h *AuthHandler) Me(c *gin.Context) {
 		"role":    role,
 	})
 }
+
+func (h *AuthHandler) GetAccount(c *gin.Context) {
+	userID := c.GetUint("userID")
+	user, err := h.authService.GetByID(userID)
+	if err != nil {
+		utils.NotFound(c, err.Error())
+		return
+	}
+	utils.Success(c, "Account fetched", user)
+}
+
+func (h *AuthHandler) UpdateName(c *gin.Context) {
+	userID := c.GetUint("userID")
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil || req.Name == "" {
+		utils.BadRequest(c, "Name is required", nil)
+		return
+	}
+	if err := h.authService.UpdateName(userID, req.Name); err != nil {
+		utils.InternalError(c, "Failed to update name")
+		return
+	}
+	utils.Success(c, "Name updated successfully", nil)
+}
+
+func (h *AuthHandler) UpdateEmail(c *gin.Context) {
+	userID := c.GetUint("userID")
+	var req struct {
+		Email           string `json:"email"`
+		CurrentPassword string `json:"current_password"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil || req.Email == "" || req.CurrentPassword == "" {
+		utils.BadRequest(c, "Email and current password are required", nil)
+		return
+	}
+	if err := h.authService.UpdateEmail(userID, req.Email, req.CurrentPassword); err != nil {
+		utils.BadRequest(c, err.Error(), nil)
+		return
+	}
+	utils.Success(c, "Email updated successfully", nil)
+}
+
+func (h *AuthHandler) UpdatePassword(c *gin.Context) {
+	userID := c.GetUint("userID")
+	var req struct {
+		CurrentPassword string `json:"current_password"`
+		NewPassword     string `json:"new_password"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil || req.CurrentPassword == "" || req.NewPassword == "" {
+		utils.BadRequest(c, "Current and new password are required", nil)
+		return
+	}
+	if len(req.NewPassword) < 6 {
+		utils.BadRequest(c, "New password must be at least 6 characters", nil)
+		return
+	}
+	if err := h.authService.UpdatePassword(userID, req.CurrentPassword, req.NewPassword); err != nil {
+		utils.BadRequest(c, err.Error(), nil)
+		return
+	}
+	utils.Success(c, "Password updated successfully", nil)
+}

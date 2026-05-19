@@ -6,6 +6,7 @@
   <title>Admin Login — Imtiaz Portfolio</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <style>
     body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .login-card {
@@ -26,6 +27,15 @@
       margin-bottom: 0.5rem;
     }
     .login-sub { text-align: center; color: var(--color-text-muted); font-size: var(--fs-sm); margin-bottom: 2rem; }
+    .pass-wrap { position: relative; }
+    .pass-wrap .form-control { padding-right: 44px; }
+    .pass-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: var(--color-text-muted); font-size: 18px; line-height: 1;
+      transition: color .15s;
+    }
+    .pass-toggle:hover { color: var(--color-primary); }
   </style>
 </head>
 <body>
@@ -41,7 +51,12 @@
     </div>
     <div class="form-group">
       <label class="form-label" for="password">Password</label>
-      <input class="form-control" id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password">
+      <div class="pass-wrap">
+        <input class="form-control" id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password">
+        <button type="button" class="pass-toggle" onclick="togglePass()" aria-label="Toggle password visibility">
+          <i id="pass-icon" class="ph ph-eye"></i>
+        </button>
+      </div>
     </div>
     <div id="login-error" style="display:none;color:var(--color-error);font-size:var(--fs-sm);margin-bottom:1rem;padding:0.75rem;background:rgba(244,67,54,0.1);border-radius:8px;border:1px solid rgba(244,67,54,0.2)"></div>
     <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-btn">Sign In</button>
@@ -56,6 +71,18 @@
 <script src="/assets/js/core/auth.js"></script>
 <script src="/assets/js/core/validator.js"></script>
 <script>
+  function togglePass() {
+    const input = document.getElementById('password');
+    const icon  = document.getElementById('pass-icon');
+    if (input.type === 'password') {
+      input.type     = 'text';
+      icon.className = 'ph ph-eye-slash';
+    } else {
+      input.type     = 'password';
+      icon.className = 'ph ph-eye';
+    }
+  }
+
   // Redirect to dashboard if already logged in
   if (Auth.isLoggedIn()) window.location.href = '/dashboard';
 

@@ -93,3 +93,46 @@ func (s *AuthService) Login(email, password string) (*LoginResponse, error) {
 		User:  user,
 	}, nil
 }
+
+func (s *AuthService) GetByID(id uint) (*models.User, error) {
+	var user models.User
+	if err := s.db.First(&user, id).Error; err != nil {
+		return nil, errors.New("user not found")
+	}
+	return &user, nil
+}
+
+func (s *AuthService) UpdateName(userID uint, name string) error {
+	return s.db.Model(&models.User{}).Where("id = ?", userID).Update("name", name).Error
+}
+
+func (s *AuthService) UpdateEmail(userID uint, email, currentPassword string) error {
+	var user models.User
+	if err := s.db.First(&user, userID).Error; err != nil {
+		return errors.New("user not found")
+	}
+	if !utils.CheckPassword(currentPassword, user.Password) {
+		return errors.New("current password is incorrect")
+	}
+	var count int64
+	s.db.Model(&models.User{}).Where("email = ? AND id != ?", email, userID).Count(&count)
+	if count > 0 {
+		return errors.New("email is already in use")
+	}
+	return s.db.Model(&user).Update("email", email).Error
+}
+
+func (s *AuthService) UpdatePassword(userID uint, currentPassword, newPassword string) error {
+	var user models.User
+	if err := s.db.First(&user, userID).Error; err != nil {
+		return errors.New("user not found")
+	}
+	if !utils.CheckPassword(currentPassword, user.Password) {
+		return errors.New("current password is incorrect")
+	}
+	hashed, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return errors.New("failed to hash new password")
+	}
+	return s.db.Model(&user).Update("password", hashed).Error
+}
