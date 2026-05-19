@@ -50,6 +50,11 @@
     .dash-nav a:hover, .dash-nav a.active {
       color: var(--color-primary); background: var(--color-primary-glow);
     }
+    .dash-nav-group {
+      font-size: .65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--color-text-dim);
+      padding: 1rem .75rem .3rem; pointer-events: none; user-select: none;
+    }
 
     .dash-main { margin-left: 240px; flex: 1; padding: 2rem; }
     .dash-topbar {
@@ -2739,20 +2744,26 @@
     <div class="dash-logo"><span id="dash-logo-name">Imtiaz</span><span>.</span></div>
     <nav class="dash-nav">
       <a href="#" class="active" data-section="overview">📊 Overview</a>
-      <a href="#" data-section="projects">📱 Projects</a>
-      <a href="#" data-section="skills">⚡ Skills</a>
-      <a href="#" data-section="experience">💼 Experience</a>
-      <a href="#" data-section="services">🛠 Services</a>
-      <a href="#" data-section="architecture">🏗 Architecture</a>
       <a href="#" data-section="messages">
         ✉ Messages
         <span class="unread-badge" id="unread-count" style="display:none">0</span>
       </a>
+
+      <div class="dash-nav-group">Portfolio</div>
+      <a href="#" data-section="projects">📱 Projects</a>
+      <a href="#" data-section="experience">💼 Experience</a>
+      <a href="#" data-section="skills">⚡ Skills</a>
+      <a href="#" data-section="services">🛠 Services</a>
+      <a href="#" data-section="architecture">🏗 Architecture</a>
+
+      <div class="dash-nav-group">Profile</div>
       <a href="#" data-section="profile">👤 Profile</a>
       <a href="#" data-section="cv">📄 CV / Resume</a>
       <a href="#" data-section="social">🔗 Social Links</a>
-      <a href="#" data-section="mail">📧 Mail Settings</a>
       <a href="#" data-section="github">🐙 GitHub Stats</a>
+
+      <div class="dash-nav-group">Settings</div>
+      <a href="#" data-section="mail">📧 Mail Settings</a>
       <a href="#" data-section="footer">📜 Footer</a>
       <a href="#" data-section="account">⚙ Account</a>
     </nav>
