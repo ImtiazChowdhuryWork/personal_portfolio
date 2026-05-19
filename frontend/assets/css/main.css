@@ -16,7 +16,7 @@
 /* ─── 3. Component styles ─────────────────────────────────────*/
 @import './components/sidebar.css';
 @import './components/navbar.css';
-@import './components/button.css';
+@import './components/button.css?v=2';
 @import './components/card.css';
 @import './components/badge.css';
 @import './components/avatar.css';

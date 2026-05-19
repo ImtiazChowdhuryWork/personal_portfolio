@@ -42,6 +42,7 @@ func Run(db *gorm.DB, cfg *config.Config) {
 	seedSkills(db)
 	seedExperience(db)
 	seedProjects(db)
+	seedServices(db)
 
 	fmt.Println("✅ Database seeding complete")
 }
@@ -280,4 +281,43 @@ func seedProjects(db *gorm.DB) {
 		return
 	}
 	fmt.Printf("   ✓ %d projects seeded\n", len(projects))
+}
+
+// seedServices creates the default "What I Offer" service cards.
+func seedServices(db *gorm.DB) {
+	var count int64
+	db.Model(&models.Service{}).Count(&count)
+	if count > 0 {
+		return
+	}
+
+	services := []models.Service{
+		{
+			Icon:        "📱",
+			Title:       "Mobile App Development",
+			Description: "I build production-ready Flutter apps for iOS and Android from scratch to App Store launch. Clean code, clean architecture, real results.",
+			SortOrder:   1,
+			Active:      true,
+		},
+		{
+			Icon:        "🔧",
+			Title:       "App Maintenance & Updates",
+			Description: "I maintain, debug, and improve existing Flutter apps. Performance optimization, dependency upgrades, new feature integration.",
+			SortOrder:   2,
+			Active:      true,
+		},
+		{
+			Icon:        "🔌",
+			Title:       "API & Service Integration",
+			Description: "I integrate REST APIs, Firebase, payment gateways (Stripe, RevenueCat), Socket.IO, WebRTC, and third-party SDKs into Flutter apps.",
+			SortOrder:   3,
+			Active:      true,
+		},
+	}
+
+	if err := db.Create(&services).Error; err != nil {
+		log.Printf("⚠️  Failed to seed services: %v", err)
+		return
+	}
+	fmt.Printf("   ✓ %d services seeded\n", len(services))
 }
