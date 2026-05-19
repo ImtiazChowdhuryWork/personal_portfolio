@@ -66,6 +66,7 @@ func main() {
 		&models.MailPasswordHistory{},
 		&models.HiddenMailAccount{},
 		&models.CVFile{},
+		&models.Service{},
 	); err != nil {
 		log.Fatal("Database migration failed: ", err)
 	}

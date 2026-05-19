@@ -86,6 +86,18 @@
   transform: translateY(-2px);
 }
 
+/* ─── Danger button — red destructive actions ──────────────────*/
+.btn-danger {
+  background: var(--color-error, #f44336);
+  color: #fff;
+  border: none;
+}
+.btn-danger:hover {
+  background: #d32f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(244, 67, 54, 0.4);
+}
+
 /* ─── Size variants ────────────────────────────────────────────*/
 .btn-sm { padding: 10px 20px; font-size: var(--fs-sm); }
 .btn-lg { padding: 18px 36px; font-size: var(--fs-lg); }
