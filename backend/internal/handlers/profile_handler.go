@@ -507,6 +507,26 @@ func (h *ProfileHandler) GenerateCV(c *gin.Context) {
 	utils.Success(c, "CV generated", row)
 }
 
+// GenerateCustomCV generates a PDF from caller-supplied form data.
+func (h *ProfileHandler) GenerateCustomCV(c *gin.Context) {
+	if h.cvGenerator == nil {
+		utils.InternalError(c, "CV generator not configured")
+		return
+	}
+	var req services.CVGenerateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Invalid CV data", err.Error())
+		return
+	}
+	row, err := h.cvGenerator.GenerateFromRequest(&req)
+	if err != nil {
+		log.Printf("[GenerateCustomCV] %v", err)
+		utils.InternalError(c, "Failed to generate CV: "+err.Error())
+		return
+	}
+	utils.Success(c, "CV generated", row)
+}
+
 // RecordCVDownload bumps the visitor download counter — PUBLIC. The public
 // portfolio fires this just before navigating to the PDF. Returns the new
 // count so the dashboard can poll without a separate read.

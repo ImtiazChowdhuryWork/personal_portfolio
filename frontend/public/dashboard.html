@@ -63,6 +63,75 @@
     }
     .dash-page-title { font-size: 1.5rem; font-weight: 700; color: var(--color-heading); }
 
+    /* ── CV Builder two-column layout ──────────────────────── */
+    .cvb-2col { display: grid; grid-template-columns: 420px 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 1100px) { .cvb-2col { grid-template-columns: 1fr; } }
+
+    .cvb-form-col { position: sticky; top: 1rem; max-height: calc(100vh - 80px); display: flex; flex-direction: column; overflow: hidden; }
+    .cvb-form-scroll { flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--color-border) transparent; }
+
+    /* Preview column */
+    .cvb-preview-col { min-width: 0; }
+    .cvb-preview-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .6rem 1rem; background: var(--color-bg-3);
+      border: 1px solid var(--color-border); border-radius: 10px 10px 0 0;
+      font-size: .8rem; font-weight: 600; color: var(--color-heading);
+    }
+    .cvb-preview-bar span:last-child { font-weight: 400; color: var(--color-text-muted); font-size: .72rem; }
+    .cvb-preview-wrap {
+      border: 1px solid var(--color-border); border-top: none;
+      border-radius: 0 0 10px 10px; overflow-y: auto;
+      background: #d0d0d0; padding: 16px;
+      max-height: calc(100vh - 120px);
+    }
+
+    /* Paper — fills the preview wrap, no fixed A4 width, no transform */
+    .cvp-paper {
+      width: 100%;
+      min-height: 500px;
+      background: #fff;
+      padding: 40px 46px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.3);
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 10.5pt;
+      color: #000;
+      line-height: 1.4;
+      box-sizing: border-box;
+    }
+
+    /* Paper typography — mirrors the PDF spec */
+    .cvp-name  { font-size: 22pt; font-weight: bold; text-align: center; margin-bottom: 3px; }
+    .cvp-c1    { font-size: 9.5pt; color: #555; text-align: center; margin-bottom: 2px; }
+    .cvp-c2    { font-size: 9.5pt; color: #1a56db; text-align: center; margin-bottom: 9px; }
+
+    .cvp-sec-heading {
+      font-size: 11pt; font-weight: bold; color: #1a3a6b; text-transform: uppercase;
+      margin: 0 0 1px; letter-spacing: .03em;
+    }
+    .cvp-rule { border: none; border-top: .5px solid #1a3a6b; margin: 1px 0 6px; }
+
+    .cvp-entry { margin-bottom: 8px; }
+    .cvp-row { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; }
+    .cvp-role   { font-size: 10.5pt; font-weight: bold; }
+    .cvp-date   { font-size: 10pt; font-weight: bold; flex-shrink: 0; white-space: nowrap; }
+    .cvp-co     { font-size: 10pt; font-style: italic; color: #555; }
+    .cvp-loc    { font-size: 10pt; font-style: italic; color: #555; flex-shrink: 0; white-space: nowrap; }
+
+    .cvp-bullets { list-style: none; margin: 3px 0 0 14px; padding: 0; }
+    .cvp-bullets li { font-size: 10pt; margin-bottom: 1px; text-align: justify; }
+    .cvp-bullets li::before { content: '\2022'; margin-right: 5px; }
+
+    .cvp-skill-row { display: flex; gap: 0; margin-bottom: 2px; font-size: 10pt; }
+    .cvp-sk-label  { font-weight: bold; width: 125px; flex-shrink: 0; }
+
+    .cvp-ref-pair { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 8px; }
+    .cvp-ref-col  { font-size: 10pt; }
+    .cvp-ref-col .cvp-ref-name { font-weight: bold; font-size: 10.5pt; margin-bottom: 2px; }
+    .cvp-ref-col p { margin: 1px 0; }
+
+    .cvp-empty { text-align: center; padding: 60px 0; color: #aaa; font-family: sans-serif; font-size: 13px; }
+
     /* ── Password toggle ───────────────────────────────────── */
     .pass-wrap { position: relative; }
     .pass-wrap .form-control { padding-right: 44px; }
@@ -737,6 +806,149 @@
     }
 
     /* Side-by-side: Preview (80%) | History (20%) */
+    /* ── CV Builder sidebar layout ───────────────────────── */
+    .cv-builder-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 1200px) { .cv-builder-layout { grid-template-columns: 1fr; } }
+
+    .cv-builder-sidebar {
+      background: var(--color-bg-3);
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      overflow: hidden;
+      position: sticky;
+      top: 1rem;
+      max-height: calc(100vh - 120px);
+      display: flex;
+      flex-direction: column;
+    }
+    .cvb-sidebar-header {
+      padding: 1rem 1.25rem .75rem;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .cvb-sidebar-title {
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--color-heading);
+    }
+    .cvb-sidebar-body {
+      overflow-y: auto;
+      flex: 1;
+      padding: .75rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-border) transparent;
+    }
+
+    /* Collapsible section */
+    .cvb-section { margin-bottom: .5rem; }
+    .cvb-section-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .5rem .75rem;
+      background: var(--color-bg-4);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--color-heading);
+      user-select: none;
+      transition: all .15s;
+    }
+    .cvb-section-hdr:hover { border-color: var(--color-primary); }
+    .cvb-section-hdr.open { border-radius: 8px 8px 0 0; border-bottom-color: transparent; }
+    .cvb-section-hdr i { font-size: 12px; color: var(--color-text-muted); transition: transform .2s; }
+    .cvb-section-hdr.open i { transform: rotate(180deg); }
+    .cvb-section-body {
+      display: none;
+      padding: .75rem;
+      border: 1px solid var(--color-border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      background: var(--color-bg-3);
+    }
+    .cvb-section-body.open { display: block; }
+    .cvb-section-body .form-group { margin-bottom: .6rem; }
+    .cvb-section-body .form-label { font-size: .72rem; margin-bottom: .25rem; }
+    .cvb-section-body .form-control { font-size: .8rem; padding: .4rem .6rem; }
+    .cvb-section-body textarea.form-control { resize: vertical; min-height: 60px; }
+
+    /* Entry card (experience/project/education/reference) */
+    .cvb-entry {
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      margin-bottom: .5rem;
+      overflow: hidden;
+    }
+    .cvb-entry-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .4rem .6rem;
+      background: var(--color-bg-4);
+      cursor: pointer;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    .cvb-entry-hdr i { font-size: 11px; color: var(--color-text-muted); transition: transform .2s; }
+    .cvb-entry-hdr.open i { transform: rotate(180deg); }
+    .cvb-remove-btn {
+      background: none;
+      border: none;
+      color: var(--color-error);
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+    .cvb-entry-body {
+      display: none;
+      padding: .6rem;
+    }
+    .cvb-entry-body.open { display: block; }
+    .cvb-entry-body .form-group { margin-bottom: .5rem; }
+    .cvb-entry-body .form-control { font-size: .78rem; padding: .35rem .5rem; }
+    .cvb-entry-body textarea.form-control { min-height: 52px; resize: vertical; }
+
+    /* Skill row */
+    .cvb-skill-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 28px;
+      gap: 4px;
+      align-items: center;
+      margin-bottom: .4rem;
+    }
+    .cvb-skill-row select { font-size: .75rem; padding: .3rem .4rem; }
+    .cvb-skill-row input { font-size: .75rem; }
+
+    /* Language row */
+    .cvb-lang-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 28px;
+      gap: 4px;
+      align-items: center;
+      margin-bottom: .4rem;
+    }
+    .cvb-lang-row input { font-size: .75rem; }
+
+    .cvb-add-btn {
+      width: 100%;
+      margin-top: .4rem;
+      font-size: .75rem;
+      padding: .35rem;
+    }
+
     .cv-split {
       display: grid;
       grid-template-columns: 4fr 1fr;
@@ -2759,6 +2971,7 @@
       <div class="dash-nav-group">Profile</div>
       <a href="#" data-section="profile">👤 Profile</a>
       <a href="#" data-section="cv">📄 CV / Resume</a>
+      <a href="#" data-section="cv-builder">🛠 CV Builder</a>
       <a href="#" data-section="social">🔗 Social Links</a>
       <a href="#" data-section="github">🐙 GitHub Stats</a>
 
@@ -3621,6 +3834,8 @@
       <input type="file" id="cv-file-input" accept=".pdf" style="display:none"
         onchange="handleCVUpload(this)">
 
+      <!-- builder form lives in #section-cv-builder -->
+
       <!-- Hero + actions panel -->
       <div class="dash-panel">
         <div class="dash-panel-header">
@@ -3818,6 +4033,146 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- CV BUILDER section -->
+    <div class="dash-section" id="section-cv-builder">
+      <div class="cvb-2col">
+
+      <!-- ── LEFT: Form ── -->
+      <div class="cvb-form-col">
+        <div class="dash-panel" style="margin-bottom:0;overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 80px)">
+        <div class="cvb-form-scroll">
+          <div class="dash-panel-header">
+            <h3 class="dash-panel-title">🛠 CV Builder</h3>
+            <button class="btn btn-primary btn-sm" onclick="fillCVBuilderFromPortfolio()">
+              <i class="ph ph-magic-wand"></i> Fill from Portfolio
+            </button>
+          </div>
+          <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:1.25rem">
+            Fill the fields below, add missing sections (Education, Languages, References) manually, then generate your CV.
+          </p>
+
+          <!-- Contact Info -->
+          <div class="cvb-section">
+            <div class="cvb-section-hdr open" onclick="toggleCVBSection(this)">
+              Contact Info <i class="ph ph-caret-down"></i>
+            </div>
+            <div class="cvb-section-body open">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+                <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" id="cvb-full-name" placeholder="Chowdhury Md. Imtiazul Islam"></div>
+                <div class="form-group"><label class="form-label">Title / Role</label><input class="form-control" id="cvb-title" placeholder="Flutter Developer"></div>
+                <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="cvb-email" type="email" placeholder="email@example.com"></div>
+                <div class="form-group"><label class="form-label">Phone</label><input class="form-control" id="cvb-phone" placeholder="+880 ..."></div>
+                <div class="form-group"><label class="form-label">Location</label><input class="form-control" id="cvb-location" placeholder="Dhaka, Bangladesh"></div>
+                <div class="form-group"><label class="form-label">WhatsApp</label><input class="form-control" id="cvb-whatsapp" placeholder="+880 ..."></div>
+                <div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-control" id="cvb-linkedin" placeholder="linkedin.com/in/..."></div>
+                <div class="form-group"><label class="form-label">GitHub URL</label><input class="form-control" id="cvb-github" placeholder="github.com/..."></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="cvb-section">
+            <div class="cvb-section-hdr" onclick="toggleCVBSection(this)">
+              Professional Summary <i class="ph ph-caret-down"></i>
+            </div>
+            <div class="cvb-section-body">
+              <textarea class="form-control" id="cvb-summary" rows="4" placeholder="Flutter Developer with X years of experience..."></textarea>
+            </div>
+          </div>
+
+          <!-- Experience -->
+          <div class="cvb-section">
+            <div class="cvb-section-hdr" onclick="toggleCVBSection(this)">
+              Work Experience <i class="ph ph-caret-down"></i>
+            </div>
+            <div class="cvb-section-body">
+              <div id="cvb-exp-list"></div>
+              <button class="btn btn-ghost btn-sm cvb-add-btn" onclick="cvbAddExp()">+ Add Experience</button>
+            </div>
+          </div>
+
+          <!-- Projects -->
+          <div class="cvb-section">
+            <div class="cvb-section-hdr" onclick="toggleCVBSection(this)">
+              Projects <i class="ph ph-caret-down"></i>
+            </div>
+            <div class="cvb-section-body">
+              <div id="cvb-proj-list"></div>
+              <button class="btn btn-ghost btn-sm cvb-add-btn" onclick="cvbAddProj()">+ Add Project</button>
+            </div>
+          </div>
+
+          <!-- Skills -->
+          <div class="cvb-section">
+            <div class="cvb-section-hdr" onclick="toggleCVBSection(this)">
+              Technical Skills <i class="ph ph-caret-down"></i>
+            </div>
+            <div class="cvb-section-body">
+              <div id="cvb-skill-list"></div>
+              <button class="btn btn-ghost btn-sm cvb-add-btn" onclick="cvbAddSkill()">+ Add Category</button>
+            </div>
+          </div>
+
+          <!-- Education -->
+          <div class="cvb-section">
+            <div class="cvb-section-hdr" onclick="toggleCVBSection(this)">
+              Education <span style="font-size:.7rem;color:var(--color-primary);margin-left:6px">Fill manually</span><i class="ph ph-caret-down"></i>
+            </div>
+            <div class="cvb-section-body">
+              <div id="cvb-edu-list"></div>
+              <button class="btn btn-ghost btn-sm cvb-add-btn" onclick="cvbAddEdu()">+ Add Education</button>
+            </div>
+          </div>
+
+          <!-- Languages -->
+          <div class="cvb-section">
+            <div class="cvb-section-hdr" onclick="toggleCVBSection(this)">
+              Languages <span style="font-size:.7rem;color:var(--color-primary);margin-left:6px">Fill manually</span><i class="ph ph-caret-down"></i>
+            </div>
+            <div class="cvb-section-body">
+              <div id="cvb-lang-list"></div>
+              <button class="btn btn-ghost btn-sm cvb-add-btn" onclick="cvbAddLang()">+ Add Language</button>
+            </div>
+          </div>
+
+          <!-- References -->
+          <div class="cvb-section">
+            <div class="cvb-section-hdr" onclick="toggleCVBSection(this)">
+              References <span style="font-size:.7rem;color:var(--color-primary);margin-left:6px">Fill manually</span><i class="ph ph-caret-down"></i>
+            </div>
+            <div class="cvb-section-body">
+              <div id="cvb-ref-list"></div>
+              <button class="btn btn-ghost btn-sm cvb-add-btn" onclick="cvbAddRef()">+ Add Reference</button>
+            </div>
+          </div>
+
+          <div style="margin-top:1.25rem">
+            <button class="btn btn-primary" style="width:100%" onclick="generateCVFromBuilder()">
+              <i class="ph ph-file-pdf"></i> Generate CV
+            </button>
+          </div>
+        </div><!-- /cvb-form-scroll -->
+        </div><!-- /dash-panel -->
+      </div><!-- /cvb-form-col -->
+
+      <!-- ── RIGHT: Live Preview ── -->
+      <div class="cvb-preview-col">
+        <div class="cvb-preview-bar">
+          <span>📄 Live Preview</span>
+          <span>Updates as you type</span>
+        </div>
+        <div class="cvb-preview-wrap">
+          <div class="cvb-scaler-box" id="cvb-scaler-box">
+            <div class="cvp-paper" id="cv-live-preview">
+              <div class="cvp-empty">Fill the form on the left to see your CV preview</div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /cvb-preview-col -->
+
+      </div><!-- /cvb-2col -->
     </div>
 
     <!-- SOCIAL LINKS section -->
@@ -4136,6 +4491,7 @@ function initPhonePicker() {
 }
 
 function showSection(name) {
+  if (name !== 'cv-builder') stopCVBPreview(); // stop poll when leaving builder
   document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.dash-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById(`section-${name}`)?.classList.add('active');
@@ -4143,7 +4499,7 @@ function showSection(name) {
   document.getElementById('dash-title').textContent =
     { overview:'Overview', projects:'Projects', skills:'Skills',
       experience:'Experience', services:'Services', architecture:'Architecture', messages:'Messages',
-      profile:'Profile', cv:'CV / Resume', social:'Social Links',
+      profile:'Profile', cv:'CV / Resume', 'cv-builder':'CV Builder', social:'Social Links',
       mail:'Mail Settings', github:'GitHub Stats', footer:'Footer & Copyright',
       account:'Account Settings' }[name] || name;
 
@@ -4161,6 +4517,10 @@ function showSection(name) {
     autoTestMailForm();
   }
   else if (name === 'cv') loadCVTab();
+  else if (name === 'cv-builder') {
+    initCVBPreviewListeners();
+    fillCVBuilderFromPortfolio();
+  }
 }
 
 // Switches between the four sub-tabs inside the Profile section
@@ -6373,7 +6733,556 @@ async function handleCVVisibility(checkbox) {
   }
 }
 
-// loadCVTab pulls the latest profile + history and rebuilds the hero card,
+// ─── CV Live Preview ─────────────────────────────────────────────────────────
+
+const CVP_CAT_LABELS = {
+  languages:'Languages', framework:'Framework', core:'Core',
+  state_management:'State Management', backend:'Backend & APIs',
+  payments:'Payments', tools:'Tools & Platforms',
+  architecture:'Architecture', distribution:'App Distribution',
+};
+
+function cvpCatLabel(cat) {
+  return CVP_CAT_LABELS[cat] || cat.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function cvpEsc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function cvpHeading(title) {
+  return `<div class="cvp-sec-heading">${cvpEsc(title)}</div><hr class="cvp-rule">`;
+}
+
+function cvpDateRange(start, end) {
+  start = (start||'').trim(); end = (end||'').trim();
+  if (!end || end.toLowerCase() === 'present') end = 'Present';
+  if (!start) return end;
+  return `${start} – ${end}`;
+}
+
+let _cvbLastGoodData = null; // last data that had content — used as fallback
+
+function renderCVBuilderPreview(directData) {
+  try {
+  const paper = document.getElementById('cv-live-preview');
+  if (!paper) { console.error('[CVP] paper element not found'); return; }
+
+  let d;
+  if (directData) {
+    d = directData;
+    _cvbLastGoodData = directData;
+    console.log('[CVP] using directData:', d.full_name, '| exps:', d.experiences?.length, '| skills:', d.skills?.length);
+  } else {
+    d = buildCVPayload();
+    const anyFromDOM = d.full_name || d.title || d.email || d.phone ||
+      d.location || d.summary || d.experiences?.length || d.skills?.length;
+    console.log('[CVP] DOM read — name:', d.full_name, '| anyFromDOM:', !!anyFromDOM, '| hasCache:', !!_cvbLastGoodData);
+    if (!anyFromDOM && _cvbLastGoodData) d = _cvbLastGoodData;
+  }
+  let html = '';
+
+  const hasContent = d.full_name || d.title || d.email || d.phone || d.location ||
+    d.linkedin || d.github || d.whatsapp || d.summary ||
+    d.experiences?.length || d.projects?.length || d.skills?.length ||
+    d.education?.length || d.languages?.length || d.references?.length;
+  console.log('[CVP] hasContent:', !!hasContent, '| full_name:', d.full_name);
+  if (!hasContent) {
+    paper.innerHTML = '<div class="cvp-empty">Fill the form on the left to see your CV preview</div>';
+    return;
+  }
+
+  // ── Header ──
+  html += `<div class="cvp-name">${cvpEsc(d.full_name || 'Your Name')}</div>`;
+  const c1 = [d.location, d.phone, d.email].filter(Boolean).join(' | ');
+  if (c1) html += `<div class="cvp-c1">${cvpEsc(c1)}</div>`;
+  const links = [d.linkedin && 'LinkedIn', d.github && 'GitHub', d.whatsapp && 'WhatsApp'].filter(Boolean).join(' | ');
+  if (links) html += `<div class="cvp-c2">${links}</div>`;
+  html += '<div style="margin-bottom:9px"></div>';
+
+  // ── Summary ──
+  if (d.summary?.trim()) {
+    html += cvpHeading('PROFESSIONAL SUMMARY');
+    html += `<p style="text-align:justify;margin:0 0 12px;font-size:10pt;line-height:1.6;color:#111">${cvpEsc(d.summary).replace(/\n/g,'<br>')}</p>`;
+  }
+
+  // ── Experience ──
+  if (d.experiences?.length) {
+    html += cvpHeading('WORK EXPERIENCE');
+    for (const e of d.experiences) {
+      if (!e.role) continue;
+      const compLine = e.company + (e.company_website ? ' | ' + e.company_website : '');
+      const bullets = e.achievements?.filter(a => a.trim()) || [];
+      if (!bullets.length && e.description?.trim()) bullets.push(e.description.trim());
+      html += `<div class="cvp-entry">
+        <div class="cvp-row"><span class="cvp-role">${cvpEsc(e.role)}</span><span class="cvp-date">${cvpEsc(cvpDateRange(e.start_date, e.end_date))}</span></div>
+        <div class="cvp-row"><span class="cvp-co">${cvpEsc(compLine)}</span><span class="cvp-loc">${cvpEsc(e.location)}</span></div>
+        ${bullets.length ? `<ul class="cvp-bullets">${bullets.map(b=>`<li>${cvpEsc(b)}</li>`).join('')}</ul>` : ''}
+      </div>`;
+    }
+    html += '<div style="margin-bottom:4px"></div>';
+  }
+
+  // ── Projects ──
+  if (d.projects?.length) {
+    html += cvpHeading('PROJECTS');
+    for (const proj of d.projects) {
+      if (!proj.name) continue;
+      const label = proj.name + (proj.store ? ' — ' + proj.store : '');
+      const feats = proj.features?.filter(f => f.trim()) || [];
+      html += `<div class="cvp-entry">
+        <div class="cvp-row"><span class="cvp-role">${cvpEsc(label)}</span><span class="cvp-date">${cvpEsc(cvpDateRange(proj.start_date, proj.end_date))}</span></div>
+        ${feats.length ? `<ul class="cvp-bullets">${feats.map(f=>`<li>${cvpEsc(f)}</li>`).join('')}</ul>` : ''}
+      </div>`;
+    }
+    html += '<div style="margin-bottom:4px"></div>';
+  }
+
+  // ── Skills ──
+  if (d.skills?.length) {
+    html += cvpHeading('TECHNICAL SKILLS');
+    for (const sk of d.skills) {
+      if (!sk.names) continue;
+      html += `<div class="cvp-skill-row"><span class="cvp-sk-label">${cvpEsc(cvpCatLabel(sk.category))}:</span><span>${cvpEsc(sk.names)}</span></div>`;
+    }
+    html += '<div style="margin-bottom:10px"></div>';
+  }
+
+  // ── Education ──
+  if (d.education?.length) {
+    html += cvpHeading('EDUCATION');
+    for (const edu of d.education) {
+      if (!edu.degree) continue;
+      html += `<div class="cvp-entry">
+        <div class="cvp-row"><span class="cvp-role">${cvpEsc(edu.degree)}</span><span class="cvp-date">${cvpEsc(cvpDateRange(edu.start_date, edu.end_date))}</span></div>
+        <div class="cvp-row"><span class="cvp-co">${cvpEsc(edu.institution)}</span><span class="cvp-loc">${cvpEsc(edu.location)}</span></div>
+        ${edu.gpa ? `<ul class="cvp-bullets"><li>CGPA: ${cvpEsc(edu.gpa)}</li></ul>` : ''}
+      </div>`;
+    }
+  }
+
+  // ── Languages ──
+  if (d.languages?.length) {
+    html += cvpHeading('LANGUAGES');
+    for (const lang of d.languages) {
+      if (!lang.language) continue;
+      html += `<div style="margin-bottom:3px;font-size:10pt"><b>${cvpEsc(lang.language)}:</b> ${cvpEsc(lang.level)}</div>`;
+    }
+    html += '<div style="margin-bottom:10px"></div>';
+  }
+
+  // ── References ──
+  if (d.references?.length) {
+    html += cvpHeading('REFERENCES');
+    for (let i = 0; i < d.references.length; i += 2) {
+      const l = d.references[i];
+      const r = d.references[i+1];
+      html += `<div class="cvp-ref-pair">
+        <div class="cvp-ref-col">
+          <div class="cvp-ref-name">${cvpEsc(l.name)}</div>
+          <p>${cvpEsc(l.title)}</p>
+          ${l.department ? `<p>${cvpEsc(l.department)}</p>` : ''}
+          ${l.institution ? `<p>${cvpEsc(l.institution)}</p>` : ''}
+          <p>${[l.email, l.phone].filter(Boolean).join(' | ')}</p>
+        </div>
+        ${r ? `<div class="cvp-ref-col">
+          <div class="cvp-ref-name">${cvpEsc(r.name)}</div>
+          <p>${cvpEsc(r.title)}</p>
+          ${r.department ? `<p>${cvpEsc(r.department)}</p>` : ''}
+          ${r.institution ? `<p>${cvpEsc(r.institution)}</p>` : ''}
+          <p>${[r.email, r.phone].filter(Boolean).join(' | ')}</p>
+        </div>` : ''}
+      </div>`;
+    }
+  }
+
+  console.log('[CVP] setting innerHTML, html length:', html.length);
+  paper.innerHTML = html;
+  } catch(e) { console.error('[CVP] RENDER ERROR:', e); }
+}
+
+// ── CV Preview engine ────────────────────────────────────────
+// Uses a 500ms interval so programmatic fills (portfolio auto-fill,
+// add/remove entries) always appear without needing input events.
+// The debounced listener gives immediate feedback while typing.
+
+let _cvbPollId = null;
+
+function startCVBPreview() {
+  renderCVBuilderPreview();                                            // immediate first render
+  if (!_cvbPollId) _cvbPollId = setInterval(renderCVBuilderPreview, 500); // poll every 500ms
+}
+
+function stopCVBPreview() {
+  clearInterval(_cvbPollId);
+  _cvbPollId = null;
+  _cvbLastGoodData = null;
+}
+
+// Debounce for direct-typing response on top of the interval
+function cvpDebounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+const _debouncedPreview = cvpDebounce(renderCVBuilderPreview, 250);
+
+// Wire typing listeners once — IIFE runs immediately (script is at bottom of body)
+(function() {
+  const s = document.getElementById('section-cv-builder');
+  if (s) {
+    s.addEventListener('input',  _debouncedPreview);
+    s.addEventListener('change', _debouncedPreview);
+  }
+}());
+
+// Called from showSection
+function initCVBPreviewListeners() {
+  startCVBPreview();
+}
+
+// ─── CV Builder sidebar ──────────────────────────────────────────────────────
+
+function toggleCVBSection(hdr) {
+  hdr.classList.toggle('open');
+  hdr.nextElementSibling.classList.toggle('open');
+}
+
+function cvbRemove(btn) {
+  btn.closest('.cvb-entry, .cvb-skill-row, .cvb-lang-row').remove();
+  renderCVBuilderPreview();
+}
+
+// ── Experience ──────────────────────────────────────────────
+function cvbAddExp(data = {}) {
+  const id = 'exp-' + Date.now();
+  const el = document.createElement('div');
+  el.className = 'cvb-entry';
+  el.innerHTML = `
+    <div class="cvb-entry-hdr" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span>${data.role || 'New Experience'}</span>
+      <span style="display:flex;align-items:center;gap:4px">
+        <i class="ph ph-caret-down"></i>
+        <button type="button" class="cvb-remove-btn" onclick="event.stopPropagation();cvbRemove(this)">×</button>
+      </span>
+    </div>
+    <div class="cvb-entry-body open">
+      <div class="form-group"><label class="form-label">Role</label><input class="form-control" name="role" value="${data.role||''}"></div>
+      <div class="form-group"><label class="form-label">Company</label><input class="form-control" name="company" value="${data.company||''}"></div>
+      <div class="form-group"><label class="form-label">Company Website</label><input class="form-control" name="company_website" placeholder="sparktech.agency" value="${data.company_website||''}"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <div class="form-group"><label class="form-label">Start</label><input class="form-control" name="start_date" value="${data.start_date||''}"></div>
+        <div class="form-group"><label class="form-label">End / Present</label><input class="form-control" name="end_date" value="${data.end_date||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Location</label><input class="form-control" name="location" value="${data.location||''}"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="2">${data.description||''}</textarea></div>
+      <div class="form-group"><label class="form-label">Achievements (one per line)</label><textarea class="form-control" name="achievements" rows="3">${(data.achievements||[]).join('\n')}</textarea></div>
+      <div class="form-group"><label class="form-label">Tech Used (comma separated)</label><input class="form-control" name="tech_used" value="${(data.tech_used||[]).join(', ')}"></div>
+    </div>`;
+  document.getElementById('cvb-exp-list').appendChild(el);
+  renderCVBuilderPreview();
+}
+
+// ── Projects ────────────────────────────────────────────────
+function cvbAddProj(data = {}) {
+  const el = document.createElement('div');
+  el.className = 'cvb-entry';
+  el.innerHTML = `
+    <div class="cvb-entry-hdr" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span>${data.name || 'New Project'}</span>
+      <span style="display:flex;align-items:center;gap:4px">
+        <i class="ph ph-caret-down"></i>
+        <button type="button" class="cvb-remove-btn" onclick="event.stopPropagation();cvbRemove(this)">×</button>
+      </span>
+    </div>
+    <div class="cvb-entry-body open">
+      <div class="form-group"><label class="form-label">Project Name</label><input class="form-control" name="name" value="${data.name||''}"></div>
+      <div class="form-group"><label class="form-label">Store</label>
+        <select class="form-control" name="store">
+          <option value="" ${!data.store?'selected':''}>None</option>
+          <option value="App Store" ${data.store==='App Store'?'selected':''}>App Store</option>
+          <option value="Google Play" ${data.store==='Google Play'?'selected':''}>Google Play</option>
+          <option value="App Store & Google Play" ${data.store==='App Store & Google Play'?'selected':''}>Both</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <div class="form-group"><label class="form-label">Start Date</label><input class="form-control" name="start_date" value="${data.start_date||''}"></div>
+        <div class="form-group"><label class="form-label">End Date</label><input class="form-control" name="end_date" value="${data.end_date||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Features (one per line)</label><textarea class="form-control" name="features" rows="3">${(data.features||[]).join('\n')}</textarea></div>
+    </div>`;
+  document.getElementById('cvb-proj-list').appendChild(el);
+  renderCVBuilderPreview();
+}
+
+// ── Skills ──────────────────────────────────────────────────
+const CVB_SKILL_CATS = ['languages','framework','core','state_management','backend','payments','tools','architecture','distribution','other'];
+const CVB_SKILL_LABELS = {languages:'Languages',framework:'Framework',core:'Core',state_management:'State Management',backend:'Backend & APIs',payments:'Payments',tools:'Tools & Platforms',architecture:'Architecture',distribution:'App Distribution',other:'Other'};
+
+function cvbAddSkill(cat = '', names = '') {
+  const el = document.createElement('div');
+  el.className = 'cvb-skill-row';
+  el.innerHTML = `
+    <select class="form-control" name="category">${CVB_SKILL_CATS.map(c => `<option value="${c}" ${c===cat?'selected':''}>${CVB_SKILL_LABELS[c]||c}</option>`).join('')}</select>
+    <input class="form-control" name="names" placeholder="Skill1, Skill2" value="${names}">
+    <button type="button" class="cvb-remove-btn" onclick="cvbRemove(this)">×</button>`;
+  document.getElementById('cvb-skill-list').appendChild(el);
+  renderCVBuilderPreview();
+}
+
+// ── Education ───────────────────────────────────────────────
+function cvbAddEdu(data = {}) {
+  const el = document.createElement('div');
+  el.className = 'cvb-entry';
+  el.innerHTML = `
+    <div class="cvb-entry-hdr" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span>${data.degree || 'New Education'}</span>
+      <span style="display:flex;align-items:center;gap:4px">
+        <i class="ph ph-caret-down"></i>
+        <button type="button" class="cvb-remove-btn" onclick="event.stopPropagation();cvbRemove(this)">×</button>
+      </span>
+    </div>
+    <div class="cvb-entry-body open">
+      <div class="form-group"><label class="form-label">Degree</label><input class="form-control" name="degree" placeholder="B.Sc. in Software Engineering" value="${data.degree||''}"></div>
+      <div class="form-group"><label class="form-label">Institution</label><input class="form-control" name="institution" value="${data.institution||''}"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <div class="form-group"><label class="form-label">Start</label><input class="form-control" name="start_date" value="${data.start_date||''}"></div>
+        <div class="form-group"><label class="form-label">End</label><input class="form-control" name="end_date" value="${data.end_date||''}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Location</label><input class="form-control" name="location" value="${data.location||''}"></div>
+      <div class="form-group"><label class="form-label">GPA</label><input class="form-control" name="gpa" placeholder="3.50 / 4.00" value="${data.gpa||''}"></div>
+    </div>`;
+  document.getElementById('cvb-edu-list').appendChild(el);
+  renderCVBuilderPreview();
+}
+
+// ── Languages ───────────────────────────────────────────────
+function cvbAddLang(lang = '', level = '') {
+  const el = document.createElement('div');
+  el.className = 'cvb-lang-row';
+  el.innerHTML = `
+    <input class="form-control" name="language" placeholder="Bengali" value="${lang}">
+    <input class="form-control" name="level" placeholder="Native" value="${level}">
+    <button type="button" class="cvb-remove-btn" onclick="cvbRemove(this)">×</button>`;
+  document.getElementById('cvb-lang-list').appendChild(el);
+  renderCVBuilderPreview();
+}
+
+// ── References ──────────────────────────────────────────────
+function cvbAddRef(data = {}) {
+  const el = document.createElement('div');
+  el.className = 'cvb-entry';
+  el.innerHTML = `
+    <div class="cvb-entry-hdr" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span>${data.name || 'New Reference'}</span>
+      <span style="display:flex;align-items:center;gap:4px">
+        <i class="ph ph-caret-down"></i>
+        <button type="button" class="cvb-remove-btn" onclick="event.stopPropagation();cvbRemove(this)">×</button>
+      </span>
+    </div>
+    <div class="cvb-entry-body open">
+      <div class="form-group"><label class="form-label">Name</label><input class="form-control" name="ref_name" value="${data.name||''}"></div>
+      <div class="form-group"><label class="form-label">Title</label><input class="form-control" name="ref_title" value="${data.title||''}"></div>
+      <div class="form-group"><label class="form-label">Department</label><input class="form-control" name="ref_dept" placeholder="Dept. of Software Engineering" value="${data.department||''}"></div>
+      <div class="form-group"><label class="form-label">Institution</label><input class="form-control" name="ref_inst" placeholder="Daffodil International University" value="${data.institution||''}"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-control" name="ref_email" value="${data.email||''}"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-control" name="ref_phone" value="${data.phone||''}"></div>
+    </div>`;
+  document.getElementById('cvb-ref-list').appendChild(el);
+  renderCVBuilderPreview();
+}
+
+// ── Auto-fill from portfolio ────────────────────────────────
+async function fillCVBuilderFromPortfolio() {
+  Toast.show('Filling from portfolio data…', 'success');
+  try {
+    const [profileRes, expRes, projRes, skillRes] = await Promise.allSettled([
+      API.get('/profile'),
+      API.get('/experience'),
+      API.get('/projects'),
+      API.get('/skills'),
+    ]);
+
+    // Contact + summary
+    if (profileRes.status === 'fulfilled') {
+      const p = profileRes.value.data || {};
+      document.getElementById('cvb-full-name').value = p.full_name || '';
+      document.getElementById('cvb-title').value     = p.title || '';
+      document.getElementById('cvb-email').value     = p.email || '';
+      document.getElementById('cvb-phone').value     = p.phone || '';
+      document.getElementById('cvb-location').value  = p.location || '';
+      document.getElementById('cvb-linkedin').value  = p.linkedin || '';
+      document.getElementById('cvb-github').value    = p.github || '';
+      document.getElementById('cvb-whatsapp').value  = p.whatsapp || '';
+      document.getElementById('cvb-summary').value   = p.bio || p.short_bio || '';
+    }
+
+    // Experience
+    if (expRes.status === 'fulfilled') {
+      document.getElementById('cvb-exp-list').innerHTML = '';
+      (expRes.value.data || []).forEach(e => cvbAddExp({
+        role: e.role, company: e.company, start_date: e.start_date,
+        end_date: e.is_current ? 'Present' : (e.end_date || ''),
+        location: e.location, description: e.description,
+        achievements: Utils.parseArray(e.achievements),
+        tech_used: Utils.parseArray(e.tech_used),
+      }));
+    }
+
+    // Projects
+    if (projRes.status === 'fulfilled') {
+      document.getElementById('cvb-proj-list').innerHTML = '';
+      (projRes.value.data || []).forEach(proj => {
+        let store = '';
+        if (proj.app_store_url && proj.play_store_url) store = 'App Store & Google Play';
+        else if (proj.app_store_url) store = 'App Store';
+        else if (proj.play_store_url) store = 'Google Play';
+        cvbAddProj({
+          name: proj.name, store,
+          features: Utils.parseArray(proj.features),
+        });
+      });
+    }
+
+    // Skills (grouped by category)
+    if (skillRes.status === 'fulfilled') {
+      document.getElementById('cvb-skill-list').innerHTML = '';
+      const grouped = {};
+      (skillRes.value.data || []).forEach(s => {
+        if (!grouped[s.category]) grouped[s.category] = [];
+        grouped[s.category].push(s.name);
+      });
+      const order = ['languages','framework','core','state_management','backend','payments','tools','architecture','distribution'];
+      order.forEach(cat => {
+        if (grouped[cat]) { cvbAddSkill(cat, grouped[cat].join(', ')); delete grouped[cat]; }
+      });
+      Object.entries(grouped).forEach(([cat, names]) => cvbAddSkill(cat, names.join(', ')));
+    }
+
+    Toast.show('Portfolio data loaded — fill in Education, Languages & References manually', 'success');
+
+    // Build preview data directly from API responses — bypasses DOM reads
+    const _p  = profileRes.status === 'fulfilled' ? (profileRes.value.data  || {}) : {};
+    const _ex = expRes.status    === 'fulfilled' ? (expRes.value.data    || []) : [];
+    const _pr = projRes.status   === 'fulfilled' ? (projRes.value.data   || []) : [];
+    const _sk = skillRes.status  === 'fulfilled' ? (skillRes.value.data  || []) : [];
+
+    const _skGrouped = {};
+    _sk.forEach(s => { if (!_skGrouped[s.category]) _skGrouped[s.category] = []; _skGrouped[s.category].push(s.name); });
+    const _skOrder = ['languages','framework','core','state_management','backend','payments','tools','architecture','distribution'];
+    const _skList = [];
+    _skOrder.forEach(c => { if (_skGrouped[c]) { _skList.push({category:c, names:_skGrouped[c].join(', ')}); delete _skGrouped[c]; } });
+    Object.entries(_skGrouped).forEach(([c,n]) => _skList.push({category:c, names:n.join(', ')}));
+
+    console.log('[CVP] fillCVBuilder calling renderCVBuilderPreview — profile name:', _p.full_name, '| exps:', _ex.length);
+    renderCVBuilderPreview({
+      full_name: _p.full_name||'', title:    _p.title||'',
+      email:     _p.email||'',    phone:    _p.phone||'',
+      location:  _p.location||'', linkedin: _p.linkedin||'',
+      github:    _p.github||'',   whatsapp: _p.whatsapp||'',
+      summary:   _p.bio || _p.short_bio || '',
+      experiences: _ex.map(e => ({
+        role: e.role, company: e.company, company_website: '',
+        start_date: e.start_date,
+        end_date: e.is_current ? 'Present' : (e.end_date||''),
+        location: e.location, description: e.description,
+        achievements: Utils.parseArray(e.achievements),
+      })),
+      projects: _pr.map(p => {
+        const store = (p.app_store_url && p.play_store_url) ? 'App Store & Google Play'
+                    : p.app_store_url ? 'App Store'
+                    : p.play_store_url ? 'Google Play' : '';
+        return { name: p.name, store, features: Utils.parseArray(p.features) };
+      }),
+      skills: _skList,
+      education: [], languages: [], references: [],
+    });
+  } catch (e) {
+    Toast.show('Error loading portfolio data: ' + e.message, 'error');
+  }
+}
+
+// ── Build payload from form ─────────────────────────────────
+function buildCVPayload() {
+  const g = id => (document.getElementById(id) || {}).value || '';
+
+  // Experience
+  const experiences = [...document.querySelectorAll('#cvb-exp-list .cvb-entry')].map(el => ({
+    role:            el.querySelector('[name="role"]')?.value.trim() || '',
+    company:         el.querySelector('[name="company"]')?.value.trim() || '',
+    company_website: el.querySelector('[name="company_website"]')?.value.trim() || '',
+    start_date:      el.querySelector('[name="start_date"]')?.value.trim() || '',
+    end_date:        el.querySelector('[name="end_date"]')?.value.trim() || '',
+    is_current:      (el.querySelector('[name="end_date"]')?.value.trim() || '').toLowerCase() === 'present',
+    location:        el.querySelector('[name="location"]')?.value.trim() || '',
+    description:     el.querySelector('[name="description"]')?.value.trim() || '',
+    achievements:    (el.querySelector('[name="achievements"]')?.value || '').split('\n').map(s=>s.trim()).filter(Boolean),
+    tech_used:       (el.querySelector('[name="tech_used"]')?.value || '').split(',').map(s=>s.trim()).filter(Boolean),
+  }));
+
+  // Projects
+  const projects = [...document.querySelectorAll('#cvb-proj-list .cvb-entry')].map(el => ({
+    name:       el.querySelector('[name="name"]')?.value.trim() || '',
+    store:      el.querySelector('[name="store"]')?.value || '',
+    start_date: el.querySelector('[name="start_date"]')?.value.trim() || '',
+    end_date:   el.querySelector('[name="end_date"]')?.value.trim() || '',
+    features:   (el.querySelector('[name="features"]')?.value || '').split('\n').map(s=>s.trim()).filter(Boolean),
+  }));
+
+  // Skills
+  const skills = [...document.querySelectorAll('#cvb-skill-list .cvb-skill-row')].map(el => ({
+    category: el.querySelector('[name="category"]')?.value || '',
+    names:    el.querySelector('[name="names"]')?.value.trim() || '',
+  })).filter(s => s.names);
+
+  // Education
+  const education = [...document.querySelectorAll('#cvb-edu-list .cvb-entry')].map(el => ({
+    degree:      el.querySelector('[name="degree"]')?.value.trim() || '',
+    institution: el.querySelector('[name="institution"]')?.value.trim() || '',
+    start_date:  el.querySelector('[name="start_date"]')?.value.trim() || '',
+    end_date:    el.querySelector('[name="end_date"]')?.value.trim() || '',
+    location:    el.querySelector('[name="location"]')?.value.trim() || '',
+    gpa:         el.querySelector('[name="gpa"]')?.value.trim() || '',
+  }));
+
+  // Languages
+  const languages = [...document.querySelectorAll('#cvb-lang-list .cvb-lang-row')].map(el => ({
+    language: el.querySelector('[name="language"]')?.value.trim() || '',
+    level:    el.querySelector('[name="level"]')?.value.trim() || '',
+  })).filter(l => l.language);
+
+  // References
+  const references = [...document.querySelectorAll('#cvb-ref-list .cvb-entry')].map(el => ({
+    name:  el.querySelector('[name="ref_name"]')?.value.trim() || '',
+    title: el.querySelector('[name="ref_title"]')?.value.trim() || '',
+    department:  el.querySelector('[name="ref_dept"]')?.value.trim() || '',
+    institution: el.querySelector('[name="ref_inst"]')?.value.trim() || '',
+    email: el.querySelector('[name="ref_email"]')?.value.trim() || '',
+    phone: el.querySelector('[name="ref_phone"]')?.value.trim() || '',
+  })).filter(r => r.name);
+
+  return {
+    full_name: g('cvb-full-name'), title: g('cvb-title'),
+    email: g('cvb-email'), phone: g('cvb-phone'),
+    location: g('cvb-location'), linkedin: g('cvb-linkedin'),
+    github: g('cvb-github'), whatsapp: g('cvb-whatsapp'),
+    summary: g('cvb-summary'),
+    experiences, projects, skills, education, languages, references,
+  };
+}
+
+// ── Generate from builder ────────────────────────────────────
+async function generateCVFromBuilder() {
+  const payload = buildCVPayload();
+  if (!payload.full_name) { Toast.show('Full name is required', 'error'); return; }
+  try {
+    Toast.show('Generating CV…', 'info');
+    await API.post('/profile/cv/generate-custom', payload);
+    Toast.show('CV generated — check the preview panel', 'success');
+    await loadCVTab();
+  } catch (e) { Toast.show(e.message, 'error'); }
+}
+
+// ─── loadCVTab pulls the latest profile + history and rebuilds the hero card,
 // stats, preview, visibility toggle, and history list.
 async function loadCVTab() {
   let profile = null;
