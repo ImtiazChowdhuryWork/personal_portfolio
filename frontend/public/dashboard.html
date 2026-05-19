@@ -2655,6 +2655,7 @@
       <a href="#" data-section="skills">⚡ Skills</a>
       <a href="#" data-section="experience">💼 Experience</a>
       <a href="#" data-section="services">🛠 Services</a>
+      <a href="#" data-section="architecture">🏗 Architecture</a>
       <a href="#" data-section="messages">
         ✉ Messages
         <span class="unread-badge" id="unread-count" style="display:none">0</span>
@@ -2685,6 +2686,7 @@
         <div class="stat-card"><div class="stat-value" id="stat-projects">—</div><div class="stat-label">Projects</div></div>
         <div class="stat-card"><div class="stat-value" id="stat-skills">—</div><div class="stat-label">Skills</div></div>
         <div class="stat-card"><div class="stat-value" id="stat-services">—</div><div class="stat-label">Services</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-architecture">—</div><div class="stat-label">Architecture</div></div>
         <div class="stat-card"><div class="stat-value" id="stat-messages">—</div><div class="stat-label">Messages</div></div>
         <div class="stat-card"><div class="stat-value" id="stat-unread">—</div><div class="stat-label">Unread</div></div>
       </div>
@@ -2748,6 +2750,19 @@
           <button class="btn btn-primary btn-sm" onclick="openAddServiceModal()">+ Add Service</button>
         </div>
         <div id="services-table-wrapper">
+          <div style="color:var(--color-text-muted)">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARCHITECTURE section -->
+    <div class="dash-section" id="section-architecture">
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">Architecture Expertise</h3>
+          <button class="btn btn-primary btn-sm" onclick="openAddArchModal()">+ Add Pattern</button>
+        </div>
+        <div id="architecture-table-wrapper">
           <div style="color:var(--color-text-muted)">Loading...</div>
         </div>
       </div>
@@ -3932,7 +3947,7 @@ function showSection(name) {
   document.querySelector(`.dash-nav a[data-section="${name}"]`)?.classList.add('active');
   document.getElementById('dash-title').textContent =
     { overview:'Overview', projects:'Projects', skills:'Skills',
-      experience:'Experience', services:'Services', messages:'Messages',
+      experience:'Experience', services:'Services', architecture:'Architecture', messages:'Messages',
       profile:'Profile', cv:'CV / Resume', social:'Social Links',
       mail:'Mail Settings', github:'GitHub Stats', footer:'Footer & Copyright' }[name] || name;
 
@@ -3941,6 +3956,7 @@ function showSection(name) {
   else if (name === 'skills') loadSkills();
   else if (name === 'experience') loadExperience();
   else if (name === 'services') loadServices();
+  else if (name === 'architecture') loadArchitecture();
   else if (name === 'messages') loadMessages();
   else if (name === 'mail') {
     loadMailHistory();
@@ -4002,7 +4018,8 @@ async function loadStats() {
     const res = await API.get('/stats');
     const s = res.data;
     document.getElementById('stat-projects').textContent = s.total_projects;
-    document.getElementById('stat-services').textContent = s.total_services ?? '—';
+    document.getElementById('stat-services').textContent     = s.total_services     ?? '—';
+    document.getElementById('stat-architecture').textContent = s.total_architecture ?? '—';
     document.getElementById('stat-skills').textContent = s.total_skills;
     document.getElementById('stat-messages').textContent = s.total_messages;
     document.getElementById('stat-unread').textContent = s.unread_messages;
@@ -4274,6 +4291,185 @@ async function deleteService(id) {
         await API.delete(`/services/${id}`);
         Toast.show('Service deleted', 'success');
         loadServices();
+        loadStats();
+      } catch (e) { Toast.show(e.message, 'error'); }
+    },
+  });
+}
+
+// ─── Diagram character toolbar ───────────────────────────────────────────────
+
+function buildDiagramToolbar() {
+  const toolbar = document.getElementById('diagram-char-toolbar');
+  const ta      = document.getElementById('arch-diagram-input');
+  if (!toolbar || !ta) return;
+
+  // Build buttons only once
+  if (toolbar.children.length === 0) {
+    const chars = [
+      '↓','↑','→','←','↕','↔','↙','↘','↗','↖','↳','↲',
+      '│','─','┌','┐','└','┘','├','┤','┬','┴','┼',
+      '▸','▾','▴','◂','⇒','⇐','⇓','⇑','•','…'
+    ];
+    chars.forEach(ch => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = ch;
+      btn.title = ch;
+      btn.style.cssText = 'width:32px;height:28px;border:1px solid var(--color-border);background:var(--color-bg-4);border-radius:4px;cursor:pointer;font-size:14px;color:var(--color-primary);font-family:monospace;transition:border-color .15s';
+      btn.addEventListener('mouseenter', () => btn.style.borderColor = 'var(--color-primary)');
+      btn.addEventListener('mouseleave', () => btn.style.borderColor = 'var(--color-border)');
+      btn.addEventListener('click', () => insertDiagramChar(ch));
+      toolbar.appendChild(btn);
+    });
+
+    // Smooth reveal — transition on opacity + max-height
+    Object.assign(toolbar.style, {
+      overflow:   'hidden',
+      transition: 'opacity 0.3s ease, max-height 0.35s ease, margin-bottom 0.35s ease',
+    });
+
+    ta.addEventListener('input', () => toggleToolbar(toolbar, ta.value.trim().length > 0));
+  }
+
+  // Sync visibility with current textarea value on every modal open
+  toggleToolbar(toolbar, ta.value.trim().length > 0, true);
+}
+
+function toggleToolbar(toolbar, show, instant) {
+  if (show) {
+    toolbar.style.display      = 'flex';
+    requestAnimationFrame(() => {
+      toolbar.style.opacity      = '1';
+      toolbar.style.maxHeight    = '60px';
+      toolbar.style.marginBottom = '6px';
+    });
+  } else {
+    toolbar.style.opacity      = '0';
+    toolbar.style.maxHeight    = '0';
+    toolbar.style.marginBottom = '0';
+    if (instant) { toolbar.style.display = 'none'; return; }
+    toolbar.addEventListener('transitionend', () => {
+      if (toolbar.style.opacity === '0') toolbar.style.display = 'none';
+    }, { once: true });
+  }
+}
+
+function insertDiagramChar(ch) {
+  const ta = document.getElementById('arch-diagram-input');
+  if (!ta) return;
+  const start = ta.selectionStart;
+  const end   = ta.selectionEnd;
+  ta.value = ta.value.slice(0, start) + ch + ta.value.slice(end);
+  // Restore cursor right after the inserted character
+  ta.selectionStart = ta.selectionEnd = start + ch.length;
+  ta.focus();
+}
+
+// ─── Architecture CRUD ───────────────────────────────────────────────────────
+
+let _archEditId = null;
+let _archCache  = [];
+
+async function loadArchitecture() {
+  const w = document.getElementById('architecture-table-wrapper');
+  try {
+    const res = await API.get('/architecture/admin');
+    _archCache = res.data || [];
+    if (!_archCache.length) { w.innerHTML = '<p style="color:var(--color-text-muted)">No architecture patterns yet.</p>'; return; }
+    w.innerHTML = `<div class="table-wrapper"><table class="table">
+      <thead><tr><th>#</th><th>Name</th><th>Description</th><th>Projects</th><th>Order</th><th>Active</th><th>Actions</th></tr></thead>
+      <tbody>${_archCache.map(a => `
+        <tr>
+          <td style="font-weight:700;color:var(--color-primary)">${a.number || '—'}</td>
+          <td style="font-weight:600">${a.name}</td>
+          <td style="font-size:12px;color:var(--color-text-muted);max-width:220px">${(a.description||'').slice(0,80)}${(a.description||'').length>80?'…':''}</td>
+          <td style="font-size:12px">${(a.projects||[]).join(', ') || '—'}</td>
+          <td style="text-align:center">${a.sort_order}</td>
+          <td>${a.active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-primary">Hidden</span>'}</td>
+          <td><div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="openEditArchModal(${a.id})">Edit</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteArch(${a.id})">Delete</button>
+          </div></td>
+        </tr>`).join('')}
+      </tbody></table></div>`;
+  } catch (e) { w.innerHTML = `<p style="color:var(--color-error)">${e.message}</p>`; }
+}
+
+function openAddArchModal() {
+  _archEditId = null;
+  buildDiagramToolbar();
+  document.getElementById('arch-modal-title').textContent = 'Add Pattern';
+  document.getElementById('arch-form').reset();
+  document.getElementById('arch-active').checked = true;
+  const nextOrder = _archCache.length ? Math.max(..._archCache.map(a => a.sort_order)) + 1 : 1;
+  document.getElementById('arch-form').querySelector('[name="sort_order"]').value = nextOrder;
+  const nextNum = String(_archCache.length + 1).padStart(2, '0');
+  document.getElementById('arch-form').querySelector('[name="number"]').value = nextNum;
+  document.getElementById('arch-modal').classList.add('open');
+}
+
+function openEditArchModal(id) {
+  buildDiagramToolbar();
+  const arch = _archCache.find(a => a.id === id);
+  if (!arch) { Toast.show('Pattern not found', 'error'); return; }
+  _archEditId = id;
+  document.getElementById('arch-modal-title').textContent = 'Edit Pattern';
+  const f = document.getElementById('arch-form');
+  f.querySelector('[name="number"]').value      = arch.number || '';
+  f.querySelector('[name="name"]').value        = arch.name || '';
+  f.querySelector('[name="diagram"]').value     = arch.diagram || '';
+  f.querySelector('[name="description"]').value = arch.description || '';
+  f.querySelector('[name="projects"]').value    = (arch.projects || []).join(', ');
+  f.querySelector('[name="sort_order"]').value  = arch.sort_order ?? 0;
+  document.getElementById('arch-active').checked = !!arch.active;
+  document.getElementById('arch-modal').classList.add('open');
+}
+
+function closeArchModal() {
+  document.getElementById('arch-modal').classList.remove('open');
+  _archEditId = null;
+}
+
+async function submitArchForm(ev) {
+  ev.preventDefault();
+  const f = document.getElementById('arch-form');
+  const rawProjects = f.querySelector('[name="projects"]').value;
+  const projects = rawProjects.split(',').map(p => p.trim()).filter(Boolean);
+  const payload = {
+    number:      f.querySelector('[name="number"]').value.trim(),
+    name:        f.querySelector('[name="name"]').value.trim(),
+    diagram:     f.querySelector('[name="diagram"]').value,
+    description: f.querySelector('[name="description"]').value.trim(),
+    projects,
+    sort_order:  parseInt(f.querySelector('[name="sort_order"]').value) || 0,
+    active:      document.getElementById('arch-active').checked,
+  };
+  if (!payload.name) { Toast.show('Name is required', 'error'); return; }
+  try {
+    if (_archEditId) {
+      await API.put(`/architecture/${_archEditId}`, payload);
+      Toast.show('Pattern updated', 'success');
+    } else {
+      await API.post('/architecture', payload);
+      Toast.show('Pattern added', 'success');
+    }
+    closeArchModal();
+    loadArchitecture();
+    loadStats();
+  } catch (e) { Toast.show(e.message, 'error'); }
+}
+
+async function deleteArch(id) {
+  const arch = _archCache.find(a => a.id === id);
+  ConfirmDialog.show({
+    title:   'Delete Pattern',
+    message: `"${arch?.name || 'This pattern'}" will be permanently removed.`,
+    onConfirm: async () => {
+      try {
+        await API.delete(`/architecture/${id}`);
+        Toast.show('Pattern deleted', 'success');
+        loadArchitecture();
         loadStats();
       } catch (e) { Toast.show(e.message, 'error'); }
     },
@@ -8606,6 +8802,57 @@ async function submitExpForm(ev) {
       <button class="btn btn-ghost" onclick="ConfirmDialog._cancel()">Cancel</button>
       <button class="btn btn-danger" id="confirm-ok-btn" onclick="ConfirmDialog._confirm()">Delete</button>
     </div>
+  </div>
+</div>
+
+<!-- Add / Edit Architecture modal -->
+<div class="modal-overlay" id="arch-modal" onclick="if(event.target===this) closeArchModal()">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="arch-modal-title">Add Pattern</h3>
+      <button type="button" class="modal-close" onclick="closeArchModal()" aria-label="Close">&times;</button>
+    </div>
+    <form id="arch-form" novalidate onsubmit="submitArchForm(event)">
+      <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem">
+        <div class="form-group">
+          <label class="form-label">Number</label>
+          <input class="form-control" name="number" placeholder="01" maxlength="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Name <span style="color:var(--color-error)">*</span></label>
+          <input class="form-control" name="name" placeholder="Clean Architecture" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ASCII Diagram</label>
+        <div id="diagram-char-toolbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px"></div>
+        <textarea class="form-control" id="arch-diagram-input" name="diagram" rows="6"
+          placeholder="UI Layer&#10;    ↓&#10;Domain Layer&#10;    ↓&#10;Data Layer"
+          style="font-family:monospace;font-size:13px"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="3" placeholder="Describe this architecture pattern..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Projects <span style="color:var(--color-text-muted);font-weight:400">(comma separated)</span></label>
+        <input class="form-control" name="projects" placeholder="Project Finder, Hiye Health">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label class="form-label">Sort Order</label>
+          <input class="form-control" name="sort_order" type="number" value="1" min="1">
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:12px;padding-top:1.8rem">
+          <input type="checkbox" id="arch-active" checked style="width:18px;height:18px;cursor:pointer">
+          <label for="arch-active" style="cursor:pointer;font-weight:600">Active</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeArchModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Pattern</button>
+      </div>
+    </form>
   </div>
 </div>
 

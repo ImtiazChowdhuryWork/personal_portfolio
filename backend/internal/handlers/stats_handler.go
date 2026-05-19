@@ -31,13 +31,14 @@ func NewStatsHandler(db *gorm.DB) *StatsHandler {
 
 // GetStats returns aggregate counts for the dashboard overview cards.
 func (h *StatsHandler) GetStats(c *gin.Context) {
-	var totalProjects, totalSkills, totalExperience, totalServices int64
+	var totalProjects, totalSkills, totalExperience, totalServices, totalArchitecture int64
 	var totalMessages, unreadMessages int64
 
 	h.db.Model(&models.Project{}).Count(&totalProjects)
 	h.db.Model(&models.Skill{}).Count(&totalSkills)
 	h.db.Model(&models.Experience{}).Count(&totalExperience)
 	h.db.Model(&models.Service{}).Count(&totalServices)
+	h.db.Model(&models.Architecture{}).Count(&totalArchitecture)
 	h.db.Model(&models.Message{}).Count(&totalMessages)
 	h.db.Model(&models.Message{}).Where("is_read = ?", false).Count(&unreadMessages)
 
@@ -45,7 +46,8 @@ func (h *StatsHandler) GetStats(c *gin.Context) {
 		"total_projects":   totalProjects,
 		"total_skills":     totalSkills,
 		"total_experience": totalExperience,
-		"total_services":   totalServices,
+		"total_services":      totalServices,
+		"total_architecture":  totalArchitecture,
 		"total_messages":   totalMessages,
 		"unread_messages":  unreadMessages,
 	})
