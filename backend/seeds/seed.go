@@ -43,6 +43,7 @@ func Run(db *gorm.DB, cfg *config.Config) {
 	seedExperience(db)
 	seedProjects(db)
 	seedServices(db)
+	seedArchitecture(db)
 
 	fmt.Println("✅ Database seeding complete")
 }
@@ -320,4 +321,66 @@ func seedServices(db *gorm.DB) {
 		return
 	}
 	fmt.Printf("   ✓ %d services seeded\n", len(services))
+}
+
+func seedArchitecture(db *gorm.DB) {
+	var count int64
+	db.Model(&models.Architecture{}).Count(&count)
+	if count > 0 {
+		return
+	}
+
+	items := []models.Architecture{
+		{
+			Number:      "01",
+			Name:        "Clean Architecture",
+			Diagram:     "UI Layer\n    ↓\nDomain Layer (Use Cases)\n    ↓\nData Layer (Repositories)\n    ↓\n  Database / API",
+			Description: "Separates the app into layers with clear boundaries. Business logic in the domain layer never depends on UI or data frameworks — making it independently testable and framework-agnostic.",
+			Projects:    models.StringArray{"Project Finder", "Hiye Health"},
+			SortOrder:   1,
+			Active:      true,
+		},
+		{
+			Number:      "02",
+			Name:        "BLoC Pattern",
+			Diagram:     "    Events\n      ↓\n[BLoC / Cubit]\n      ↓\n    States\n      ↓\n    UI Widgets",
+			Description: "Business Logic Component separates UI from business logic using streams. Events flow in, states flow out. Every state change is explicit, predictable, and testable.",
+			Projects:    models.StringArray{"Hiye Health"},
+			SortOrder:   2,
+			Active:      true,
+		},
+		{
+			Number:      "03",
+			Name:        "GetX Pattern",
+			Diagram:     "  Controllers\n  (logic + state)\n      ↓\n  GetX Bindings\n  (DI + routing)\n      ↓\n  Obx Widgets\n  (reactive UI)",
+			Description: "Lightweight state management with built-in routing and dependency injection. Reactive variables (Rx) automatically update the UI without manual setState or streams.",
+			Projects:    models.StringArray{"Project Finder"},
+			SortOrder:   3,
+			Active:      true,
+		},
+		{
+			Number:      "04",
+			Name:        "MVVM",
+			Diagram:     "   View (Widget)\n       ↕\n  ViewModel\n  (ChangeNotifier)\n       ↕\n  Model / Repo",
+			Description: "Model-View-ViewModel keeps UI code clean by moving all logic into the ViewModel. The View only observes the ViewModel — never makes decisions.",
+			Projects:    models.StringArray{"SperkTech Apps"},
+			SortOrder:   4,
+			Active:      true,
+		},
+		{
+			Number:      "05",
+			Name:        "Repository Pattern",
+			Diagram:     "UI / BLoC / GetX\n       ↓\n   Repository\n  (interface)\n    ↙      ↘\nRemoteDS  LocalDS\n(API)   (Hive/SQLite)",
+			Description: "The Repository acts as the single source of truth, deciding whether to fetch fresh data from the API or serve cached local data — completely transparent to the UI layer.",
+			Projects:    models.StringArray{"Project Finder", "Hiye Health"},
+			SortOrder:   5,
+			Active:      true,
+		},
+	}
+
+	if err := db.Create(&items).Error; err != nil {
+		log.Printf("⚠️  Failed to seed architecture: %v", err)
+		return
+	}
+	fmt.Printf("   ✓ %d architecture items seeded\n", len(items))
 }

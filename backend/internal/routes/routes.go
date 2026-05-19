@@ -81,6 +81,7 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	skillSvc := services.NewSkillService(db)
 	expSvc := services.NewExperienceService(db)
 	serviceSvc := services.NewServiceService(db)
+	archSvc := services.NewArchitectureService(db)
 	msgSvc := services.NewMessageService(db)
 	emailSvc := services.NewEmailService(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPass)
 	profileSvc := services.NewProfileService(db)
@@ -124,6 +125,7 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	skillHandler := handlers.NewSkillHandler(skillSvc)
 	expHandler := handlers.NewExperienceHandler(expSvc)
 	serviceHandler := handlers.NewServiceHandler(serviceSvc)
+	archHandler := handlers.NewArchitectureHandler(archSvc)
 	msgHandler := handlers.NewMessageHandler(msgSvc, emailSvc, profileSvc, broker, replyQueue, cfg.UploadDir)
 	profileHandler := handlers.NewProfileHandler(profileSvc, emailSvc, cvGenSvc, cfg.UploadDir)
 	uploadHandler := handlers.NewUploadHandler(uploadSvc)
@@ -147,6 +149,7 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	v1.GET("/skills", skillHandler.GetAll)
 	v1.GET("/experience", expHandler.GetAll)
 	v1.GET("/services", serviceHandler.GetAll)
+	v1.GET("/architecture", archHandler.GetAll)
 	v1.GET("/profile", profileHandler.Get)
 
 	// Contact form — public so visitors can submit without logging in
@@ -191,6 +194,12 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	protected.POST("/services", serviceHandler.Create)
 	protected.PUT("/services/:id", serviceHandler.Update)
 	protected.DELETE("/services/:id", serviceHandler.Delete)
+
+	// Architecture expertise (dashboard CRUD)
+	protected.GET("/architecture/admin", archHandler.GetAllAdmin)
+	protected.POST("/architecture", archHandler.Create)
+	protected.PUT("/architecture/:id", archHandler.Update)
+	protected.DELETE("/architecture/:id", archHandler.Delete)
 
 	// Message management (dashboard inbox)
 	protected.GET("/messages", msgHandler.GetAll)
