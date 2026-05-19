@@ -174,6 +174,12 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// Auth verification — used by dashboard to confirm token is valid
 	protected.GET("/auth/me", authHandler.Me)
 
+	// Account settings — name, email, password
+	protected.GET("/account", authHandler.GetAccount)
+	protected.PUT("/account/name", authHandler.UpdateName)
+	protected.PUT("/account/email", authHandler.UpdateEmail)
+	protected.PUT("/account/password", authHandler.UpdatePassword)
+
 	// Project management (dashboard CRUD)
 	protected.POST("/projects", projectHandler.Create)
 	protected.PUT("/projects/:id", projectHandler.Update)
