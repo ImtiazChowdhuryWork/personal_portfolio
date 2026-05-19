@@ -277,6 +277,189 @@
   font-weight: var(--fw-semi);
 }
 
+/* ─── Screenshot viewer ────────────────────────────────────────*/
+.pd-viewer-section { overflow: hidden; }
+
+.pd-viewer {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Left column: mockup + controls */
+.pd-viewer-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Phone frame */
+.pd-viewer-phone {
+  cursor: zoom-in;
+  position: relative;
+}
+
+.pd-viewer-frame {
+  width: 220px;
+  height: 460px;
+  background: linear-gradient(145deg, #1a1a2e 0%, #0d0d1a 100%);
+  border-radius: 38px;
+  border: 2px solid rgba(255,255,255,0.1);
+  box-shadow:
+    0 30px 60px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  position: relative; /* containing block for .pd-viewer-screen */
+  overflow: hidden;
+}
+
+.pd-viewer-notch {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 20px;
+  background: #0a0a0f;
+  border-radius: 20px;
+  z-index: 2;
+}
+
+.pd-viewer-screen {
+  position: absolute;
+  inset: 0;
+  border-radius: 36px;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.pd-viewer-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.pd-viewer-img.active { opacity: 1; }
+
+/* Prev / Next + counter row */
+.pd-viewer-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pd-nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-4);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: 16px;
+}
+.pd-nav-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-glow);
+}
+
+.pd-counter {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-muted);
+  min-width: 36px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+/* Right column: thumbnail grid */
+.pd-viewer-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  max-height: 460px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+.pd-viewer-thumbs::-webkit-scrollbar { width: 6px; }
+.pd-viewer-thumbs::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+
+.pd-thumb {
+  height: 220px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  background: var(--color-bg-4);
+}
+.pd-thumb:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+.pd-thumb.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+.pd-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+/* Fullscreen lightbox */
+.pd-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  animation: pd-lb-in 0.2s ease;
+}
+@keyframes pd-lb-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.pd-lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+}
+
+@media (max-width: 640px) {
+  .pd-viewer {
+    grid-template-columns: 1fr;
+  }
+  .pd-viewer-frame {
+    width: 180px;
+    height: 378px;
+  }
+  .pd-viewer-thumbs {
+    max-height: none;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  }
+  .pd-thumb { height: 150px; }
+}
+
 /* ─── "View Details" button — anchored bottom-right of each slide ─*/
 .app-view-details-btn {
   position: absolute;

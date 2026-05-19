@@ -34,7 +34,7 @@
 @import './components/stat-card.css';
 @import './components/table.css';
 @import './components/portfolio-card.css';
-@import './components/project-detail.css?v=4';
+@import './components/project-detail.css?v=10';
 
 /* ─── 4. Page-specific styles ────────────────────────────────*/
 @import './pages/portfolio.css';

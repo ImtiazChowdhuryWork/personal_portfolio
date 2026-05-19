@@ -88,7 +88,8 @@
       "PowerShell($env:PGPASSWORD = 'postgres123'; & \"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -h localhost -p 5432 -U postgres -d imtiaz_portfolio -c \"ALTER TABLE experiences DROP COLUMN IF EXISTS tech_stack;\")",
       "Bash(powershell.exe -Command \"Get-Service -Name 'postgresql*' | Select-Object Name, Status\")",
       "Bash(dir /s /b \"I:\\\\website\\\\personal_portfolio\")",
-      "Bash(findstr /i dashboard)"
+      "Bash(findstr /i dashboard)",
+      "Bash(powershell *)"
     ]
   }
 }
