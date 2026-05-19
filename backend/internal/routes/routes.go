@@ -222,6 +222,7 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	protected.PUT("/profile/cv", profileHandler.UpdateCV)
 	protected.PUT("/profile/cv/visibility", profileHandler.UpdateCVVisibility)
 	protected.POST("/profile/cv/generate", profileHandler.GenerateCV)
+	protected.POST("/profile/cv/generate-custom", profileHandler.GenerateCustomCV)
 	protected.GET("/profile/cv/history", profileHandler.GetCVHistory)
 	protected.POST("/profile/cv/history/:id/activate", profileHandler.ActivateCV)
 	protected.DELETE("/profile/cv/history/:id", profileHandler.DeleteCVHistory)
