@@ -60,6 +60,12 @@ type Config struct {
 	SMTPPort string // e.g. 587
 	SMTPUser string // Gmail address
 	SMTPPass string // Gmail App Password (not regular password)
+
+	// ─── Job Scraper ─────────────────────────────────────────
+	JobSearchKeywords string // comma-separated, e.g. "flutter,dart,mobile developer"
+	AdzunaAppID       string // free at developer.adzuna.com
+	AdzunaAppKey      string
+	RapidAPIKey       string // free at rapidapi.com — enables JSearch (LinkedIn+Indeed+Glassdoor)
 }
 
 /**
@@ -120,6 +126,10 @@ func Load() *Config {
 		SMTPPort:         getEnv("SMTP_PORT", "587"),
 		SMTPUser:         getEnv("SMTP_USER", ""),
 		SMTPPass:         getEnv("SMTP_PASS", ""),
+		JobSearchKeywords: getEnv("JOB_SEARCH_KEYWORDS", "flutter,dart,mobile developer"),
+		AdzunaAppID:       getEnv("ADZUNA_APP_ID", ""),
+		AdzunaAppKey:      getEnv("ADZUNA_APP_KEY", ""),
+		RapidAPIKey:       getEnv("RAPIDAPI_KEY", ""),
 	}
 }
 

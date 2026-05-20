@@ -2946,6 +2946,301 @@
       background: var(--color-primary-glow);
       color: var(--color-primary);
     }
+    /* ── Job Posts ──────────────────────────────────────────── */
+    .jobs-filters {
+      display: flex; gap: .75rem; flex-wrap: wrap; align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .jobs-filter-input {
+      padding: .45rem .7rem; border: 1px solid var(--color-border);
+      border-radius: 8px; background: var(--color-bg-3); color: var(--color-text);
+      font-size: .85rem; outline: none;
+    }
+    .jobs-filter-input:focus { border-color: var(--color-primary); }
+    .jobs-filter-check {
+      display: flex; align-items: center; gap: .4rem;
+      font-size: .85rem; color: var(--color-text-muted); cursor: pointer;
+    }
+    .jobs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+    .job-card {
+      background: var(--color-bg-3); border: 1px solid var(--color-border);
+      border-radius: 10px; padding: 1rem; display: flex; flex-direction: column;
+      gap: .5rem; transition: border-color .2s;
+    }
+    .job-card:hover { border-color: var(--color-primary-dark); }
+    .job-source-badge {
+      display: inline-block; padding: .2rem .6rem; border-radius: var(--radius-full);
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      background: var(--color-bg-4); color: var(--color-text-muted);
+    }
+    .job-source-badge.remoteok      { background: rgba(59,130,246,.2); color: #60a5fa; }
+    .job-source-badge.remotive      { background: rgba(139,92,246,.2); color: #a78bfa; }
+    .job-source-badge.weworkremotely{ background: rgba(236,72,153,.2); color: #f472b6; }
+    .job-source-badge.arbeitnow     { background: rgba(16,185,129,.2); color: #34d399; }
+    .job-card-title { font-size: .95rem; font-weight: 700; color: var(--color-heading); }
+    .job-card-company { font-size: .85rem; color: var(--color-text-muted); }
+    .job-card-meta {
+      display: flex; flex-wrap: wrap; gap: .5rem;
+      font-size: .78rem; color: var(--color-text-dim);
+    }
+    .job-card-desc {
+      font-size: .8rem; color: var(--color-text-muted); line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .job-card-actions {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: .6rem; border-top: 1px solid var(--color-border); margin-top: auto;
+    }
+    .job-action-btn {
+      background: none; border: none; color: var(--color-text-muted);
+      cursor: pointer; font-size: 1rem; padding: .25rem; border-radius: 4px;
+      transition: color .2s;
+    }
+    .job-action-btn:hover { color: var(--color-primary); }
+    .job-action-btn.active { color: var(--color-primary); }
+    .job-applied-label {
+      display: flex; align-items: center; gap: .3rem;
+      font-size: .78rem; color: var(--color-text-muted); cursor: pointer;
+    }
+    /* ── Stats bar ────────────────────────────────────────── */
+    .jobs-stats-bar {
+      display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem;
+    }
+    .jobs-stat-pill {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .35rem .8rem; border-radius: var(--radius-full);
+      background: var(--color-bg-4); border: 1px solid var(--color-border);
+      font-size: .78rem; font-weight: 600; color: var(--color-text-muted);
+    }
+    .jobs-stat-pill .stat-num { color: var(--color-heading); font-size: .9rem; }
+    .jobs-stat-pill.applied   { border-color: rgba(84,197,248,.3); color: var(--color-primary); }
+    .jobs-stat-pill.interview { border-color: rgba(139,92,246,.3); color: #a78bfa; }
+    .jobs-stat-pill.offered   { border-color: rgba(76,175,80,.3);  color: var(--color-success); }
+    .jobs-stat-pill.rejected  { border-color: rgba(244,67,54,.3);  color: var(--color-error); }
+
+    /* ── View toggle ───────────────────────────────────────── */
+    .jobs-view-toggle { display: flex; gap: .35rem; margin-bottom: .85rem; }
+    .jobs-view-btn {
+      padding: .3rem .85rem; font-size: .78rem; font-weight: 600;
+      border: 1px solid var(--color-border); border-radius: 6px;
+      background: var(--color-bg-4); color: var(--color-text-muted); cursor: pointer;
+      transition: all .2s;
+    }
+    .jobs-view-btn.active {
+      background: var(--color-primary-glow); border-color: var(--color-primary-dark);
+      color: var(--color-primary);
+    }
+
+    /* ── Pipeline / Kanban ─────────────────────────────────── */
+    .pipeline-board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: .75rem; overflow-x: auto;
+    }
+    @media (max-width:1100px) { .pipeline-board { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width:700px)  { .pipeline-board { grid-template-columns: 1fr 1fr; } }
+    .pipeline-col { background: var(--color-bg-4); border-radius: 10px; padding: .75rem; min-height: 200px; }
+    .pipeline-col-header {
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--color-text-muted);
+      margin-bottom: .6rem; display: flex; justify-content: space-between;
+    }
+    .pipeline-col-count {
+      background: var(--color-bg-3); border-radius: var(--radius-full);
+      padding: .05rem .45rem; font-size: .7rem; color: var(--color-text-dim);
+    }
+    .pipeline-card {
+      background: var(--color-bg-3); border: 1px solid var(--color-border);
+      border-radius: 8px; padding: .6rem .7rem; margin-bottom: .45rem;
+      font-size: .8rem; cursor: default;
+    }
+    .pipeline-card-title { font-weight: 600; color: var(--color-heading); margin-bottom: .2rem; }
+    .pipeline-card-company { color: var(--color-text-muted); font-size: .75rem; }
+    .pipeline-card-src { font-size: .68rem; color: var(--color-text-dim); margin-top: .25rem; }
+
+    /* ── Job card extras ───────────────────────────────────── */
+    .job-card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: .4rem;
+      padding-top: .5rem; border-top: 1px solid var(--color-border);
+      margin-top: .5rem;
+    }
+    .job-status-select {
+      font-size: .75rem; font-weight: 600; border-radius: var(--radius-full);
+      padding: .2rem .5rem; border: 1px solid var(--color-border);
+      background: var(--color-bg-4); color: var(--color-text-muted); cursor: pointer;
+      outline: none; appearance: none; -webkit-appearance: none;
+    }
+    .job-status-select.s-applied     { border-color:rgba(84,197,248,.5); color:var(--color-primary); }
+    .job-status-select.s-interviewing{ border-color:rgba(139,92,246,.5); color:#a78bfa; }
+    .job-status-select.s-offered     { border-color:rgba(76,175,80,.5);  color:var(--color-success); }
+    .job-status-select.s-rejected    { border-color:rgba(244,67,54,.5);  color:var(--color-error); }
+    .job-footer-actions { display: flex; gap: .3rem; }
+    .job-icon-btn {
+      background: none; border: none; cursor: pointer; padding: .2rem .3rem;
+      color: var(--color-text-dim); font-size: .95rem; border-radius: 4px;
+      transition: color .15s;
+    }
+    .job-icon-btn:hover { color: var(--color-primary); }
+    .job-icon-btn.has-data { color: var(--color-primary); }
+    .job-match-pct {
+      font-size: .72rem; font-weight: 700; padding: .15rem .4rem;
+      border-radius: var(--radius-full);
+    }
+    .job-match-pct.hi  { background:rgba(76,175,80,.15); color:var(--color-success); }
+    .job-match-pct.mid { background:rgba(84,197,248,.15); color:var(--color-primary); }
+    .job-match-pct.lo  { background:var(--color-bg-4); color:var(--color-text-dim); }
+
+    /* ── Scraper Settings: behaviour panel ────────────────── */
+    .jss-behaviour-grid {
+      display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+      gap: 1rem; align-items: start;
+    }
+    .jss-beh-group { display: flex; flex-direction: column; gap: .35rem; }
+    .jss-toggle-label {
+      display: flex; align-items: center; gap: .4rem;
+      font-size: .83rem; color: var(--color-text-muted); cursor: pointer;
+    }
+    .jss-source-toggles { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .jss-src-toggle {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .25rem .65rem; border-radius: var(--radius-full);
+      border: 1px solid var(--color-border); background: var(--color-bg-4);
+      font-size: .75rem; font-weight: 600; color: var(--color-text-muted);
+      cursor: pointer; user-select: none; transition: all .15s;
+    }
+    .jss-src-toggle.enabled  { border-color:rgba(76,175,80,.4); color:var(--color-success); background:rgba(76,175,80,.08); }
+    .jss-src-toggle.disabled { border-color:rgba(244,67,54,.3); color:var(--color-error);   background:rgba(244,67,54,.06); text-decoration:line-through; }
+
+    /* Scraper Settings section */
+    .jss-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;
+    }
+    @media (max-width: 960px) { .jss-grid { grid-template-columns: 1fr; } }
+    .jss-desc {
+      font-size: .85rem; color: var(--color-text-muted); line-height: 1.6; margin: 0;
+    }
+    .jss-api-cards { display: flex; flex-direction: column; gap: .85rem; margin-top: 1rem; }
+
+    /* API key cards (used inside Scraper Settings section) */
+    .jobs-api-card {
+      background: var(--color-bg-4); border-radius: 8px; padding: .85rem;
+      display: flex; flex-direction: column; gap: .6rem;
+    }
+    .jobs-api-card-header {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem;
+    }
+    .jobs-api-card-name { font-size: .85rem; font-weight: 700; color: var(--color-heading); }
+    .jobs-api-status-badge {
+      display: inline-block; margin-left: .4rem; font-size: .7rem; font-weight: 700;
+      padding: .1rem .4rem; border-radius: var(--radius-full);
+    }
+    .jobs-api-status-badge.ok  { background: rgba(76,175,80,.15); color: var(--color-success); }
+    .jobs-api-status-badge.off { background: var(--color-bg-3); color: var(--color-text-dim); }
+    .jobs-api-link {
+      font-size: .72rem; color: var(--color-primary); text-decoration: none; white-space: nowrap;
+    }
+    .jobs-api-link:hover { text-decoration: underline; }
+    .jobs-api-inputs { display: flex; flex-direction: column; gap: .4rem; }
+    .jobs-api-input { font-size: .83rem !important; padding: .4rem .6rem !important; }
+    .jobs-api-actions { display: flex; gap: .5rem; }
+    .api-key-wrap {
+      position: relative; display: flex; align-items: center;
+    }
+    .api-key-wrap .jobs-api-input { padding-right: 2.2rem !important; flex: 1; }
+    .api-eye-btn {
+      position: absolute; right: .5rem;
+      background: none; border: none; cursor: pointer;
+      color: var(--color-text-dim); font-size: 1rem; line-height: 1;
+      padding: 0; display: flex; align-items: center;
+      transition: color .2s;
+    }
+    .api-eye-btn:hover { color: var(--color-text-muted); }
+    .api-hint-steps {
+      margin: .5rem 0 .6rem; padding-left: 1.2rem;
+      display: flex; flex-direction: column; gap: .3rem;
+    }
+    .api-hint-steps li {
+      font-size: .75rem; color: var(--color-text-muted); line-height: 1.5;
+    }
+    .api-hint-steps li strong { color: var(--color-text); font-weight: 600; }
+
+    /* Source health panel */
+    .jobs-sources-panel {
+      display: flex; flex-wrap: wrap; gap: .4rem;
+      margin-bottom: 1rem;
+    }
+    .jobs-src-pill {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .25rem .65rem; border-radius: var(--radius-full);
+      border: 1px solid var(--color-border); background: var(--color-bg-3);
+      font-size: .72rem; font-weight: 600; color: var(--color-text-muted);
+      cursor: default;
+    }
+    .jobs-src-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    }
+    .jobs-src-dot.green  { background: var(--color-success); }
+    .jobs-src-dot.yellow { background: var(--color-warning); }
+    .jobs-src-dot.red    { background: var(--color-error); }
+    .jobs-src-dot.grey   { background: var(--color-text-dim); }
+    .jobs-src-pill[title] { cursor: help; }
+
+    /* Extra source badge colours */
+    .job-source-badge.jobicy        { background: rgba(245,158,11,.2); color: #fbbf24; }
+    .job-source-badge.himalayas     { background: rgba(99,102,241,.2); color: #a5b4fc; }
+    .job-source-badge.themuse       { background: rgba(244,63,94,.2);  color: #fb7185; }
+    .job-source-badge.remoteco      { background: rgba(20,184,166,.2); color: #2dd4bf; }
+    .job-source-badge.jobspresso    { background: rgba(234,179,8,.2);  color: #fde047; }
+    .job-source-badge.authenticjobs { background: rgba(168,85,247,.2); color: #d8b4fe; }
+    .job-source-badge.adzuna        { background: rgba(239,68,68,.2);  color: #fca5a5; }
+    .job-source-badge.jsearch       { background: rgba(6,182,212,.2);  color: #67e8f9; }
+
+    .jobs-kw-bar {
+      display: flex; align-items: center; flex-wrap: wrap; gap: .5rem;
+      padding: .65rem 1rem; margin-bottom: 1rem;
+      background: var(--color-bg-4); border: 1px solid var(--color-border); border-radius: 8px;
+    }
+    .jobs-kw-label { font-size: .78rem; font-weight: 700; color: var(--color-text-muted); white-space: nowrap; }
+    .jobs-kw-chips { display: flex; flex-wrap: wrap; gap: .3rem; }
+    .jobs-kw-chip {
+      display: inline-flex; align-items: center; gap: .25rem;
+      padding: .18rem .55rem; border-radius: var(--radius-full);
+      background: var(--color-primary-glow); border: 1px solid var(--color-primary-dark);
+      font-size: .73rem; font-weight: 600; color: var(--color-primary);
+    }
+    .jobs-kw-chip-remove {
+      background: none; border: none; cursor: pointer; color: inherit;
+      padding: 0; line-height: 1; font-size: .85rem; opacity: .7;
+    }
+    .jobs-kw-chip-remove:hover { opacity: 1; }
+    .jobs-kw-input {
+      flex: 1; min-width: 120px; background: transparent; border: none;
+      outline: none; color: var(--color-text); font-size: .83rem;
+    }
+    .jobs-kw-input::placeholder { color: var(--color-text-dim); }
+    .jobs-match-badge {
+      display: inline-flex; align-items: center; gap: .2rem;
+      padding: .15rem .45rem; border-radius: var(--radius-full);
+      background: rgba(255,180,0,.12); border: 1px solid rgba(255,180,0,.3);
+      font-size: .68rem; font-weight: 700; color: #f5c400;
+    }
+    .job-card.has-match { border-color: rgba(255,180,0,.25); }
+
+    .job-view-link {
+      display: inline-flex; align-items: center; gap: .25rem;
+      font-size: .78rem; font-weight: 600; color: var(--color-primary);
+      text-decoration: none; padding: .3rem .6rem;
+      border: 1px solid var(--color-primary-dark); border-radius: 6px;
+      transition: background .2s;
+    }
+    .job-view-link:hover { background: var(--color-primary-glow); }
+
   </style>
 </head>
 <body>
@@ -2974,6 +3269,10 @@
       <a href="#" data-section="cv-builder">🛠 CV Builder</a>
       <a href="#" data-section="social">🔗 Social Links</a>
       <a href="#" data-section="github">🐙 GitHub Stats</a>
+
+      <div class="dash-nav-group">Tools</div>
+      <a href="#" data-section="jobs">🔍 Job Posts</a>
+      <a href="#" data-section="job-settings">⚙ Scraper Settings</a>
 
       <div class="dash-nav-group">Settings</div>
       <a href="#" data-section="mail">📧 Mail Settings</a>
@@ -4366,7 +4665,284 @@
       </div>
     </div>
 
+    <!-- JOB POSTS section -->
+    <div class="dash-section" id="section-jobs">
+      <div class="dash-panel">
+        <div class="dash-panel-header">
+          <h3 class="dash-panel-title">Job Posts</h3>
+          <button class="btn btn-primary btn-sm" id="btn-scrape-jobs">
+            <i class="ph ph-arrows-clockwise"></i> Scrape Now
+          </button>
+        </div>
+
+        <!-- Analytics stats bar -->
+        <div id="jobs-stats-bar" class="jobs-stats-bar"></div>
+
+        <!-- Source health panel -->
+        <div id="jobs-sources-panel" class="jobs-sources-panel"></div>
+
+        <!-- View toggle -->
+        <div class="jobs-view-toggle">
+          <button class="jobs-view-btn active" id="btn-view-list"    onclick="switchJobsView('list')">☰ List</button>
+          <button class="jobs-view-btn"         id="btn-view-pipeline" onclick="switchJobsView('pipeline')">⬛ Pipeline</button>
+        </div>
+
+        <!-- Filter bar (list view only) -->
+        <div class="jobs-filters">
+          <select id="jobs-filter-source" class="jobs-filter-input">
+            <option value="">All Sources</option>
+            <option value="remoteok">RemoteOK</option>
+            <option value="remotive">Remotive</option>
+            <option value="weworkremotely">We Work Remotely</option>
+            <option value="arbeitnow">Arbeitnow</option>
+            <option value="jobicy">Jobicy</option>
+            <option value="himalayas">Himalayas</option>
+            <option value="themuse">The Muse</option>
+            <option value="remoteco">Remote.co</option>
+            <option value="jobspresso">Jobspresso</option>
+            <option value="authenticjobs">Authentic Jobs</option>
+            <option value="adzuna">Adzuna</option>
+            <option value="jsearch">JSearch (LinkedIn+)</option>
+          </select>
+          <input type="text" id="jobs-filter-q" class="jobs-filter-input" placeholder="Search title, company…" />
+          <label class="jobs-filter-check">
+            <input type="checkbox" id="jobs-filter-bookmarked" /> Bookmarked
+          </label>
+          <label class="jobs-filter-check">
+            <input type="checkbox" id="jobs-filter-applied" /> Applied
+          </label>
+        </div>
+
+        <!-- List view -->
+        <div id="jobs-list-view">
+          <div id="jobs-loading" style="display:none;color:var(--color-text-muted);padding:1rem 0">Loading…</div>
+          <div id="jobs-empty"   style="display:none;color:var(--color-text-muted);padding:2rem 0;text-align:center">
+            No jobs found. Click <strong>Scrape Now</strong> to fetch the latest listings.
+          </div>
+          <div id="jobs-grid" class="jobs-grid"></div>
+        </div>
+
+        <!-- Pipeline / Kanban view -->
+        <div id="jobs-pipeline-view" style="display:none">
+          <div class="pipeline-board" id="pipeline-board"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCRAPER SETTINGS section -->
+    <div class="dash-section" id="section-job-settings">
+      <div class="jss-grid">
+
+        <!-- Keywords panel -->
+        <div class="dash-panel">
+          <div class="dash-panel-header">
+            <h3 class="dash-panel-title">Priority Keywords</h3>
+          </div>
+          <p class="jss-desc">
+            Keywords control two things: how jobs are <strong>ranked</strong> in your feed
+            (title matches score 3×, company 2×, description 1×), and what gets sent as
+            search terms to sources that support filtering (Jobicy, Himalayas, Adzuna, JSearch).
+          </p>
+          <div class="jobs-kw-bar" style="margin-top:1rem">
+            <span class="jobs-kw-label">Keywords:</span>
+            <div id="jobs-kw-chips" class="jobs-kw-chips"></div>
+            <input type="text" id="jobs-kw-input" class="jobs-kw-input"
+                   placeholder="Type &amp; press Enter to add…" autocomplete="off" />
+          </div>
+        </div>
+
+        <!-- API Keys panel -->
+        <div class="dash-panel">
+          <div class="dash-panel-header">
+            <h3 class="dash-panel-title">API Keys</h3>
+          </div>
+          <p class="jss-desc">
+            Optional free keys that unlock additional sources.
+            Leaving a field blank keeps the existing saved key.
+            Click <strong>Remove</strong> to disable a source.
+          </p>
+
+          <div class="jss-api-cards">
+
+            <!-- Adzuna -->
+            <div class="jobs-api-card">
+              <div class="jobs-api-card-header">
+                <div>
+                  <span class="jobs-api-card-name">Adzuna</span>
+                  <span id="adzuna-status-badge" class="jobs-api-status-badge"></span>
+                </div>
+                <a href="https://developer.adzuna.com/signup" target="_blank" rel="noopener"
+                   class="jobs-api-link">Free signup →</a>
+              </div>
+              <ol class="api-hint-steps">
+                <li>Go to <strong>developer.adzuna.com/signup</strong> and create a free account</li>
+                <li>After login, open <strong>Access Details</strong> from the top menu</li>
+                <li>Copy your <strong>Application ID</strong> and <strong>Application Key</strong> below</li>
+              </ol>
+              <div class="jobs-api-inputs">
+                <div class="api-key-wrap">
+                  <input type="password" id="cfg-adzuna-id" class="form-control jobs-api-input"
+                         placeholder="Application ID" autocomplete="new-password" />
+                  <button type="button" class="api-eye-btn" onclick="toggleApiKeyVis('cfg-adzuna-id',this)" tabindex="-1">
+                    <i class="ph ph-eye"></i>
+                  </button>
+                </div>
+                <div class="api-key-wrap">
+                  <input type="password" id="cfg-adzuna-key" class="form-control jobs-api-input"
+                         placeholder="Application Key" autocomplete="new-password" />
+                  <button type="button" class="api-eye-btn" onclick="toggleApiKeyVis('cfg-adzuna-key',this)" tabindex="-1">
+                    <i class="ph ph-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="jobs-api-actions">
+                <button class="btn btn-primary btn-sm" onclick="saveAdzunaKey()">Save</button>
+                <button class="btn btn-ghost btn-sm" id="adzuna-clear-btn"
+                        onclick="clearAdzunaKey()" style="display:none">Remove</button>
+              </div>
+            </div>
+
+            <!-- JSearch (RapidAPI) -->
+            <div class="jobs-api-card">
+              <div class="jobs-api-card-header">
+                <div>
+                  <span class="jobs-api-card-name">JSearch</span>
+                  <small style="color:var(--color-text-muted)"> — LinkedIn + Indeed + Glassdoor</small>
+                  <span id="jsearch-status-badge" class="jobs-api-status-badge"></span>
+                </div>
+                <a href="https://rapidapi.com/letscrape-6bk1f2r/api/jsearch" target="_blank" rel="noopener"
+                   class="jobs-api-link">Free signup →</a>
+              </div>
+              <ol class="api-hint-steps">
+                <li>Go to <strong>rapidapi.com</strong> and create a free account</li>
+                <li>Visit the link above → click <strong>Subscribe to Test</strong> → choose <strong>Basic (free)</strong></li>
+                <li>Click the <strong>Test Endpoint</strong> tab — copy the <strong>X-RapidAPI-Key</strong> shown on the right</li>
+              </ol>
+              <div class="jobs-api-inputs">
+                <div class="api-key-wrap">
+                  <input type="password" id="cfg-rapidapi-key" class="form-control jobs-api-input"
+                         placeholder="X-RapidAPI-Key" autocomplete="new-password" />
+                  <button type="button" class="api-eye-btn" onclick="toggleApiKeyVis('cfg-rapidapi-key',this)" tabindex="-1">
+                    <i class="ph ph-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="jobs-api-actions">
+                <button class="btn btn-primary btn-sm" onclick="saveJSearchKey()">Save</button>
+                <button class="btn btn-ghost btn-sm" id="jsearch-clear-btn"
+                        onclick="clearJSearchKey()" style="display:none">Remove</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Scraper Behaviour panel -->
+        <div class="dash-panel" style="grid-column: 1 / -1">
+          <div class="dash-panel-header">
+            <h3 class="dash-panel-title">Scraper Behaviour</h3>
+          </div>
+          <div class="jss-behaviour-grid">
+
+            <!-- Interval + Max Age -->
+            <div class="jss-beh-group">
+              <label class="form-label">Scrape Interval</label>
+              <select id="cfg-interval" class="form-control" style="max-width:180px">
+                <option value="1">Every 1 hour</option>
+                <option value="3">Every 3 hours</option>
+                <option value="6" selected>Every 6 hours</option>
+                <option value="12">Every 12 hours</option>
+                <option value="24">Once a day</option>
+              </select>
+            </div>
+            <div class="jss-beh-group">
+              <label class="form-label">Max Job Age</label>
+              <select id="cfg-max-age" class="form-control" style="max-width:180px">
+                <option value="3">3 days</option>
+                <option value="7" selected>1 week</option>
+                <option value="14">2 weeks</option>
+                <option value="30">1 month</option>
+              </select>
+            </div>
+
+            <!-- Email alert -->
+            <div class="jss-beh-group">
+              <label class="form-label">Email Alert</label>
+              <label class="jss-toggle-label">
+                <input type="checkbox" id="cfg-alert-enabled" />
+                Notify me when new jobs are found
+              </label>
+              <div style="display:flex;align-items:center;gap:.5rem;margin-top:.4rem">
+                <span style="font-size:.8rem;color:var(--color-text-muted)">Minimum new jobs:</span>
+                <input type="number" id="cfg-alert-min" class="form-control"
+                       style="width:70px" min="1" max="100" value="5" />
+              </div>
+            </div>
+
+            <div class="jss-beh-group" style="align-self:end">
+              <button class="btn btn-primary btn-sm" onclick="saveBehaviourSettings()">Save</button>
+            </div>
+
+          </div>
+
+          <!-- Per-source toggles -->
+          <div style="margin-top:1.25rem">
+            <div class="form-label" style="margin-bottom:.6rem">Enable / Disable Sources</div>
+            <div id="source-toggles" class="jss-source-toggles"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </main>
+</div>
+
+<!-- Notes modal -->
+<div class="modal-overlay" id="notes-modal" onclick="if(event.target===this)closeNotesModal()">
+  <div class="modal-card" style="max-width:500px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="notes-modal-title">Notes</h3>
+      <button class="modal-close" onclick="closeNotesModal()">✕</button>
+    </div>
+    <div style="padding:1.25rem">
+      <textarea id="notes-modal-text" class="form-control"
+                style="min-height:140px;resize:vertical"
+                placeholder="Add notes about this job…"></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:.75rem">
+        <button class="btn btn-ghost btn-sm" onclick="closeNotesModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="saveJobNotes()">Save Notes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recruiter modal -->
+<div class="modal-overlay" id="recruiter-modal" onclick="if(event.target===this)closeRecruiterModal()">
+  <div class="modal-card" style="max-width:480px">
+    <div class="modal-header">
+      <h3 class="modal-title">Recruiter Contact</h3>
+      <button class="modal-close" onclick="closeRecruiterModal()">✕</button>
+    </div>
+    <div style="padding:1.25rem;display:flex;flex-direction:column;gap:.75rem">
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Name</label>
+        <input class="form-control" id="rec-name" placeholder="Recruiter name" />
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Email</label>
+        <input class="form-control" id="rec-email" type="email" placeholder="recruiter@company.com" />
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">LinkedIn</label>
+        <input class="form-control" id="rec-linkedin" placeholder="linkedin.com/in/name" />
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:.25rem">
+        <button class="btn btn-ghost btn-sm" onclick="closeRecruiterModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="saveJobRecruiter()">Save</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Modals would go here (simplified — full implementation in a real project) -->
@@ -4501,7 +5077,7 @@ function showSection(name) {
       experience:'Experience', services:'Services', architecture:'Architecture', messages:'Messages',
       profile:'Profile', cv:'CV / Resume', 'cv-builder':'CV Builder', social:'Social Links',
       mail:'Mail Settings', github:'GitHub Stats', footer:'Footer & Copyright',
-      account:'Account Settings' }[name] || name;
+      account:'Account Settings', jobs:'Job Posts', 'job-settings':'Scraper Settings' }[name] || name;
 
   // Lazy-load section data
   if (name === 'overview') loadOverview();
@@ -4521,6 +5097,8 @@ function showSection(name) {
     initCVBPreviewListeners();
     fillCVBuilderFromPortfolio();
   }
+  else if (name === 'jobs') { loadKeywords(); loadScrapeStatus(); loadJobStats(); loadProfileKeywords().then(loadJobs); }
+  else if (name === 'job-settings') { loadKeywords(); loadScraperSettings(); }
 }
 
 // Switches between the four sub-tabs inside the Profile section
@@ -10117,6 +10695,726 @@ async function submitExpForm(ev) {
     btn.classList.remove('loading'); btn.disabled = false;
   }
 }
+
+// ─── Job Posts ───────────────────────────────────────────────────────────────
+
+const _jobsState = {
+  source: '', q: '', bookmarked: false, applied: false,
+  keywords: [],   // user-defined priority keywords
+  allJobs: [],    // last fetched jobs (re-scored on keyword change without re-fetch)
+};
+let _jobsSearchTimer = null;
+
+(function initJobsSection() {
+  document.getElementById('btn-scrape-jobs')?.addEventListener('click', triggerJobScrape);
+
+  document.getElementById('jobs-filter-source')?.addEventListener('change', e => {
+    _jobsState.source = e.target.value;
+    loadJobs();
+  });
+
+  document.getElementById('jobs-filter-q')?.addEventListener('input', e => {
+    clearTimeout(_jobsSearchTimer);
+    _jobsSearchTimer = setTimeout(() => {
+      _jobsState.q = e.target.value.trim();
+      loadJobs();
+    }, 350);
+  });
+
+  document.getElementById('jobs-filter-bookmarked')?.addEventListener('change', e => {
+    _jobsState.bookmarked = e.target.checked;
+    loadJobs();
+  });
+
+  document.getElementById('jobs-filter-applied')?.addEventListener('change', e => {
+    _jobsState.applied = e.target.checked;
+    loadJobs();
+  });
+
+  // Keyword input: commit on Enter or comma
+  document.getElementById('jobs-kw-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const word = e.target.value.replace(',', '').trim();
+      if (word) { addJobKeyword(word); e.target.value = ''; }
+    }
+  });
+
+  // Keyword chip removal via event delegation (avoids inline onclick quoting issues)
+  document.getElementById('jobs-kw-chips')?.addEventListener('click', e => {
+    const btn = e.target.closest('.jobs-kw-chip-remove');
+    if (!btn) return;
+    removeJobKeyword(btn.closest('.jobs-kw-chip').dataset.kw);
+  });
+})();
+
+// ── API Key Settings ─────────────────────────────────────────────────────────
+
+async function loadScraperSettings() {
+  try {
+    const res = await API.get('/jobs/settings');
+    applyScraperSettings(res.data || {});
+  } catch (_) { /* non-critical */ }
+}
+
+function applyScraperSettings(data) {
+  const adzunaOk  = !!data.adzuna_configured;
+  const jsearchOk = !!data.jsearch_configured;
+
+  // Update status badges
+  const setBadge = (id, ok) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent    = ok ? '✓ configured' : '⚫ not set';
+    el.className      = 'jobs-api-status-badge ' + (ok ? 'ok' : 'off');
+  };
+  setBadge('adzuna-status-badge', adzunaOk);
+  setBadge('jsearch-status-badge', jsearchOk);
+
+  // Show / hide Remove buttons
+  const show = (id, visible) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = visible ? '' : 'none';
+  };
+  show('adzuna-clear-btn',  adzunaOk);
+  show('jsearch-clear-btn', jsearchOk);
+
+  // Restore field values from localStorage (persists across reloads)
+  _restoreApiKeyFields();
+
+  // Scraper behaviour fields
+  const intEl = document.getElementById('cfg-interval');
+  if (intEl && data.scrape_interval_hours) intEl.value = data.scrape_interval_hours;
+
+  const ageEl = document.getElementById('cfg-max-age');
+  if (ageEl && data.max_age_days) ageEl.value = data.max_age_days;
+
+  const alertEl = document.getElementById('cfg-alert-enabled');
+  if (alertEl) alertEl.checked = !!data.alert_enabled;
+
+  const minEl = document.getElementById('cfg-alert-min');
+  if (minEl && data.alert_min_new_jobs) minEl.value = data.alert_min_new_jobs;
+
+  _disabledSources = new Set(
+    (data.disabled_sources || '').split(',').map(s => s.trim()).filter(Boolean)
+  );
+  renderSourceToggles();
+}
+
+function _restoreApiKeyFields() {
+  const set = (id, key) => {
+    const el = document.getElementById(id);
+    if (el) el.value = localStorage.getItem(key) || '';
+  };
+  set('cfg-adzuna-id',    'scraper_adzuna_id');
+  set('cfg-adzuna-key',   'scraper_adzuna_key');
+  set('cfg-rapidapi-key', 'scraper_rapidapi_key');
+}
+
+function toggleApiKeyVis(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  btn.querySelector('i').className = show ? 'ph ph-eye-slash' : 'ph ph-eye';
+}
+
+async function saveAdzunaKey() {
+  const id  = document.getElementById('cfg-adzuna-id')?.value.trim();
+  const key = document.getElementById('cfg-adzuna-key')?.value.trim();
+  if (!id || !key) { Toast.show('Both App ID and App Key are required', 'error'); return; }
+  try {
+    await API.put('/jobs/settings', { adzuna_app_id: id, adzuna_app_key: key });
+    localStorage.setItem('scraper_adzuna_id',  id);
+    localStorage.setItem('scraper_adzuna_key', key);
+    Toast.show('Adzuna key saved', 'success');
+    loadScraperSettings();
+    loadScrapeStatus();
+  } catch (err) { Toast.show(err.message, 'error'); }
+}
+
+async function clearAdzunaKey() {
+  if (!confirm('Remove Adzuna API keys?')) return;
+  try {
+    await API.put('/jobs/settings', { clear_adzuna: true });
+    localStorage.removeItem('scraper_adzuna_id');
+    localStorage.removeItem('scraper_adzuna_key');
+    document.getElementById('cfg-adzuna-id').value  = '';
+    document.getElementById('cfg-adzuna-key').value = '';
+    Toast.show('Adzuna keys removed', 'success');
+    loadScraperSettings();
+    loadScrapeStatus();
+  } catch (err) { Toast.show(err.message, 'error'); }
+}
+
+async function saveJSearchKey() {
+  const key = document.getElementById('cfg-rapidapi-key')?.value.trim();
+  if (!key) { Toast.show('RapidAPI key is required', 'error'); return; }
+  try {
+    await API.put('/jobs/settings', { rapidapi_key: key });
+    localStorage.setItem('scraper_rapidapi_key', key);
+    Toast.show('JSearch key saved', 'success');
+    loadScraperSettings();
+    loadScrapeStatus();
+  } catch (err) { Toast.show(err.message, 'error'); }
+}
+
+async function clearJSearchKey() {
+  if (!confirm('Remove JSearch (RapidAPI) key?')) return;
+  try {
+    await API.put('/jobs/settings', { clear_jsearch: true });
+    localStorage.removeItem('scraper_rapidapi_key');
+    document.getElementById('cfg-rapidapi-key').value = '';
+    Toast.show('JSearch key removed', 'success');
+    loadScraperSettings();
+    loadScrapeStatus();
+  } catch (err) { Toast.show(err.message, 'error'); }
+}
+
+// ── Source health panel ───────────────────────────────────────────────────────
+
+async function loadScrapeStatus() {
+  try {
+    const res = await API.get('/jobs/scrape-status');
+    renderSourcesPanel(res.data || []);
+  } catch (_) { /* non-critical */ }
+}
+
+function renderSourcesPanel(sources) {
+  const panel = document.getElementById('jobs-sources-panel');
+  if (!panel) return;
+
+  const SOURCE_LABELS = {
+    remoteok: 'RemoteOK', remotive: 'Remotive', weworkremotely: 'WWR',
+    arbeitnow: 'Arbeitnow', jobicy: 'Jobicy', himalayas: 'Himalayas',
+    themuse: 'The Muse', remoteco: 'Remote.co', jobspresso: 'Jobspresso',
+    authenticjobs: 'Authentic Jobs', adzuna: 'Adzuna', jsearch: 'JSearch',
+  };
+
+  panel.innerHTML = sources.map(s => {
+    if (!s.configured) {
+      return `<span class="jobs-src-pill" title="${escJobs(SOURCE_LABELS[s.name] || s.name)}: API key not set — see plan">
+        <span class="jobs-src-dot grey"></span>${escJobs(SOURCE_LABELS[s.name] || s.name)}
+      </span>`;
+    }
+    if (!s.last_log) {
+      return `<span class="jobs-src-pill" title="${escJobs(SOURCE_LABELS[s.name] || s.name)}: never scraped">
+        <span class="jobs-src-dot grey"></span>${escJobs(SOURCE_LABELS[s.name] || s.name)}
+      </span>`;
+    }
+    const log = s.last_log;
+    const dot  = log.error_msg ? 'red' : log.jobs_found === 0 ? 'yellow' : 'green';
+    const age  = jobRelativeDate(log.scraped_at);
+    const tip  = log.error_msg
+      ? `Error: ${log.error_msg}`
+      : `${log.jobs_found} found, ${log.jobs_added} new · ${age}`;
+    return `<span class="jobs-src-pill" title="${escJobs(tip)}">
+      <span class="jobs-src-dot ${dot}"></span>${escJobs(SOURCE_LABELS[s.name] || s.name)}
+    </span>`;
+  }).join('');
+}
+
+// ── Keywords ─────────────────────────────────────────────────────────────────
+
+async function loadKeywords() {
+  try {
+    const res = await API.get('/jobs/keywords');
+    _jobsState.keywords = res.data || [];
+    renderKeywordChips();
+    // If jobs already loaded, re-sort with the just-fetched keywords
+    if (_jobsState.allJobs.length) renderJobs();
+  } catch (_) { /* keywords are a nice-to-have; silent fail is fine */ }
+}
+
+function renderKeywordChips() {
+  const container = document.getElementById('jobs-kw-chips');
+  if (!container) return;
+  container.innerHTML = _jobsState.keywords.map(kw =>
+    `<span class="jobs-kw-chip" data-kw="${escJobs(kw)}">
+      ${escJobs(kw)}
+      <button class="jobs-kw-chip-remove" title="Remove">×</button>
+    </span>`
+  ).join('');
+}
+
+function addJobKeyword(word) {
+  word = word.trim().toLowerCase();
+  if (!word || _jobsState.keywords.includes(word)) return;
+  _jobsState.keywords.push(word);
+  renderKeywordChips();
+  saveKeywords();
+  renderJobs();
+}
+
+function removeJobKeyword(word) {
+  _jobsState.keywords = _jobsState.keywords.filter(k => k !== word);
+  renderKeywordChips();
+  saveKeywords();
+  renderJobs();
+}
+
+async function saveKeywords() {
+  try {
+    await API.put('/jobs/keywords', { keywords: _jobsState.keywords });
+  } catch (_) { /* silent — scoring still works locally even if save fails */ }
+}
+
+// ── Scoring ───────────────────────────────────────────────────────────────────
+
+// Returns a relevance score for a job against the current keyword list.
+// Title matches score highest (3), company next (2), then location / description (1 each).
+function scoreJob(job) {
+  if (!_jobsState.keywords.length) return 0;
+  const fields = [
+    { text: (job.title       || '').toLowerCase(), w: 3 },
+    { text: (job.company     || '').toLowerCase(), w: 2 },
+    { text: (job.location    || '').toLowerCase(), w: 1 },
+    { text: (job.description || '').toLowerCase(), w: 1 },
+  ];
+  let score = 0;
+  for (const kw of _jobsState.keywords) {
+    const k = kw.toLowerCase();
+    for (const { text, w } of fields) {
+      if (text.includes(k)) score += w;
+    }
+  }
+  return score;
+}
+
+// ── Jobs fetch / render ───────────────────────────────────────────────────────
+
+async function loadJobs() {
+  const grid    = document.getElementById('jobs-grid');
+  const loading = document.getElementById('jobs-loading');
+  const empty   = document.getElementById('jobs-empty');
+
+  grid.style.display = 'none';
+  empty.style.display = 'none';
+  loading.style.display = 'block';
+
+  try {
+    const params = new URLSearchParams();
+    if (_jobsState.source)     params.set('source', _jobsState.source);
+    if (_jobsState.q)          params.set('q', _jobsState.q);
+    if (_jobsState.bookmarked) params.set('bookmarked', 'true');
+    if (_jobsState.applied)    params.set('applied', 'true');
+
+    const res = await API.get('/jobs?' + params.toString());
+    _jobsState.allJobs = res.data || [];
+  } catch (err) {
+    loading.style.display = 'none';
+    empty.innerHTML = `<span style="color:var(--color-error)">${escJobs(err.message)}</span>`;
+    empty.style.display = 'block';
+    return;
+  }
+
+  renderJobs();
+}
+
+// renderJobs scores, sorts, and re-renders from _jobsState.allJobs.
+// Called by loadJobs() after fetch AND directly when keywords change.
+function renderJobs() {
+  const grid    = document.getElementById('jobs-grid');
+  const loading = document.getElementById('jobs-loading');
+  const empty   = document.getElementById('jobs-empty');
+
+  loading.style.display = 'none';
+
+  if (!_jobsState.allJobs.length) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    empty.innerHTML = 'No jobs found. Click <strong>Scrape Now</strong> to fetch the latest listings.';
+    return;
+  }
+
+  // Pre-compute scores once, then sort
+  const scored = _jobsState.allJobs.map(job => ({ job, score: scoreJob(job) }));
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;           // higher score first
+    return new Date(b.job.posted_at) - new Date(a.job.posted_at); // newer first within same score
+  });
+
+  grid.innerHTML = scored.map(({ job, score }) => buildJobCard(job, score)).join('');
+  grid.style.display = 'grid';
+  empty.style.display = 'none';
+}
+
+async function triggerJobScrape() {
+  const btn = document.getElementById('btn-scrape-jobs');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ph ph-spinner"></i> Scraping…';
+  try {
+    await API.post('/jobs/scrape', {});
+    Toast.show('Scraping in background — refreshing in 5 s…', 'success');
+    setTimeout(() => { loadScrapeStatus(); loadJobStats(); loadJobs(); }, 5000);
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ph ph-arrows-clockwise"></i> Scrape Now';
+  }
+}
+
+async function jobToggleBookmark(id, btn) {
+  try {
+    await API.put(`/jobs/${id}/bookmark`, {});
+    // Update stored state so re-renders keep the correct flag
+    const job = _jobsState.allJobs.find(j => j.id === id);
+    if (job) job.is_bookmarked = !job.is_bookmarked;
+    // Optimistic DOM update — no full re-render needed
+    const icon = btn.querySelector('i');
+    const active = btn.classList.toggle('active');
+    icon.className = active ? 'ph ph-bookmark-fill' : 'ph ph-bookmark';
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  }
+}
+
+async function jobToggleApplied(id, checkbox) {
+  try {
+    await API.put(`/jobs/${id}/apply`, {});
+    const job = _jobsState.allJobs.find(j => j.id === id);
+    if (job) job.is_applied = !job.is_applied;
+  } catch (err) {
+    checkbox.checked = !checkbox.checked; // revert on failure
+    Toast.show(err.message, 'error');
+  }
+}
+
+async function jobDelete(id) {
+  if (!confirm('Hide this job?')) return;
+  try {
+    await API.delete(`/jobs/${id}`);
+    // Remove from state so keyword re-sorts don't bring it back
+    _jobsState.allJobs = _jobsState.allJobs.filter(j => j.id !== id);
+    renderJobs();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  }
+}
+
+// Safe HTML escaping for interpolated job data
+function escJobs(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function jobRelativeDate(iso) {
+  if (!iso) return '—';
+  const diff = Date.now() - new Date(iso).getTime();
+  const d = Math.floor(diff / 86400000);
+  if (d === 0) return 'today';
+  if (d === 1) return 'yesterday';
+  if (d < 7)  return `${d} days ago`;
+  if (d < 30) return `${Math.floor(d / 7)}w ago`;
+  return `${Math.floor(d / 30)}mo ago`;
+}
+
+// ─── Stats bar ────────────────────────────────────────────────────────────────
+
+async function loadJobStats() {
+  try {
+    const res = await API.get('/jobs/stats');
+    renderJobStatsBar(res.data || {});
+  } catch (_) {}
+}
+
+function renderJobStatsBar(s) {
+  const bar = document.getElementById('jobs-stats-bar');
+  if (!bar) return;
+  const pill = (cls, icon, label, val) =>
+    `<span class="jobs-stat-pill ${cls}">${icon} ${label}: <span class="stat-num">${val}</span></span>`;
+  bar.innerHTML = [
+    pill('',         '📥', 'Today',      s.new_today      ?? 0),
+    pill('',         '📅', 'This week',  s.new_this_week  ?? 0),
+    pill('',         '🔖', 'Saved',      s.saved          ?? 0),
+    pill('applied',  '✉',  'Applied',    s.applied        ?? 0),
+    pill('interview','📋', 'Interviews', s.interviewing   ?? 0),
+    pill('offered',  '🏆', 'Offers',     s.offered        ?? 0),
+    pill('rejected', '✗',  'Rejected',   s.rejected       ?? 0),
+  ].join('');
+}
+
+// ─── View toggle (List / Pipeline) ───────────────────────────────────────────
+
+let _currentJobsView = 'list';
+
+function switchJobsView(view) {
+  _currentJobsView = view;
+  document.getElementById('jobs-list-view').style.display     = view === 'list'     ? '' : 'none';
+  document.getElementById('jobs-pipeline-view').style.display = view === 'pipeline' ? '' : 'none';
+  document.getElementById('btn-view-list')    .classList.toggle('active', view === 'list');
+  document.getElementById('btn-view-pipeline').classList.toggle('active', view === 'pipeline');
+  if (view === 'pipeline') renderPipeline();
+}
+
+// ─── Pipeline / Kanban ────────────────────────────────────────────────────────
+
+const PIPELINE_COLS = [
+  { key: 'new',          label: 'New' },
+  { key: 'applied',      label: 'Applied' },
+  { key: 'interviewing', label: 'Interviewing' },
+  { key: 'offered',      label: 'Offered' },
+  { key: 'rejected',     label: 'Rejected / Withdrawn' },
+];
+
+function renderPipeline() {
+  const board = document.getElementById('pipeline-board');
+  if (!board) return;
+  const grouped = {};
+  PIPELINE_COLS.forEach(c => grouped[c.key] = []);
+  _jobsState.allJobs.forEach(j => {
+    const key = j.status || 'new';
+    if (grouped[key] !== undefined) grouped[key].push(j);
+    else grouped['new'].push(j);
+  });
+
+  board.innerHTML = PIPELINE_COLS.map(col => `
+    <div class="pipeline-col">
+      <div class="pipeline-col-header">
+        <span>${col.label}</span>
+        <span class="pipeline-col-count">${grouped[col.key].length}</span>
+      </div>
+      ${grouped[col.key].map(job => `
+        <div class="pipeline-card" title="${escJobs(job.company)} — ${escJobs(job.source)}">
+          <div class="pipeline-card-title">${escJobs(job.title)}</div>
+          <div class="pipeline-card-company">${escJobs(job.company)}</div>
+          <div class="pipeline-card-src">${escJobs(job.source)} · ${jobRelativeDate(job.posted_at)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// ─── Match score (profile-aware) ─────────────────────────────────────────────
+
+let _profileKeywords = [];
+
+async function loadProfileKeywords() {
+  try {
+    const [profileRes, skillsRes] = await Promise.all([
+      API.get('/profile'),
+      API.get('/skills'),
+    ]);
+    const words = new Set(_jobsState.keywords.map(k => k.toLowerCase()));
+    if (profileRes.data?.title) {
+      profileRes.data.title.toLowerCase().split(/\s+/).forEach(w => words.add(w));
+    }
+    (skillsRes.data || []).forEach(s => {
+      if (s.name) s.name.toLowerCase().split(/[\s/]+/).forEach(w => words.add(w));
+    });
+    _profileKeywords = [...words].filter(w => w.length > 2);
+  } catch (_) {}
+}
+
+function matchPercent(job) {
+  if (!_profileKeywords.length) return 0;
+  const text = `${job.title} ${job.company} ${job.description}`.toLowerCase();
+  const hits = _profileKeywords.filter(k => text.includes(k)).length;
+  return Math.min(100, Math.round((hits / _profileKeywords.length) * 100));
+}
+
+// ─── Enhanced buildJobCard ────────────────────────────────────────────────────
+
+function buildJobCard(job, score) {
+  const postedLabel   = jobRelativeDate(job.posted_at);
+  const srcClass      = escJobs(job.source);
+  const bookmarkIcon  = job.is_bookmarked ? 'ph-bookmark-fill' : 'ph-bookmark';
+  const bookmarkCls   = job.is_bookmarked ? ' active' : '';
+  const appliedChk    = job.is_applied ? 'checked' : '';
+  const matchBadge    = score > 0
+    ? `<span class="jobs-match-badge" title="Keyword relevance score">★ ${score}</span>` : '';
+
+  const pct    = matchPercent(job);
+  const pctCls = pct >= 60 ? 'hi' : pct >= 30 ? 'mid' : 'lo';
+  const pctBadge = pct > 0
+    ? `<span class="job-match-pct ${pctCls}" title="Profile match">${pct}% match</span>` : '';
+
+  const status  = job.status || 'new';
+  const statusCls = `s-${status}`;
+
+  const hasNotes     = !!(job.notes);
+  const hasRecruiter = !!(job.recruiter_name || job.recruiter_email);
+
+  return `<div class="job-card${score > 0 ? ' has-match' : ''}" data-id="${job.id}">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="job-source-badge ${srcClass}">${srcClass}</span>
+      <div style="display:flex;gap:.3rem;align-items:center">${matchBadge}${pctBadge}</div>
+    </div>
+    <div class="job-card-title">${escJobs(job.title)}</div>
+    <div class="job-card-company">${escJobs(job.company)}</div>
+    <div class="job-card-meta">
+      ${job.location ? `<span><i class="ph ph-map-pin"></i> ${escJobs(job.location)}</span>` : ''}
+      ${job.job_type ? `<span><i class="ph ph-briefcase"></i> ${escJobs(job.job_type)}</span>` : ''}
+      <span><i class="ph ph-clock"></i> ${postedLabel}</span>
+    </div>
+    ${job.description ? `<div class="job-card-desc">${escJobs(job.description)}</div>` : ''}
+    <div class="job-card-actions">
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <button class="job-action-btn${bookmarkCls}" title="Bookmark"
+          onclick="jobToggleBookmark(${job.id},this)">
+          <i class="ph ${bookmarkIcon}"></i>
+        </button>
+        <label class="job-applied-label" title="Mark as applied">
+          <input type="checkbox" ${appliedChk} onchange="jobToggleApplied(${job.id},this)" />
+          Applied
+        </label>
+        <button class="job-action-btn" title="Hide" onclick="jobDelete(${job.id})">
+          <i class="ph ph-trash"></i>
+        </button>
+      </div>
+      <a href="${escJobs(job.url)}" target="_blank" rel="noopener" class="job-view-link">
+        View <i class="ph ph-arrow-up-right"></i>
+      </a>
+    </div>
+    <div class="job-card-footer">
+      <select class="job-status-select ${statusCls}" onchange="jobUpdateStatus(${job.id},this)">
+        <option value="new"         ${status==='new'         ?'selected':''}>New</option>
+        <option value="saved"       ${status==='saved'       ?'selected':''}>Saved</option>
+        <option value="applied"     ${status==='applied'     ?'selected':''}>Applied</option>
+        <option value="interviewing"${status==='interviewing'?'selected':''}>Interviewing</option>
+        <option value="offered"     ${status==='offered'     ?'selected':''}>Offered 🏆</option>
+        <option value="rejected"    ${status==='rejected'    ?'selected':''}>Rejected</option>
+        <option value="withdrawn"   ${status==='withdrawn'   ?'selected':''}>Withdrawn</option>
+      </select>
+      <div class="job-footer-actions">
+        <button class="job-icon-btn ${hasNotes?'has-data':''}" title="Notes"
+          onclick="openNotesModal(${job.id})"><i class="ph ph-note-pencil"></i></button>
+        <button class="job-icon-btn ${hasRecruiter?'has-data':''}" title="Recruiter"
+          onclick="openRecruiterModal(${job.id})"><i class="ph ph-user-circle"></i></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── Status update ────────────────────────────────────────────────────────────
+
+async function jobUpdateStatus(id, select) {
+  const status = select.value;
+  // Reset colour class
+  select.className = `job-status-select s-${status}`;
+  const body = { status };
+  if (status === 'applied') body.applied_at = new Date().toISOString();
+  try {
+    await API.put(`/jobs/${id}/status`, body);
+    const job = _jobsState.allJobs.find(j => j.id === id);
+    if (job) { job.status = status; if (status==='applied') job.applied_at = body.applied_at; }
+    loadJobStats();
+    if (_currentJobsView === 'pipeline') renderPipeline();
+  } catch (err) { Toast.show(err.message, 'error'); }
+}
+
+// ─── Notes modal ─────────────────────────────────────────────────────────────
+
+let _notesJobId = null;
+
+function openNotesModal(id) {
+  _notesJobId = id;
+  const job = _jobsState.allJobs.find(j => j.id === id);
+  document.getElementById('notes-modal-title').textContent = job ? escJobs(job.title) : 'Notes';
+  document.getElementById('notes-modal-text').value = job?.notes || '';
+  document.getElementById('notes-modal').classList.add('active');
+}
+
+function closeNotesModal() {
+  document.getElementById('notes-modal').classList.remove('active');
+  _notesJobId = null;
+}
+
+async function saveJobNotes() {
+  if (!_notesJobId) return;
+  const notes = document.getElementById('notes-modal-text').value;
+  try {
+    await API.put(`/jobs/${_notesJobId}/notes`, { notes });
+    const job = _jobsState.allJobs.find(j => j.id === _notesJobId);
+    if (job) job.notes = notes;
+    closeNotesModal();
+    renderJobs();
+    Toast.show('Notes saved', 'success');
+  } catch (err) { Toast.show(err.message, 'error'); }
+}
+
+// ─── Recruiter modal ──────────────────────────────────────────────────────────
+
+let _recruiterJobId = null;
+
+function openRecruiterModal(id) {
+  _recruiterJobId = id;
+  const job = _jobsState.allJobs.find(j => j.id === id);
+  document.getElementById('rec-name').value     = job?.recruiter_name     || '';
+  document.getElementById('rec-email').value    = job?.recruiter_email    || '';
+  document.getElementById('rec-linkedin').value = job?.recruiter_linkedin || '';
+  document.getElementById('recruiter-modal').classList.add('active');
+}
+
+function closeRecruiterModal() {
+  document.getElementById('recruiter-modal').classList.remove('active');
+  _recruiterJobId = null;
+}
+
+async function saveJobRecruiter() {
+  if (!_recruiterJobId) return;
+  const name     = document.getElementById('rec-name').value.trim();
+  const email    = document.getElementById('rec-email').value.trim();
+  const linkedin = document.getElementById('rec-linkedin').value.trim();
+  try {
+    await API.put(`/jobs/${_recruiterJobId}/recruiter`, { name, email, linkedin });
+    const job = _jobsState.allJobs.find(j => j.id === _recruiterJobId);
+    if (job) { job.recruiter_name=name; job.recruiter_email=email; job.recruiter_linkedin=linkedin; }
+    closeRecruiterModal();
+    renderJobs();
+    Toast.show('Recruiter saved', 'success');
+  } catch (err) { Toast.show(err.message, 'error'); }
+}
+
+// ─── Scraper Behaviour Settings ───────────────────────────────────────────────
+
+const ALL_SOURCES = [
+  'remoteok','remotive','weworkremotely','arbeitnow','jobicy',
+  'himalayas','themuse','remoteco','jobspresso','authenticjobs',
+  'adzuna','jsearch',
+];
+let _disabledSources = new Set();
+
+function renderSourceToggles() {
+  const wrap = document.getElementById('source-toggles');
+  if (!wrap) return;
+  wrap.innerHTML = ALL_SOURCES.map(src => {
+    const on = !_disabledSources.has(src);
+    return `<span class="jss-src-toggle ${on?'enabled':'disabled'}"
+              onclick="toggleSource('${src}')">${src}</span>`;
+  }).join('');
+}
+
+function toggleSource(src) {
+  if (_disabledSources.has(src)) _disabledSources.delete(src);
+  else _disabledSources.add(src);
+  renderSourceToggles();
+}
+
+async function saveBehaviourSettings() {
+  const interval = parseInt(document.getElementById('cfg-interval')?.value) || 6;
+  const maxAge   = parseInt(document.getElementById('cfg-max-age')?.value)   || 7;
+  const alertEnabled  = document.getElementById('cfg-alert-enabled')?.checked ?? false;
+  const alertMin      = parseInt(document.getElementById('cfg-alert-min')?.value) || 5;
+  const disabledStr   = [..._disabledSources].join(',');
+  try {
+    await API.put('/jobs/settings', {
+      scrape_interval_hours: interval,
+      max_age_days:          maxAge,
+      disabled_sources:      disabledStr,
+      alert_enabled:         alertEnabled,
+      alert_min_new_jobs:    alertMin,
+    });
+    Toast.show('Settings saved', 'success');
+  } catch (err) { Toast.show(err.message, 'error'); }
+}
+
+
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
