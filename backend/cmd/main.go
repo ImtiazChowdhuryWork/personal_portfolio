@@ -68,6 +68,10 @@ func main() {
 		&models.CVFile{},
 		&models.Service{},
 		&models.Architecture{},
+		&models.JobPost{},
+		&models.JobKeyword{},
+		&models.JobScrapeLog{},
+		&models.ScraperSettings{},
 	); err != nil {
 		log.Fatal("Database migration failed: ", err)
 	}

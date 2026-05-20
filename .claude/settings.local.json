@@ -92,7 +92,8 @@
       "Bash(powershell *)",
       "Bash(go env *)",
       "Bash(grep -r \"func.*Height\\\\|func.*Page\" \"$\\(go env GOPATH\\)/pkg/mod/github.com/jung-kurt/gofpdf\"*/*.go)",
-      "Bash(go doc *)"
+      "Bash(go doc *)",
+      "WebSearch"
     ]
   }
 }

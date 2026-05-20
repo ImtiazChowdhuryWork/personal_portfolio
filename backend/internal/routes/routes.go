@@ -12,12 +12,15 @@
 package routes
 
 import (
+	"context"
 	"imtiaz-portfolio/config"
 	"imtiaz-portfolio/internal/handlers"
 	"imtiaz-portfolio/internal/middleware"
 	"imtiaz-portfolio/internal/services"
 	"net/http"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -131,6 +134,14 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	uploadHandler := handlers.NewUploadHandler(uploadSvc)
 	statsHandler := handlers.NewStatsHandler(db)
 	sseHandler := handlers.NewSSEHandler(broker, cfg)
+	jobSvc := services.NewJobService(db)
+	scraperSvc := services.NewJobScraperService(db, jobSvc, profileSvc, emailSvc, services.ScraperConfig{
+		Keywords:     splitKeywords(cfg.JobSearchKeywords),
+		AdzunaAppID:  cfg.AdzunaAppID,
+		AdzunaAppKey: cfg.AdzunaAppKey,
+		RapidAPIKey:  cfg.RapidAPIKey,
+	})
+	jobHandler := handlers.NewJobHandler(jobSvc, scraperSvc)
 
 	// ─── Step 5: API version prefix ───────────────────────────
 	// All routes are under /api/v1/ — adding v2 later won't break existing clients
@@ -241,6 +252,45 @@ func Setup(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 	// File uploads (images, CV PDF — dashboard only)
 	protected.POST("/upload", uploadHandler.Upload)
 
+	// Job Post Scraper — static routes before wildcard (:id) routes
+	protected.GET("/jobs",               jobHandler.GetJobs)
+	protected.POST("/jobs/scrape",       jobHandler.TriggerScrape)
+	protected.GET("/jobs/scrape-status", jobHandler.GetScrapeStatus)
+	protected.GET("/jobs/stats",         jobHandler.GetStats)
+	protected.GET("/jobs/settings",      jobHandler.GetScraperSettings)
+	protected.PUT("/jobs/settings",      jobHandler.SaveScraperSettings)
+	protected.GET("/jobs/keywords",      jobHandler.GetKeywords)
+	protected.PUT("/jobs/keywords",      jobHandler.SetKeywords)
+	protected.PUT("/jobs/:id/bookmark",  jobHandler.ToggleBookmark)
+	protected.PUT("/jobs/:id/apply",     jobHandler.MarkApplied)
+	protected.PUT("/jobs/:id/status",    jobHandler.UpdateStatus)
+	protected.PUT("/jobs/:id/notes",     jobHandler.UpdateNotes)
+	protected.PUT("/jobs/:id/recruiter", jobHandler.UpdateRecruiter)
+	protected.DELETE("/jobs/:id",        jobHandler.DeleteJob)
+
 	// Dashboard statistics overview card counts
 	protected.GET("/stats", statsHandler.GetStats)
+
+	// Auto-scrape on a configurable interval (re-reads interval from DB after each run)
+	go func() {
+		for {
+			hours := scraperSvc.ScrapeIntervalHours()
+			time.Sleep(time.Duration(hours) * time.Hour)
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+			scraperSvc.ScrapeAll(ctx)
+			cancel()
+		}
+	}()
+}
+
+// splitKeywords parses "flutter,dart,mobile developer" into a cleaned slice.
+func splitKeywords(raw string) []string {
+	var out []string
+	for _, k := range strings.Split(raw, ",") {
+		k = strings.TrimSpace(k)
+		if k != "" {
+			out = append(out, k)
+		}
+	}
+	return out
 }
